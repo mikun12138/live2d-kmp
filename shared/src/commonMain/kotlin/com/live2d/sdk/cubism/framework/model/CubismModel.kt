@@ -7,16 +7,6 @@
 package com.live2d.sdk.cubism.framework.model
 
 import com.live2d.sdk.cubism.core.CubismDrawableFlag
-import com.live2d.sdk.cubism.core.CubismDrawableFlag.ConstantFlag.BLEND_ADDITIVE
-import com.live2d.sdk.cubism.core.CubismDrawableFlag.ConstantFlag.BLEND_MULTIPLICATIVE
-import com.live2d.sdk.cubism.core.CubismDrawableFlag.ConstantFlag.IS_INVERTED_MASK
-import com.live2d.sdk.cubism.core.CubismDrawableFlag.DynamicFlag.BLEND_COLOR_DID_CHANGE
-import com.live2d.sdk.cubism.core.CubismDrawableFlag.DynamicFlag.DRAW_ORDER_DID_CHANGE
-import com.live2d.sdk.cubism.core.CubismDrawableFlag.DynamicFlag.IS_VISIBLE
-import com.live2d.sdk.cubism.core.CubismDrawableFlag.DynamicFlag.OPACITY_DID_CHANGE
-import com.live2d.sdk.cubism.core.CubismDrawableFlag.DynamicFlag.RENDER_ORDER_DID_CHANGE
-import com.live2d.sdk.cubism.core.CubismDrawableFlag.DynamicFlag.VERTEX_POSITIONS_DID_CHANGE
-import com.live2d.sdk.cubism.core.CubismDrawableFlag.DynamicFlag.VISIBILITY_DID_CHANGE
 import com.live2d.sdk.cubism.core.CubismDrawableView
 import com.live2d.sdk.cubism.core.CubismModel
 import com.live2d.sdk.cubism.core.CubismParameterView
@@ -26,8 +16,8 @@ import com.live2d.sdk.cubism.framework.rendering.CubismRenderer
 
 class CubismModel {
     lateinit var model: CubismModel
-    fun init(moc: CubismMoc) {
-        model = CubismModel().init(moc.moc)
+    fun init(model: CubismModel): com.live2d.sdk.cubism.framework.model.CubismModel {
+        this.model = model
 
         // MultiplyColors
         val mutiplyColor: CubismRenderer.CubismTextureColor = CubismRenderer.CubismTextureColor(
@@ -75,6 +65,8 @@ class CubismModel {
                 PartColorData(screenColor)
             }
         }
+
+        return this
     }
 
     fun close() {

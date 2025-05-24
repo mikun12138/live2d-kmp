@@ -171,7 +171,7 @@ internal class CubismMotionInternal {
         /**
          * number of UserData
          */
-        var eventCount: Int = 0
+        var userDataCount: Int = 0
 
         /**
          * framerate per second
@@ -181,22 +181,22 @@ internal class CubismMotionInternal {
         /**
          * list of curves
          */
-        var curves: MutableList<CubismMotionCurve> = ArrayList<CubismMotionCurve?>()
+        var curves: MutableList<CubismMotionCurve> = mutableListOf()
 
         /**
          * list of segments
          */
-        var segments: MutableList<CubismMotionSegment> = ArrayList<CubismMotionSegment?>()
+        var segments: MutableList<CubismMotionSegment> = mutableListOf()
 
         /**
          * list of points
          */
-        var points: MutableList<CubismMotionPoint> = ArrayList<CubismMotionPoint?>()
+        var points: MutableList<CubismMotionPoint> = mutableListOf()
 
         /**
          * list of events
          */
-        var events: MutableList<CubismMotionEvent> = ArrayList<CubismMotionEvent?>()
+        var events: MutableList<CubismMotionEvent> = mutableListOf()
     }
 
     /**

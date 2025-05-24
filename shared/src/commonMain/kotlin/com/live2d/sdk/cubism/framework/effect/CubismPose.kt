@@ -326,8 +326,7 @@ class CubismPose {
          */
         fun create(pose3json: ByteArray?): CubismPose {
             val pose = CubismPose()
-            val json: CubismJson
-            json = CubismJson.create(pose3json!!)
+            val json: CubismJson = CubismJson.create(pose3json!!)
 
             val root = json.root
             val rootMap: MutableMap<CubismJsonString?, ACubismJsonValue?>? = root.map

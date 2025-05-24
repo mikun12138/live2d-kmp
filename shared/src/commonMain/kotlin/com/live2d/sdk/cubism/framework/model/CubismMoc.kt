@@ -15,16 +15,9 @@ import java.text.ParseException
  */
 class CubismMoc {
     lateinit var moc: com.live2d.sdk.cubism.core.CubismMoc
-    /**
-     * Create a model.
-     *
-     * @return the model created from Moc data
-     */
     fun initModel(): CubismModel? {
         return moc.initModel()?.let {
-            CubismModel(it).apply {
-                this.init()
-            }
+            CubismModel().init(it)
         } ?: run {
             // TODO:: fix log
             cubismLogError("failed to init model: $this")
@@ -50,18 +43,10 @@ class CubismMoc {
             return null
         }
 
-        this.mocVersion = Live2DCubismCore.getMocVersion(mocBytes)
-
         return this
     }
 
     fun close() {
         moc.close()
     }
-
-    /**
-     * .moc3 version of the loaded model
-     */
-    var mocVersion: Int = 0
-        private set
 }

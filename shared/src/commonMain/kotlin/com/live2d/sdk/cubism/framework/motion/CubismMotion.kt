@@ -718,7 +718,7 @@ class CubismMotion : ACubismMotion() {
         motionData.isLooped = json.meta.loop
         motionData.curveCount = json.meta.curveCount
         motionData.fps = json.meta.fps
-        motionData.eventCount = json.meta.userDataCount
+        motionData.userDataCount = json.meta.userDataCount
 
         val areBeziersRestricted: Boolean =
             json.meta.areBeziersRestricted
@@ -751,8 +751,8 @@ class CubismMotion : ACubismMotion() {
             motionData.points.add(CubismMotionPoint())
         }
 
-        motionData.events = ArrayList<CubismMotionEvent>(motionData.eventCount)
-        repeat(motionData.eventCount) {
+        motionData.events = ArrayList<CubismMotionEvent>(motionData.userDataCount)
+        repeat(motionData.userDataCount) {
             motionData.events.add(CubismMotionEvent())
         }
 

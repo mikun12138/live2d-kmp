@@ -6,7 +6,8 @@
  */
 package com.live2d.sdk.cubism.framework.id
 
-data class CubismId(
+@ConsistentCopyVisibility
+data class CubismId internal constructor(
     val id: String
 ) {
     override fun toString(): String {
