@@ -46,8 +46,8 @@ class CubismModelUserData {
          */
         init {
             requireNotNull(value) { "value is null." }
-            this.targetType = idManager!!.getId(targetType)
-            this.targetId = idManager!!.getId(targetId)
+            this.targetType = idManager!!.id(targetType)
+            this.targetId = idManager!!.id(targetId)
             this.value = value
         }
     }
@@ -89,11 +89,11 @@ class CubismModelUserData {
         val userdata3Json: CubismModelUserDataJson?
         userdata3Json = CubismModelUserDataJson(buffer)
 
-        val artMeshType = idManager!!.getId(ART_MESH)
+        val artMeshType = idManager!!.id(ART_MESH)
         val nodeCount = userdata3Json.userDataCount
 
         for (i in 0..<nodeCount) {
-            val targetType = idManager!!.getId(userdata3Json.getUserDataTargetType(i)!!)
+            val targetType = idManager!!.id(userdata3Json.getUserDataTargetType(i)!!)
             val targetId = userdata3Json.getUserDataId(i)
             val value = userdata3Json.getUserDataValue(i)
             val addedNode = CubismModelUserData.CubismModelUserDataNode(

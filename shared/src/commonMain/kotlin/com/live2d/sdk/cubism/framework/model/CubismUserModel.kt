@@ -167,7 +167,7 @@ abstract class CubismUserModel protected constructor() {
         }
 
         this.moc = moc
-        val model = this.moc!!.createModel()
+        val model = this.moc!!.initModel()
 
         if (model == null) {
             cubismLogError("Failed to create the model.")
@@ -189,7 +189,7 @@ abstract class CubismUserModel protected constructor() {
         }
         moc!!.deleteModel(model!!)
 
-        moc!!.delete()
+        moc!!.close()
         model!!.close()
         renderer.close()
 

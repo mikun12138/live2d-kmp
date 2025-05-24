@@ -51,7 +51,7 @@ internal class CubismModelUserDataJson(userdata3Json: ByteArray?) {
      * @return a user data target ID
      */
     fun getUserDataId(index: Int): CubismId {
-        return idManager!!.getId(
+        return idManager!!.id(
             json.root.get(JsonKey.USER_DATA.key)
                 .get(index)
                 .get(JsonKey.ID.key).string!!

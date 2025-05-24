@@ -162,7 +162,7 @@ object CubismFramework {
             return s_option?.loggingLevel ?: CubismFrameworkConfig.LogLevel.OFF
         }
 
-    val idManager: CubismIdManager?
+    val idManager: CubismIdManager
         /**
          * Get the instance of ID manager.
          *

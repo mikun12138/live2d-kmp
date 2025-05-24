@@ -16,6 +16,33 @@ class CubismModel {
     var nativeHandle: Long = 0
         private set
 
+
+    fun init(moc: CubismMoc): CubismModel {
+        this.nativeHandle = Live2DCubismCoreImpl.instantiateModel(moc.nativeHandle)
+        this.moc = moc
+
+        Live2DCubismCoreImpl.initializeJavaModelWithNativeModel(this)
+
+        this.parameterViews = Array(this.parameters.count) {
+            CubismParameterView(it, this.parameters)
+        }
+        this.partViews = Array(this.parts.count) {
+            CubismPartView(it, this.parts)
+        }
+        this.drawableViews = Array(this.drawables.count) {
+            CubismDrawableView(it, this.drawables)
+        }
+        return this
+    }
+
+    fun close() {
+        if (this.nativeHandle != 0L) {
+            Live2DCubismCoreImpl.destroyModel(this.nativeHandle)
+            this.nativeHandle = 0L
+            this.moc.deleteAssociation(this)
+        }
+    }
+
     fun update() {
         this.throwIfAlreadyReleased()
         Live2DCubismCoreImpl.syncToNativeModel(this)
@@ -28,13 +55,6 @@ class CubismModel {
         Live2DCubismCoreImpl.resetDrawableDynamicFlags(this.nativeHandle)
     }
 
-    fun close() {
-        if (this.nativeHandle != 0L) {
-            Live2DCubismCoreImpl.destroyModel(this.nativeHandle)
-            this.nativeHandle = 0L
-            this.moc.deleteAssociation(this)
-        }
-    }
 
     fun findParameterView(id: String): CubismParameterView? {
         repeat(this.parameters.count) {
@@ -63,35 +83,7 @@ class CubismModel {
         return null
     }
 
-    private fun initialize() {
-        Live2DCubismCoreImpl.initializeJavaModelWithNativeModel(this)
-
-        this.parameterViews = Array(this.parameters.count) {
-            CubismParameterView(it, this.parameters)
-        }
-        this.partViews = Array(this.parts.count) {
-            CubismPartView(it, this.parts)
-        }
-        this.drawableViews = Array(this.drawables.count) {
-            CubismDrawableView(it, this.drawables)
-        }
-    }
-
     private fun throwIfAlreadyReleased() {
         check(this.nativeHandle != 0L) { "This Model is Already Released." }
-    }
-
-    companion object {
-        fun instantiateModel(moc: CubismMoc): CubismModel {
-            requireNotNull(moc != null) { "moc is null" }
-            require(moc.nativeHandle != 0L) { "moc is already released." }
-            val modelHandle: Long = Live2DCubismCoreImpl.instantiateModel(moc.nativeHandle)
-            check(modelHandle != 0L) { "Instantiate model is failed." }
-            val model = CubismModel()
-            model.nativeHandle = modelHandle
-            model.moc = moc
-            model.initialize()
-            return model
-        }
     }
 }

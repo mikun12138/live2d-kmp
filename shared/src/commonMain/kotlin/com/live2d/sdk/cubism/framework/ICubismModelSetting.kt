@@ -7,6 +7,7 @@
 package com.live2d.sdk.cubism.framework
 
 import com.live2d.sdk.cubism.framework.id.CubismId
+import com.live2d.sdk.cubism.framework.utils.jsonparser.CubismJson
 
 /**
  * This interface deal with model setting information.

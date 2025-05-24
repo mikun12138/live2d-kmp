@@ -10,7 +10,6 @@ import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.CubismModel
 import kotlin.Boolean
 import kotlin.Int
-import kotlin.math.min
 
 /**
  * A renderer which processes drawing models.
@@ -19,10 +18,11 @@ import kotlin.math.min
  * Environment-dependent drawing instructions are written in subclasses that inherit from this class.
  */
 abstract class CubismRenderer protected constructor() {
-    enum class RendererType {
-        ANDROID,
-        UNKNOWN // 不明・未定義なレンダラー
-    }
+    // TODO:: remove this
+//    enum class RendererType {
+//        ANDROID,
+//        UNKNOWN // 不明・未定義なレンダラー
+//    }
 
     enum class CubismBlendMode {
         NORMAL,  // 通常

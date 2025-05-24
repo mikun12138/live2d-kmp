@@ -7,41 +7,35 @@
 package com.live2d.sdk.cubism.framework
 
 import com.live2d.sdk.cubism.framework.id.CubismId
+import com.live2d.sdk.cubism.framework.utils.jsonparser.ACubismJsonValue
+import com.live2d.sdk.cubism.framework.utils.jsonparser.CubismJson
 
 /**
  * This class deals with model3.json data.
  */
 class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
-    @Override
-    fun getJson(): CubismJson {
-        return json
-    }
 
-    @get:Override
     val modelFileName: String?
         get() {
             if (!existsModelFile()) {
                 return ""
             }
 
-            return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOC.id)
-                .getString()
+            return jsonFrequencyValue.get(FrequentNode.MOC.id).string
         }
 
-    @get:Override
     val textureCount: Int
         get() {
             if (!existsTextureFiles()) {
                 return 0
             }
 
-            return json.getRoot()
+            return json.root
                 .get(JsonKey.FILE_REFERENCES.key)
                 .get(JsonKey.TEXTURES.key)
                 .size()
         }
 
-    @get:Override
     val textureDirectory: String?
         get() {
             if (!existsTextureFiles()) {
@@ -49,163 +43,156 @@ class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
             }
 
             val rowString: String =
-                jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.TEXTURES.id)
+                jsonFrequencyValue.get(FrequentNode.TEXTURES.id)
                     .get(0).getString()
             return rowString.split("/")[0]
         }
 
-    @Override
+    
     fun getTextureFileName(index: Int): String {
-        return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.TEXTURES.id)
+        return jsonFrequencyValue!!.get(FrequentNode.TEXTURES.id)
             .get(index).getString()
     }
 
-    @get:Override
     val hitAreasCount: Int
         get() {
             if (!existsHitAreas()) {
                 return 0
             }
-            return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.HIT_AREAS.id)
+            return jsonFrequencyValue!!.get(FrequentNode.HIT_AREAS.id)
                 .size()
         }
 
-    @Override
+    
     fun getHitAreaId(index: Int): CubismId {
         return CubismFramework.getIdManager().getId(
-            jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.HIT_AREAS.id)
+            jsonFrequencyValue!!.get(FrequentNode.HIT_AREAS.id)
                 .get(index).get(JsonKey.ID.key).getString()
         )
     }
 
-    @Override
+    
     fun getHitAreaName(index: Int): String {
-        return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.HIT_AREAS.id)
+        return jsonFrequencyValue!!.get(FrequentNode.HIT_AREAS.id)
             .get(index).get(JsonKey.NAME.key).getString()
     }
 
-    @get:Override
     val physicsFileName: String?
         get() {
             if (!existsPhysicsFile()) {
                 return ""
             }
-            return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.PHYSICS.id)
+            return jsonFrequencyValue!!.get(FrequentNode.PHYSICS.id)
                 .getString()
         }
 
-    @get:Override
     val poseFileName: String?
         get() {
             if (!existsPoseFile()) {
                 return ""
             }
 
-            return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.POSE.id)
+            return jsonFrequencyValue!!.get(FrequentNode.POSE.id)
                 .getString()
         }
 
-    @get:Override
     val displayInfoFileName: String?
         get() {
             if (!existsDisplayInfoFile()) {
                 return ""
             }
-            return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.DISPLAY_INFO.id)
+            return jsonFrequencyValue!!.get(FrequentNode.DISPLAY_INFO.id)
                 .getString()
         }
 
-    @get:Override
     val expressionCount: Int
         get() {
             if (!existsExpressionFile()) {
                 return 0
             }
-            return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.EXPRESSIONS.id)
+            return jsonFrequencyValue!!.get(FrequentNode.EXPRESSIONS.id)
                 .size()
         }
 
-    @Override
+    
     fun getExpressionName(index: Int): String {
-        return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.EXPRESSIONS.id)
+        return jsonFrequencyValue!!.get(FrequentNode.EXPRESSIONS.id)
             .get(index).get(JsonKey.NAME.key).getString()
     }
 
-    @Override
+    
     fun getExpressionFileName(index: Int): String {
-        return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.EXPRESSIONS.id)
+        return jsonFrequencyValue!!.get(FrequentNode.EXPRESSIONS.id)
             .get(index).get(JsonKey.FILEPATH.key).getString()
     }
 
-    @get:Override
     val motionGroupCount: Int
         get() {
             if (!existsMotionGroups()) {
                 return 0
             }
-            return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOTIONS.id)
+            return jsonFrequencyValue!!.get(FrequentNode.MOTIONS.id)
                 .size()
         }
 
-    @Override
+    
     fun getMotionGroupName(index: Int): String? {
         if (!existsMotionGroups()) {
             return null
         }
-        return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOTIONS.id)
+        return jsonFrequencyValue!!.get(FrequentNode.MOTIONS.id)
             .getKeys().get(index).getString()
     }
 
-    @Override
+    
     fun getMotionCount(groupName: String?): Int {
         if (!existsMotionGroupName(groupName)) {
             return 0
         }
-        return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOTIONS.id)
+        return jsonFrequencyValue!!.get(FrequentNode.MOTIONS.id)
             .get(groupName).size()
     }
 
-    @Override
+    
     fun getMotionFileName(groupName: String?, index: Int): String? {
         if (!existsMotionGroupName(groupName)) {
             return ""
         }
 
-        return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOTIONS.id)
+        return jsonFrequencyValue!!.get(FrequentNode.MOTIONS.id)
             .get(groupName).get(index).get(JsonKey.FILEPATH.key).getString()
     }
 
-    @Override
+    
     fun getMotionSoundFileName(groupName: String?, index: Int): String? {
         if (!existsMotionSoundFile(groupName, index)) {
             return ""
         }
 
-        return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOTIONS.id)
+        return jsonFrequencyValue!!.get(FrequentNode.MOTIONS.id)
             .get(groupName).get(index).get(JsonKey.SOUND_PATH.key).getString()
     }
 
-    @Override
+    
     fun getMotionFadeInTimeValue(groupName: String?, index: Int): Float {
         if (!existsMotionFadeIn(groupName, index)) {
             return -1.0f
         }
 
-        return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOTIONS.id)
+        return jsonFrequencyValue!!.get(FrequentNode.MOTIONS.id)
             .get(groupName).get(index).get(JsonKey.FADE_IN_TIME.key).toFloat()
     }
 
-    @Override
+    
     fun getMotionFadeOutTimeValue(groupName: String?, index: Int): Float {
         if (!existsMotionFadeOut(groupName, index)) {
             return -1.0f
         }
 
-        return jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOTIONS.id)
+        return jsonFrequencyValue!!.get(FrequentNode.MOTIONS.id)
             .get(groupName).get(index).get(JsonKey.FADE_OUT_TIME.key).toFloat()
     }
 
-    @get:Override
     val userDataFile: String?
         get() {
             if (!existsUserDataFile()) {
@@ -215,7 +202,7 @@ class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
                 .getString()
         }
 
-    @Override
+    
     fun getLayoutMap(outLayoutMap: Map<String?, Float?>): Boolean {
         val map: Map<CubismJsonString?, ACubismJsonValue?>? =
             json.getRoot().get(JsonKey.LAYOUT.key).getMap()
@@ -233,7 +220,6 @@ class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
         return result
     }
 
-    @get:Override
     val eyeBlinkParameterCount: Int
         get() {
             if (!existsEyeBlinkParameters()) {
@@ -241,10 +227,10 @@ class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
             }
 
             var eyeBlinkParameterCount = 0
-            for (i in 0..<jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
+            for (i in 0..<jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
                 .size()) {
                 val refI: ACubismJsonValue =
-                    jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
+                    jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
                         .get(i)
 
                 if (refI.isNull() || refI.isError()) {
@@ -260,32 +246,31 @@ class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
             return eyeBlinkParameterCount
         }
 
-    @Override
+    
     fun getEyeBlinkParameterId(index: Int): CubismId? {
         if (!existsEyeBlinkParameters()) {
             return null
         }
 
-        for (i in 0..<jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
-            .size()) {
-            val refI: ACubismJsonValue =
-                jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
-                    .get(i)
+        repeat(jsonFrequencyValue[FrequentNode.GROUPS.id].size()) {
 
-            if (refI.isNull() || refI.isError()) {
-                continue
+            val refI: ACubismJsonValue =
+                jsonFrequencyValue[FrequentNode.GROUPS.id]
+                    .get(it)
+
+            if (refI.isNull || refI.isError) {
+                return@repeat
             }
 
-            if (refI.get(JsonKey.NAME.key).getString().equals(JsonKey.EYE_BLINK.key)) {
-                return CubismFramework.getIdManager()
-                    .getId(refI.get(JsonKey.IDS.key).get(index).getString())
+            if (refI.get(JsonKey.NAME.key).string == JsonKey.EYE_BLINK.key) {
+                return CubismFramework.idManager
+                    .id(refI.get(JsonKey.IDS.key).get(index).string)
             }
         }
         return null
     }
 
 
-    @get:Override
     val lipSyncParameterCount: Int
         get() {
             if (!existsLipSyncParameters()) {
@@ -294,10 +279,10 @@ class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
 
 
             var lipSyncParameterCount = 0
-            for (i in 0..<jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
+            for (i in 0..<jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
                 .size()) {
                 val refI: ACubismJsonValue =
-                    jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
+                    jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
                         .get(i)
 
                 if (refI.isNull() || refI.isError()) {
@@ -312,16 +297,16 @@ class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
             return lipSyncParameterCount
         }
 
-    @Override
+    
     fun getLipSyncParameterId(index: Int): CubismId? {
         if (!existsLipSyncParameters()) {
             return null
         }
 
-        for (i in 0..<jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
+        for (i in 0..<jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
             .size()) {
             val refI: ACubismJsonValue =
-                jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
+                jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
                     .get(i)
 
             if (refI.isNull() || refI.isError()) {
@@ -339,7 +324,9 @@ class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
     /**
      * Enum class for frequent nodes.
      */
-    private enum class FrequentNode(private val id: Int) {
+    private enum class FrequentNode(
+        val id: Int
+    ) {
         GROUPS(0),
         MOC(1),
         MOTIONS(2),
@@ -351,7 +338,9 @@ class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
         HIT_AREAS(8)
     }
 
-    private enum class JsonKey(key: String) {
+    private enum class JsonKey(
+        val key: String
+    ) {
         VERSION("Version"),
         FILE_REFERENCES("FileReferences"),
         GROUPS("Groups"),
@@ -401,89 +390,84 @@ class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
         INIT_PARTS_VISIBLE("init_parts_visible"),
         VAL("val");
 
-        private val key: String?
-
-        init {
-            this.key = key
-        }
     }
 
 
     // キーが存在するかどうかのチェック
     private fun existsModelFile(): Boolean {
         val node: ACubismJsonValue =
-            jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOC.id)
-        return !node.isNull() && !node.isError()
+            jsonFrequencyValue.get(FrequentNode.MOC.id)
+        return !node.isNull && !node.isError
     }
 
     private fun existsTextureFiles(): Boolean {
         val node: ACubismJsonValue =
-            jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.TEXTURES.id)
-        return !node.isNull() && !node.isError()
+            jsonFrequencyValue.get(FrequentNode.TEXTURES.id)
+        return !node.isNull && !node.isError
     }
 
     private fun existsHitAreas(): Boolean {
         val node: ACubismJsonValue =
-            jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.HIT_AREAS.id)
-        return !node.isNull() && !node.isError()
+            jsonFrequencyValue.get(FrequentNode.HIT_AREAS.id)
+        return !node.isNull && !node.isError
     }
 
     private fun existsPhysicsFile(): Boolean {
         val node: ACubismJsonValue =
-            jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.PHYSICS.id)
-        return !node.isNull() && !node.isError()
+            jsonFrequencyValue.get(FrequentNode.PHYSICS.id)
+        return !node.isNull && !node.isError
     }
 
     private fun existsPoseFile(): Boolean {
         val node: ACubismJsonValue =
-            jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.POSE.id)
-        return !node.isNull() && !node.isError()
+            jsonFrequencyValue.get(FrequentNode.POSE.id)
+        return !node.isNull && !node.isError
     }
 
     private fun existsDisplayInfoFile(): Boolean {
         val node: ACubismJsonValue =
-            jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.DISPLAY_INFO.id)
-        return !node.isNull() && !node.isError()
+            jsonFrequencyValue.get(FrequentNode.DISPLAY_INFO.id)
+        return !node.isNull && !node.isError
     }
 
     private fun existsExpressionFile(): Boolean {
         val node: ACubismJsonValue =
-            jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.EXPRESSIONS.id)
-        return !node.isNull() && !node.isError()
+            jsonFrequencyValue.get(FrequentNode.EXPRESSIONS.id)
+        return !node.isNull && !node.isError
     }
 
     private fun existsMotionGroups(): Boolean {
         val node: ACubismJsonValue =
-            jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOTIONS.id)
-        return !node.isNull() && !node.isError()
+            jsonFrequencyValue.get(FrequentNode.MOTIONS.id)
+        return !node.isNull && !node.isError
     }
 
     private fun existsMotionGroupName(groupName: String?): Boolean {
         val node: ACubismJsonValue =
-            jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOTIONS.id)
+            jsonFrequencyValue.get(FrequentNode.MOTIONS.id)
                 .get(groupName)
-        return !node.isNull() && !node.isError()
+        return !node.isNull && !node.isError
     }
 
     private fun existsMotionSoundFile(groupName: String?, index: Int): Boolean {
         val node: ACubismJsonValue =
-            jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOTIONS.id)
+            jsonFrequencyValue.get(FrequentNode.MOTIONS.id)
                 .get(groupName).get(index).get(JsonKey.SOUND_PATH.key)
-        return !node.isNull() && !node.isError()
+        return !node.isNull && !node.isError
     }
 
     private fun existsMotionFadeIn(groupName: String?, index: Int): Boolean {
         val node: ACubismJsonValue =
-            jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOTIONS.id)
+            jsonFrequencyValue.get(FrequentNode.MOTIONS.id)
                 .get(groupName).get(index).get(JsonKey.FADE_IN_TIME.key)
-        return !node.isNull() && !node.isError()
+        return !node.isNull && !node.isError
     }
 
     private fun existsMotionFadeOut(groupName: String?, index: Int): Boolean {
         val node: ACubismJsonValue =
-            jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.MOTIONS.id)
+            jsonFrequencyValue.get(FrequentNode.MOTIONS.id)
                 .get(groupName).get(index).get(JsonKey.FADE_OUT_TIME.key)
-        return !node.isNull() && !node.isError()
+        return !node.isNull && !node.isError
     }
 
     private fun existsUserDataFile(): Boolean {
@@ -491,16 +475,16 @@ class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
     }
 
     private fun existsEyeBlinkParameters(): Boolean {
-        if (jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
-                .isNull() || jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
+        if (jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
+                .isNull() || jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
                 .isError()
         ) {
             return false
         }
 
-        for (i in 0..<jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
+        for (i in 0..<jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
             .size()) {
-            if (jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
+            if (jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
                     .get(i).get(JsonKey.NAME.key).getString().equals(JsonKey.EYE_BLINK.key)
             ) {
                 return true
@@ -511,16 +495,16 @@ class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
     }
 
     private fun existsLipSyncParameters(): Boolean {
-        if (jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
-                .isNull() || jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
+        if (jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
+                .isNull() || jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
                 .isError()
         ) {
             return false
         }
 
-        for (i in 0..<jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
+        for (i in 0..<jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
             .size()) {
-            if (jsonFrequencyValue!!.get(com.live2d.sdk.cubism.framework.CubismModelSettingJson.FrequentNode.GROUPS.id)
+            if (jsonFrequencyValue!!.get(FrequentNode.GROUPS.id)
                     .get(i).get(JsonKey.NAME.key).getString().equals(JsonKey.LIP_SYNC.key)
             ) {
                 return true
@@ -537,7 +521,7 @@ class CubismModelSettingJson(buffer: ByteArray?) : ICubismModelSetting {
     /**
      * Frequent nodes in the _json data
      */
-    private var jsonFrequencyValue: List<ACubismJsonValue?>? = null
+    private var jsonFrequencyValue: List<ACubismJsonValue>
 
     init {
         val json: CubismJson

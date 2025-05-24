@@ -6,39 +6,10 @@
  */
 package com.live2d.sdk.cubism.framework.id
 
-/**
- * The name of parameters, parts and Drawable is held in this class.
- */
-class CubismId {
-    override fun equals(o: Any?): Boolean {
-        if (this === o) return true
-        if (o == null || javaClass != o.javaClass) return false
-
-        val cubismId = o as CubismId
-
-        return this.string == cubismId.string
+data class CubismId(
+    val id: String
+) {
+    override fun toString(): String {
+        return id
     }
-
-    override fun hashCode(): Int {
-        return string.hashCode()
-    }
-
-    /**
-     * Constructor
-     *
-     * @param id A ID name
-     * @throws IllegalArgumentException if an argument is null
-     */
-    internal constructor(id: String) {
-        requireNotNull(id) { "id is null." }
-        this.string = id
-    }
-
-    /**
-     * Get ID name
-     */
-    /**
-     * ID name
-     */
-    val string: String
 }

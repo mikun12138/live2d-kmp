@@ -40,13 +40,13 @@ abstract class ACubismJsonValue {
      *
      * @return the JSON Value's string expression
      */
-    abstract fun getString(defaultValue: String?, indent: String?): String?
+    abstract fun getString(defaultValue: String, indent: String): String
 
-    fun getString(defaultValue: String?): String? {
+    fun getString(defaultValue: String): String {
         return getString(defaultValue, "")
     }
 
-    val string: String?
+    val string: String
         get() = getString("", "")
 
     open val map: MutableMap<CubismJsonString, ACubismJsonValue>?
