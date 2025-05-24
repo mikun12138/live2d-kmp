@@ -7,6 +7,7 @@
 package com.live2d.sdk.cubism.framework.physics
 
 import com.live2d.sdk.cubism.framework.CubismFramework.idManager
+import com.live2d.sdk.cubism.framework.math.CubismMath
 import com.live2d.sdk.cubism.framework.math.CubismVector2
 import com.live2d.sdk.cubism.framework.model.CubismModel
 import com.live2d.sdk.cubism.framework.utils.json.PhysicsJson
@@ -258,7 +259,7 @@ class CubismPhysics {
         var weight: Float
         var radAngle: Float
         var outputValue: Float
-        var i: Int
+//        var i: Int
         var particleIndex: Int
         val inputs: MutableList<CubismPhysicsInternal.CubismPhysicsInput> = physicsRig.inputs
         val outputs: MutableList<CubismPhysicsInternal.CubismPhysicsOutput> = physicsRig.outputs
@@ -300,18 +301,18 @@ class CubismPhysics {
         }
 
 //        var currentSetting: CubismPhysicsInternal.CubismPhysicsSubRig
-        var currentInput: CubismPhysicsInternal.CubismPhysicsInput
+//        var currentInput: CubismPhysicsInternal.CubismPhysicsInput
         var currentOutput: CubismPhysicsInternal.CubismPhysicsOutput
         var currentParticle: CubismPhysicsInternal.CubismPhysicsParticle
 
-        var settingIndex: Int
+//        var settingIndex: Int
         while (currentRemainTime >= physicsDeltaTime) {
             // copy RigOutputs: _currentRigOutputs to _previousRigOutputs
             repeat(physicsRig.subRigCount) { settingIndex ->
-                    repeat(physicsRig.settings[settingIndex].outputCount) { outputIndex ->
-                        previousRigOutputs[settingIndex]!!.outputs[outputIndex] =
-                            currentRigOutputs[settingIndex]!!.outputs[outputIndex]
-                    }
+                repeat(physicsRig.settings[settingIndex].outputCount) { outputIndex ->
+                    previousRigOutputs[settingIndex]!!.outputs[outputIndex] =
+                        currentRigOutputs[settingIndex]!!.outputs[outputIndex]
+                }
             }
 
             // 入力キャッシュとパラメータで線形補間してUpdateParticlesするタイミングでの入力を計算する。
@@ -325,25 +326,25 @@ class CubismPhysics {
                 parameterInputCaches[it] = parameterCaches[it]
             }
 
-            settingIndex = 0
-            while (settingIndex < physicsRig.subRigCount) {
+            repeat(physicsRig.subRigCount) { settingIndex ->
+
                 totalAngle[0] = 0.0f
                 totalTranslation.setZero()
 
-                currentSetting = physicsRig.settings.get(settingIndex)
-                val particles: MutableList<CubismPhysicsParticle> = physicsRig.particles
+                val currentSetting = physicsRig.settings[settingIndex]
+                val particles: MutableList<CubismPhysicsInternal.CubismPhysicsParticle> =
+                    physicsRig.particles
 
                 val baseInputIndex: Int = currentSetting.baseInputIndex
                 val baseOutputIndex: Int = currentSetting.baseOutputIndex
                 val baseParticleIndex: Int = currentSetting.baseParticleIndex
 
                 // Load input parameters.
-                i = 0
-                while (i < currentSetting.inputCount) {
-                    currentInput = inputs.get(baseInputIndex + i)
+                repeat(currentSetting.inputCount) {
+                    val currentInput = inputs[baseInputIndex + it]
                     weight = currentInput.weight / MAXIMUM_WEIGHT
 
-                    if (currentInput.sourceParameterIndex === -1) {
+                    if (currentInput.sourceParameterIndex == -1) {
                         currentInput.sourceParameterIndex =
                             model.getParameterIndex(currentInput.source.Id)
                     }
@@ -360,8 +361,6 @@ class CubismPhysics {
                         currentInput.reflect,
                         weight
                     )
-
-                    i++
                 }
 
                 radAngle = CubismMath.degreesToRadian(-totalAngle[0])
@@ -390,25 +389,22 @@ class CubismPhysics {
                 )
 
                 // Update output parameters.
-                i = 0
-                while (i < currentSetting.outputCount) {
-                    currentOutput = outputs.get(baseOutputIndex + i)
+                repeat(currentSetting.outputCount) {
+                    currentOutput = outputs.get(baseOutputIndex + it)
                     particleIndex = currentOutput.vertexIndex
 
 
-                    if (currentOutput.destinationParameterIndex === -1) {
+                    if (currentOutput.destinationParameterIndex == -1) {
                         currentOutput.destinationParameterIndex =
                             model.getParameterIndex(currentOutput.destination.Id)
                     }
 
                     if (particleIndex < 1 || particleIndex >= currentSetting.particleCount) {
-                        i++
-                        continue
+                        return@repeat
                     }
 
                     currentParticle = particles.get(baseParticleIndex + particleIndex)
-                    val previousParticle: CubismPhysicsParticle =
-                        particles.get(baseParticleIndex + particleIndex - 1)
+                    val previousParticle = particles.get(baseParticleIndex + particleIndex - 1)
                     CubismVector2.subtract(
                         currentParticle.position,
                         previousParticle.position,
@@ -424,7 +420,7 @@ class CubismPhysics {
                         options!!.gravity
                     )
 
-                    currentRigOutputs.get(settingIndex)!!.outputs[i] = outputValue
+                    currentRigOutputs.get(settingIndex)!!.outputs[it] = outputValue
 
                     cache[0] = parameterCaches[currentOutput.destinationParameterIndex]
 
@@ -437,10 +433,7 @@ class CubismPhysics {
                         currentOutput
                     )
                     parameterCaches[currentOutput.destinationParameterIndex] = cache[0]
-
-                    i++
                 }
-                settingIndex++
             }
             currentRemainTime -= physicsDeltaTime
         }

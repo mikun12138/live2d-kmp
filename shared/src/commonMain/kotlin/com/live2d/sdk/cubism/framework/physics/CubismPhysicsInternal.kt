@@ -65,7 +65,7 @@ class CubismPhysicsInternal {
         /**
          * Parameter ID
          */
-        var Id: CubismId? = null
+        var Id: CubismId
 
         /**
          * Type of destination
@@ -320,7 +320,7 @@ class CubismPhysicsInternal {
         /**
          * List of particles for physics operation
          */
-        var particles: MutableList<CubismPhysicsParticle?> = ArrayList<CubismPhysicsParticle?>()
+        var particles: MutableList<CubismPhysicsParticle> = ArrayList<CubismPhysicsParticle?>()
 
         /**
          * Gravity
