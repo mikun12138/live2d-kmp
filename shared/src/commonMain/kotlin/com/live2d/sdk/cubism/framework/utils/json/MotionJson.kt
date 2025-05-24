@@ -42,7 +42,7 @@ data class MotionJson(
     @Serializable
     data class Curve(
         @SerialName("Target")
-        val target: String,
+        val target: String, // type
         @SerialName("Id")
         val id: String,
         @SerialName("Segments")

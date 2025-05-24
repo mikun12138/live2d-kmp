@@ -765,19 +765,11 @@ class CubismMotion : ACubismMotion() {
             motionData.curves[curveIndex].let { curve ->
                 // Register target type.
                 val targetName = json.curves[curveIndex].target
-                when (targetName) {
-                    TargetName.MODEL.name -> {
-                        curve.type = CubismMotionCurveTarget.MODEL
-                    }
-                    TargetName.PARAMETER.name -> {
-                        curve.type = CubismMotionCurveTarget.PARAMETER
-                    }
-                    TargetName.PART_OPACITY.name -> {
-                        curve.type = CubismMotionCurveTarget.PART_OPACITY
-                    }
-                    else -> {
-                        error("Warning: Unable to get segment type from Curve! The number of \"CurveCount\" may be incorrect!")
-                    }
+                curve.type = when (targetName) {
+                    TargetName.MODEL.name -> CubismMotionCurveTarget.MODEL
+                    TargetName.PARAMETER.name -> CubismMotionCurveTarget.PARAMETER
+                    TargetName.PART_OPACITY.name -> CubismMotionCurveTarget.PART_OPACITY
+                    else -> error("Warning: Unable to get segment type from Curve! The number of \"CurveCount\" may be incorrect!")
                 }
 
                 curve.id = idManager.id(
@@ -798,6 +790,7 @@ class CubismMotion : ACubismMotion() {
             // Segments
             var segmentIndex = 0
             while (segmentIndex < json.meta.totalSegmentCount) {
+                // 起始点
                 if (segmentIndex == 0) {
                     motionData.segments[totalSegmentCount].basePointIndex = totalPointCount
 
@@ -812,47 +805,41 @@ class CubismMotion : ACubismMotion() {
                     motionData.segments[totalSegmentCount].basePointIndex = totalPointCount - 1
                 }
 
-
-                val tmpSegment = json.curves[curveIndex].segments[segmentIndex].toInt()
-
                 val segmentType: CubismMotionSegmentType
-
-                if (tmpSegment == 0) {
-                    segmentType = CubismMotionSegmentType.LINEAR
-                } else if (tmpSegment == 1) {
-                    segmentType = CubismMotionSegmentType.BEZIER
-                } else if (tmpSegment == 2) {
-                    segmentType = CubismMotionSegmentType.STEPPED
-                } else if (tmpSegment == 3) {
-                    segmentType = CubismMotionSegmentType.INVERSESTEPPED
-                } else {
-                    error("unsupported segmentType!")
+                json.curves[curveIndex].segments[segmentIndex].toInt().let { flagSegment ->
+                    segmentType = when (flagSegment) {
+                        0 -> CubismMotionSegmentType.LINEAR
+                        1 -> CubismMotionSegmentType.BEZIER
+                        2 -> CubismMotionSegmentType.STEPPED
+                        3 -> CubismMotionSegmentType.INVERSESTEPPED
+                        else -> error("unsupported segmentType!")
+                    }
                 }
 
                 when (segmentType) {
                     CubismMotionSegmentType.LINEAR -> {
-                        val segment: CubismMotionSegment =
-                            motionData.segments[totalSegmentCount]
-                        segment.segmentType = CubismMotionSegmentType.LINEAR
-                        segment.evaluator = linearEvaluator
-
-                        val point: CubismMotionPoint = motionData.points[totalPointCount]
-                        point.time = json.getMotionCurveSegment(curveIndex, segmentIndex + 1)
-                        point.value = json.getMotionCurveSegment(curveIndex, segmentIndex + 2)
+                        motionData.segments[totalSegmentCount].let { segment ->
+                            segment.segmentType = CubismMotionSegmentType.LINEAR
+                            segment.evaluator = linearEvaluator
+                        }
+                        motionData.points[totalPointCount].let { point ->
+                            point.time = json.curves[curveIndex].segments[segmentIndex + 1]
+                            point.value = json.curves[curveIndex].segments[segmentIndex + 2]
+                        }
 
                         totalPointCount += 1
                         segmentIndex += 3
                     }
 
-                    BEZIER -> {
-                        val segment: CubismMotionSegment =
-                            motionData.segments.get(totalSegmentCount)
-                        segment.segmentType = CubismMotionSegmentType.BEZIER
+                    CubismMotionSegmentType.BEZIER -> {
+                        motionData.segments[totalSegmentCount].let { segment ->
+                            segment.segmentType = CubismMotionSegmentType.BEZIER
 
-                        if (areBeziersRestricted || USE_OLD_BEZIERS_CURVE_MOTION) {
-                            segment.evaluator = bezierEvaluator
-                        } else {
-                            segment.evaluator = bezierCardanoInterpretationEvaluator
+                            segment.evaluator =
+                                if (areBeziersRestricted || USE_OLD_BEZIERS_CURVE_MOTION)
+                                    bezierEvaluator
+                                else
+                                    bezierCardanoInterpretationEvaluator
                         }
 
                         motionData.points.get(totalPointCount).time =
