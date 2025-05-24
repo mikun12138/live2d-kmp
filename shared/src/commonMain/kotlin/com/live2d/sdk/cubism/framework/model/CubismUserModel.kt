@@ -154,9 +154,9 @@ abstract class CubismUserModel protected constructor() {
     }
 */
 
-    protected fun loadPose(buffer: ByteArray?) {
+    protected fun loadPose(buffer: ByteArray) {
         try {
-            pose = CubismPose.create(buffer)
+            pose = CubismPose(buffer)
         } catch (e: Exception) {
             cubismLogError("Failed to loadPose(). ${e.message}")
         }

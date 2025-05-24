@@ -9,62 +9,62 @@ package com.live2d.sdk.cubism.framework.effect
 import com.live2d.sdk.cubism.framework.CubismFramework.idManager
 import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.model.CubismModel
-import com.live2d.sdk.cubism.framework.utils.jsonparser.ACubismJsonValue
-import com.live2d.sdk.cubism.framework.utils.jsonparser.CubismJson
-import com.live2d.sdk.cubism.framework.utils.jsonparser.CubismJsonString
+import com.live2d.sdk.cubism.framework.utils.json.PoseJson
+import kotlinx.serialization.json.Json
 
 /**
  * This class deals with parts opacity value and settings.
  */
 class CubismPose {
-    /**
-     * Manage data related parts.
-     */
-    class PartData {
-        /**
-         * Default constructor
-         */
-        constructor()
+    constructor(pose3json: ByteArray) {
+        Json.decodeFromString<PoseJson>(String(pose3json)).let { json ->
 
-        /**
-         * Copy constructor
-         *
-         * @param partData original part data
-         */
-        constructor(partData: PartData) {
-            partId = partData.partId
-            parameterIndex = partData.parameterIndex
-            partIndex = partData.partIndex
+            // Set the fade time.
+            fadeTimeSeconds = json.fadeInTime?.let {
+                if (it < 0.0f)
+                    DEFAULT_FADE_IN_SECONDS
+                else
+                    it
+            } ?: DEFAULT_FADE_IN_SECONDS
 
-            linkedParameter!!.addAll(partData.linkedParameter!!)
+
+            // Parts group
+            fun setupPartGroup(partInfo: PoseJson.PartInfo): PartData {
+
+                val partData = PartData(
+                    partId = idManager.id(partInfo.id)
+                )
+
+                for (linkedPart in partInfo.link) {
+                    partData.linkedParameter.add(
+                        PartData(
+                            partId = idManager.id(linkedPart)
+                        )
+                    )
+                }
+                return partData
+            }
+            for (idListInfo in json.groups) {
+                for (partInfo in idListInfo) {
+                    partGroups.add(setupPartGroup(partInfo))
+                }
+                partGroupCounts.add(idListInfo.size)
+            }
         }
+    }
 
-        fun initialize(model: CubismModel) {
+    data class PartData(
+        var partId: CubismId? = null,
+        var parameterIndex: Int = 0,
+        var partIndex: Int = 0,
+        var linkedParameter: MutableList<PartData> = mutableListOf(),
+    ) {
+        fun init(model: CubismModel) {
             parameterIndex = model.getParameterIndex(partId!!)
             partIndex = model.getPartIndex(partId!!)
 
-            model.setParameterValue(parameterIndex, 1)
+            model.setParameterValue(parameterIndex, 1.0f)
         }
-
-        /**
-         * Part ID
-         */
-        var partId: CubismId? = null
-
-        /**
-         * Parameter index
-         */
-        var parameterIndex: Int = 0
-
-        /**
-         * Part index
-         */
-        var partIndex: Int = 0
-
-        /**
-         * Linked parameters list
-         */
-        var linkedParameter: MutableList<PartData>? = ArrayList<PartData>()
     }
 
     /**
@@ -110,7 +110,7 @@ class CubismPose {
             val groupCount: Int = partGroupCounts.get(j)!!
 
             for (i in beginIndex..<beginIndex + groupCount) {
-                partGroups.get(i).initialize(model)
+                partGroups.get(i).init(model)
 
                 val partsIndex = partGroups.get(i).partIndex
                 val paramIndex = partGroups.get(i).parameterIndex
@@ -135,7 +135,7 @@ class CubismPose {
                 val link = partGroups.get(i).linkedParameter
                 if (link != null) {
                     for (data in link) {
-                        data.initialize(model)
+                        data.init(model)
                     }
                 }
             }
@@ -283,125 +283,16 @@ class CubismPose {
         return currentOpacity
     }
 
-    // Tags of Pose3.json
-    private enum class JsonTag(tag: String) {
-        FADE_IN("FadeInTime"),
-        LINK("Link"),
-        GROUPS("Groups"),
-        ID("Id");
-
-        private val tag: String?
-
-        init {
-            this.tag = tag
-        }
-    }
-
-    /**
-     * Parts group
-     */
     private val partGroups: MutableList<PartData> = ArrayList<PartData>()
 
-    /**
-     * Each parts group number
-     */
-    private val partGroupCounts: MutableList<Int?> = ArrayList<Int?>()
+    private val partGroupCounts: MutableList<Int?> = ArrayList()
 
-    /**
-     * Fade time[s]
-     */
     private var fadeTimeSeconds = DEFAULT_FADE_IN_SECONDS
 
-    /**
-     * Previous operated model
-     */
     private var lastModel: CubismModel? = null
 
     companion object {
-        /**
-         * Create a CubismPose instance
-         *
-         * @param pose3json the byte data of pose3.json
-         * @return the created instance
-         */
-        fun create(pose3json: ByteArray?): CubismPose {
-            val pose = CubismPose()
-            val json: CubismJson = CubismJson.create(pose3json!!)
-
-            val root = json.root
-            val rootMap: MutableMap<CubismJsonString?, ACubismJsonValue?>? = root.map
-
-            // Set the fade time.
-            if (!root.get(JsonTag.FADE_IN.tag).isNull) {
-                pose.fadeTimeSeconds =
-                    root.get(JsonTag.FADE_IN.tag).toFloat(DEFAULT_FADE_IN_SECONDS)
-
-                if (pose.fadeTimeSeconds < 0.0f) {
-                    pose.fadeTimeSeconds = DEFAULT_FADE_IN_SECONDS
-                }
-            }
-
-            // Parts group
-            val poseListInfo = root.get(JsonTag.GROUPS.tag)
-            val poseCount = poseListInfo.size()
-
-            for (poseIndex in 0..<poseCount) {
-                val idListInfo = poseListInfo.get(poseIndex)
-                val idCount = idListInfo.size()
-                var groupCount = 0
-
-                for (groupIndex in 0..<idCount) {
-                    val partInfo = idListInfo.get(groupIndex)
-                    val partData = setupPartGroup(partInfo)
-                    pose.partGroups.add(partData)
-                    groupCount++
-                }
-                pose.partGroupCounts.add(groupCount)
-            }
-
-            return pose
-        }
-
-        private fun setupPartGroup(partInfo: ACubismJsonValue): PartData {
-            val parameterId = idManager!!.id(partInfo.get(JsonTag.ID.tag).string!!)
-
-            val partData = PartData()
-            partData.partId = idManager!!.id(parameterId)
-
-            val link = partInfo.get(JsonTag.LINK.tag)
-            if (link != null) {
-                setupLinkedPart(partData, link)
-            }
-            return partData
-        }
-
-        /**
-         * Setup linked parts.
-         *
-         * @param partData part data to be done setting
-         * @param linkedListInfo linked parts list information
-         */
-        private fun setupLinkedPart(partData: PartData, linkedListInfo: ACubismJsonValue) {
-            val linkCount = linkedListInfo.size()
-
-            for (index in 0..<linkCount) {
-                val linkedPartId = idManager!!.id(linkedListInfo.get(index).string!!)
-
-                val linkedPart = PartData()
-                linkedPart.partId = linkedPartId
-
-                partData.linkedParameter!!.add(linkedPart)
-            }
-        }
-
-        /**
-         * Epsilon value
-         */
         private const val EPSILON = 0.001f
-
-        /**
-         * Default fade-in duration[s]
-         */
         private const val DEFAULT_FADE_IN_SECONDS = 0.5f
     }
 }
