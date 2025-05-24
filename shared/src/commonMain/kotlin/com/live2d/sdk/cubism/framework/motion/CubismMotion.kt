@@ -22,7 +22,6 @@ import kotlin.Deprecated
 import kotlin.Float
 import kotlin.Int
 import kotlin.String
-import kotlin.assert
 import kotlin.collections.ArrayList
 import kotlin.collections.MutableList
 import kotlin.collections.indices
@@ -757,8 +756,8 @@ class CubismMotion : ACubismMotion() {
             motionData.events.add(CubismMotionEvent())
         }
 
-        var totalPointCount = 0
-        var totalSegmentCount = 0
+        var totalPointIndex = 0
+        var totalSegmentIndex = 0
 
         // Curves
         for (curveIndex in 0..<motionData.curveCount) {
@@ -775,7 +774,7 @@ class CubismMotion : ACubismMotion() {
                 curve.id = idManager.id(
                     json.curves[curveIndex].id
                 )
-                curve.baseSegmentIndex = totalSegmentCount
+                curve.baseSegmentIndex = totalSegmentIndex
                 curve.fadeInTime =
                     json.curves[curveIndex].fadeInTime?.let {
                         it
@@ -792,17 +791,17 @@ class CubismMotion : ACubismMotion() {
             while (segmentIndex < json.meta.totalSegmentCount) {
                 // 起始点
                 if (segmentIndex == 0) {
-                    motionData.segments[totalSegmentCount].basePointIndex = totalPointCount
+                    motionData.segments[totalSegmentIndex].basePointIndex = totalPointIndex
 
-                    motionData.points[totalPointCount].time =
+                    motionData.points[totalPointIndex].time =
                         json.curves[curveIndex].segments[0]
-                    motionData.points[totalPointCount].value =
+                    motionData.points[totalPointIndex].value =
                         json.curves[curveIndex].segments[1]
 
-                    totalPointCount += 1
+                    totalPointIndex += 1
                     segmentIndex += 2
                 } else {
-                    motionData.segments[totalSegmentCount].basePointIndex = totalPointCount - 1
+                    motionData.segments[totalSegmentIndex].basePointIndex = totalPointIndex - 1
                 }
 
                 val segmentType: CubismMotionSegmentType
@@ -818,21 +817,22 @@ class CubismMotion : ACubismMotion() {
 
                 when (segmentType) {
                     CubismMotionSegmentType.LINEAR -> {
-                        motionData.segments[totalSegmentCount].let { segment ->
+                        motionData.segments[totalSegmentIndex].let { segment ->
                             segment.segmentType = CubismMotionSegmentType.LINEAR
                             segment.evaluator = linearEvaluator
                         }
-                        motionData.points[totalPointCount].let { point ->
+                        // 线性需要另外三个点
+                        motionData.points[totalPointIndex].let { point ->
                             point.time = json.curves[curveIndex].segments[segmentIndex + 1]
                             point.value = json.curves[curveIndex].segments[segmentIndex + 2]
                         }
 
-                        totalPointCount += 1
+                        totalPointIndex += 1
                         segmentIndex += 3
                     }
 
                     CubismMotionSegmentType.BEZIER -> {
-                        motionData.segments[totalSegmentCount].let { segment ->
+                        motionData.segments[totalSegmentIndex].let { segment ->
                             segment.segmentType = CubismMotionSegmentType.BEZIER
 
                             segment.evaluator =
@@ -842,67 +842,63 @@ class CubismMotion : ACubismMotion() {
                                     bezierCardanoInterpretationEvaluator
                         }
 
-                        motionData.points.get(totalPointCount).time =
-                            json.getMotionCurveSegment(curveIndex, (segmentIndex + 1))
-                        motionData.points.get(totalPointCount).value =
-                            json.getMotionCurveSegment(curveIndex, (segmentIndex + 2))
+                        // 贝塞尔曲线需要另外三个点
+                        motionData.points[totalPointIndex].let { point ->
+                            point.time = json.curves[curveIndex].segments[segmentIndex + 1]
+                            point.value = json.curves[curveIndex].segments[segmentIndex + 2]
+                        }
+                        motionData.points[totalPointIndex + 1].let { point ->
+                            point.time = json.curves[curveIndex].segments[segmentIndex + 3]
+                            point.value = json.curves[curveIndex].segments[segmentIndex + 4]
+                        }
+                        motionData.points[totalPointIndex + 2].let { point ->
+                            point.time = json.curves[curveIndex].segments[segmentIndex + 5]
+                            point.value = json.curves[curveIndex].segments[segmentIndex + 6]
+                        }
 
-                        motionData.points.get(totalPointCount + 1).time =
-                            json.getMotionCurveSegment(curveIndex, (segmentIndex + 3))
-                        motionData.points.get(totalPointCount + 1).value =
-                            json.getMotionCurveSegment(curveIndex, (segmentIndex + 4))
-
-                        motionData.points.get(totalPointCount + 2).time =
-                            json.getMotionCurveSegment(curveIndex, (segmentIndex + 5))
-                        motionData.points.get(totalPointCount + 2).value =
-                            json.getMotionCurveSegment(curveIndex, (segmentIndex + 6))
-
-                        totalPointCount += 3
+                        totalPointIndex += 3
                         segmentIndex += 7
                     }
 
-                    STEPPED -> {
-                        motionData.segments.get(totalSegmentCount).segmentType =
-                            CubismMotionSegmentType.STEPPED
-                        motionData.segments.get(totalSegmentCount).evaluator = steppedEvaluator
+                    CubismMotionSegmentType.STEPPED -> {
+                        motionData.segments[totalSegmentIndex].let { segment ->
+                            segment.segmentType = CubismMotionSegmentType.STEPPED
+                            segment.evaluator = steppedEvaluator
+                        }
 
-                        motionData.points.get(totalPointCount).time =
-                            json.getMotionCurveSegment(curveIndex, (segmentIndex + 1))
-                        motionData.points.get(totalPointCount).value =
-                            json.getMotionCurveSegment(curveIndex, (segmentIndex + 2))
+                        motionData.points[totalPointIndex].let { point ->
+                            point.time = json.curves[curveIndex].segments[segmentIndex + 1]
+                            point.value = json.curves[curveIndex].segments[segmentIndex + 2]
+                        }
 
-                        totalPointCount += 1
+                        totalPointIndex += 1
                         segmentIndex += 3
                     }
 
-                    INVERSESTEPPED -> {
-                        motionData.segments.get(totalSegmentCount).segmentType =
-                            CubismMotionSegmentType.INVERSESTEPPED
-                        motionData.segments.get(totalSegmentCount).evaluator =
-                            inverseSteppedEvaluator
+                    CubismMotionSegmentType.INVERSESTEPPED -> {
+                        motionData.segments[totalSegmentIndex].let { segment ->
+                            segment.segmentType = CubismMotionSegmentType.INVERSESTEPPED
+                            segment.evaluator = inverseSteppedEvaluator
+                        }
 
-                        motionData.points.get(totalPointCount).time =
-                            json.getMotionCurveSegment(curveIndex, (segmentIndex + 1))
-                        motionData.points.get(totalPointCount).value =
-                            json.getMotionCurveSegment(curveIndex, (segmentIndex + 2))
+                        motionData.points[totalPointIndex].let { point ->
+                            point.time = json.curves[curveIndex].segments[segmentIndex + 1]
+                            point.value = json.curves[curveIndex].segments[segmentIndex + 2]
+                        }
 
-                        totalPointCount += 1
+                        totalPointIndex += 1
                         segmentIndex += 3
-                    }
-
-                    else -> {
-                        assert(false)
                     }
                 }
 
-                ++motionData.curves.get(curveIndex).segmentCount
-                ++totalSegmentCount
+                ++motionData.curves[curveIndex].segmentCount
+                ++totalSegmentIndex
             }
         }
 
-        for (userdatacount in 0..<json.getEventCount()) {
-            motionData.events.get(userdatacount).fireTime = json.getEventTime(userdatacount)
-            motionData.events.get(userdatacount).value = json.getEventValue(userdatacount)
+        repeat(json.meta.userDataCount) { userDataIndex ->
+            motionData.events[userDataIndex].fireTime = json.userData!![userDataIndex].time
+            motionData.events[userDataIndex].value = json.userData!![userDataIndex].value
         }
     }
 
