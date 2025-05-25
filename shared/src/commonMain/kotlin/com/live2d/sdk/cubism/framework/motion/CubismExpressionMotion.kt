@@ -78,20 +78,11 @@ class CubismExpressionMotion : ACubismMotion {
 
     /**
      * モデルの表情に関するパラメータを計算する。
-     *
-     * @param model 対象のモデル
-     * @param userTimeSeconds デルタ時間の積算値[秒]
-     * @param motionQueueEntry CubismMotionQueueManagerで管理されているモーション
-     * @param expressionParameterValues モデルに適用する各パラメータの値
-     * @param expressionIndex 表情のインデックス
-     * @param fadeWeight 表情のウェイト
      */
     fun calculateExpressionParameters(
         model: CubismModel,
-        userTimeSeconds: Float,
-        motionQueueEntry: CubismMotionQueueEntry,
         expressionParameterValues: MutableList<CubismExpressionMotionManager.ExpressionParameterValue>,
-        expressionIndex: Int,
+        isFirstExpression: Boolean,
         fadeWeight: Float
     ) {
 
@@ -100,23 +91,50 @@ class CubismExpressionMotion : ACubismMotion {
 
             expParamValue.overwriteValue = model.getParameterValue(expParamValue.parameterId)
 
-            val expressionParameters = this.parameters
-            var parameterIndex = -1
-            for (j in expressionParameters.indices) {
-                if (expParamValue.parameterId !== expressionParameters.get(j).parameterId) {
-                    continue
+            parameters.find { it.parameterId == expParamValue.parameterId }?.let {
+
+                // 値を計算
+                val newAdditiveValue: Float
+                val newMultiplyValue: Float
+                val newOverwriteValue: Float
+
+                when (it.blendType) {
+                    ExpressionBlendType.ADD -> {
+                        newAdditiveValue = it.value
+                        newMultiplyValue = DEFAULT_MULTIPLY_VALUE
+                        newOverwriteValue = expParamValue.overwriteValue
+                    }
+
+                    ExpressionBlendType.MULTIPLY -> {
+                        newAdditiveValue = DEFAULT_ADDITIVE_VALUE
+                        newMultiplyValue = it.value
+                        newOverwriteValue = expParamValue.overwriteValue
+                    }
+
+                    ExpressionBlendType.OVERWRITE -> {
+                        newAdditiveValue = DEFAULT_ADDITIVE_VALUE
+                        newMultiplyValue = DEFAULT_MULTIPLY_VALUE
+                        newOverwriteValue = it.value
+                    }
                 }
 
-                parameterIndex = j
-                break
-            }
-
-            // 再生中のExpressionが参照していないパラメータは初期値を適用
-            if (parameterIndex < 0) {
-                if (expressionIndex == 0) {
+                if (isFirstExpression) {
+                    expParamValue.additiveValue = newAdditiveValue
+                    expParamValue.multiplyValue = newMultiplyValue
+                    expParamValue.overwriteValue = newOverwriteValue
+                } else {
+                    expParamValue.additiveValue =
+                        (expParamValue.additiveValue * (1.0f - fadeWeight)) + newAdditiveValue * fadeWeight
+                    expParamValue.multiplyValue =
+                        (expParamValue.multiplyValue * (1.0f - fadeWeight)) + newMultiplyValue * fadeWeight
+                    expParamValue.overwriteValue =
+                        (expParamValue.overwriteValue * (1.0f - fadeWeight)) + newOverwriteValue * fadeWeight
+                }
+            } ?: run {
+                // 再生中のExpressionが参照していないパラメータは初期値を適用
+                if (isFirstExpression) {
                     expParamValue.additiveValue = DEFAULT_ADDITIVE_VALUE
                     expParamValue.multiplyValue = DEFAULT_MULTIPLY_VALUE
-                    expParamValue.overwriteValue = expParamValue.overwriteValue
                 } else {
                     expParamValue.additiveValue = calculateValue(
                         expParamValue.additiveValue,
@@ -134,48 +152,6 @@ class CubismExpressionMotion : ACubismMotion {
                         fadeWeight
                     )
                 }
-                continue
-            }
-
-            // 値を計算
-            val value = expressionParameters.get(parameterIndex).value
-            val newAdditiveValue: Float
-            val newMultiplyValue: Float
-            val newOverwriteValue: Float
-
-            when (expressionParameters.get(parameterIndex).blendType) {
-                ExpressionBlendType.ADD -> {
-                    newAdditiveValue = value
-                    newMultiplyValue = DEFAULT_MULTIPLY_VALUE
-                    newOverwriteValue = expParamValue.overwriteValue
-                }
-
-                ExpressionBlendType.MULTIPLY -> {
-                    newAdditiveValue = DEFAULT_ADDITIVE_VALUE
-                    newMultiplyValue = value
-                    newOverwriteValue = expParamValue.overwriteValue
-                }
-
-                ExpressionBlendType.OVERWRITE -> {
-                    newAdditiveValue = DEFAULT_ADDITIVE_VALUE
-                    newMultiplyValue = DEFAULT_MULTIPLY_VALUE
-                    newOverwriteValue = value
-                }
-
-                else -> return
-            }
-
-            if (expressionIndex == 0) {
-                expParamValue.additiveValue = newAdditiveValue
-                expParamValue.multiplyValue = newMultiplyValue
-                expParamValue.overwriteValue = newOverwriteValue
-            } else {
-                expParamValue.additiveValue =
-                    (expParamValue.additiveValue * (1.0f - fadeWeight)) + newAdditiveValue * fadeWeight
-                expParamValue.multiplyValue =
-                    (expParamValue.multiplyValue * (1.0f - fadeWeight)) + newMultiplyValue * fadeWeight
-                expParamValue.overwriteValue =
-                    (expParamValue.overwriteValue * (1.0f - fadeWeight)) + newOverwriteValue * fadeWeight
             }
         }
     }

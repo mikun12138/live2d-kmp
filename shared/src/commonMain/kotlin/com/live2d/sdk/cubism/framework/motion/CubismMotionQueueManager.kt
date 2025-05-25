@@ -24,11 +24,11 @@ open class CubismMotionQueueManager {
     fun startMotion(motion: ACubismMotion) {
 
         // 既にモーションがあれば終了フラグを立てる。
-        for (entry in motions) {
+        for (entry in motionEntries) {
             entry.setFadeOut(entry.motion.fadeOutSeconds)
         }
 
-        motions.add(CubismMotionQueueEntry(motion))
+        motionEntries.add(CubismMotionQueueEntry(motion))
 
         // began callback
         motion.beganMotionCallback(motion)
@@ -41,13 +41,13 @@ open class CubismMotionQueueManager {
 
             // motionがnullならば要素をnullとする
             // 後でnull要素を全て削除する。
-            for (motionQueueEntry in motions) {
+            for (motionQueueEntry in motionEntries) {
                 if (!motionQueueEntry.isFinished) {
                     return false
                 }
             }
 
-            motions.removeAll(mutableSetOf<Any?>(null))
+            motionEntries.removeAll(mutableSetOf<Any?>(null))
 
             return true
         }
@@ -56,7 +56,7 @@ open class CubismMotionQueueManager {
      * Stop all motions.
      */
     fun stopAllMotions() {
-        motions.clear()
+        motionEntries.clear()
     }
 
     fun setEventCallback(callback: ICubismMotionEventFunction, customData: Any?) {
@@ -64,64 +64,6 @@ open class CubismMotionQueueManager {
         eventCustomData = customData
     }
 
-    /**
-     * Update the motion and reflect the parameter values to the model.
-     *
-     * @param model target model
-     * @param totalSeconds total delta time[s]
-     * @return If reflecting the parameter value to the model(the motion is changed.) is successed, return true.
-     */
-    protected fun doUpdateMotion(model: CubismModel?, totalSeconds: Float): Boolean {
-        // TODO:: make it a member
-        var isUpdated = false
-
-        // ---- Do processing ----
-        // If there is already a motion, flag it as finished.
-
-        // At first, remove the null elements from motions list.
-        motions.removeAll(mutableSetOf<Any?>(null))
-
-        for (i in motions.indices) {
-            isUpdated = true
-            val motionQueueEntry = motions[i]
-            val motion: CubismMotion = motionQueueEntry.motion
-
-            // 更新 model 参数
-            run {
-                motion.updateParameters(model, motionQueueEntry, totalSeconds)
-            }
-
-            // 触发 UserData 内的 event
-            run {
-                motion.getFiredEvent(
-                    motionQueueEntry.lastCheckEventTime - motionQueueEntry.startTime,
-                    totalSeconds - motionQueueEntry.startTime
-                ).forEach { event ->
-                    eventCallback.apply(this, event, eventCustomData)
-                }
-                motionQueueEntry.lastCheckEventTime = totalSeconds
-            }
-
-            // TODO::是不是该写到 entry ?
-            run {
-                // If any processes have already been finished, delete them.
-                if (motionQueueEntry.isFinished) {
-                    motions[i] = null
-                } else {
-                    if (motionQueueEntry.isTriggeredFadeOut) {
-                        motionQueueEntry.startFadeOut(
-                            motionQueueEntry.fadeOutSeconds,
-                            totalSeconds
-                        )
-                    }
-                }
-            }
-        }
-
-        motions.removeAll(mutableSetOf<Any?>(null))
-
-        return isUpdated
-    }
 
     /**
      * total delta time[s]
@@ -131,7 +73,7 @@ open class CubismMotionQueueManager {
     /**
      * List of motions
      */
-    val motions: MutableList<CubismMotionQueueEntry?> = ArrayList()
+    val motionEntries: MutableList<CubismMotionQueueEntry?> = ArrayList()
 
     private var eventCallback: ICubismMotionEventFunction? = null
     private var eventCustomData: Any? = null

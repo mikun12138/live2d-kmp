@@ -33,7 +33,7 @@ class CubismMotionManager : CubismMotionQueueManager() {
      * @param deltaTimeSeconds delta time[s]
      * @return If it is updated, return true.
      */
-    fun updateMotion(model: CubismModel?, deltaTimeSeconds: Float): Boolean {
+    fun updateMotion(model: CubismModel, deltaTimeSeconds: Float): Boolean {
         totalSeconds += deltaTimeSeconds
 
         val isUpdated: Boolean = doUpdateMotion(model, totalSeconds)
@@ -41,6 +41,56 @@ class CubismMotionManager : CubismMotionQueueManager() {
         if (isFinished) {
             currentPriority = 0 // 再生中モーションの優先度を解除
         }
+        return isUpdated
+    }
+
+    private fun doUpdateMotion(model: CubismModel, totalSeconds: Float): Boolean {
+        var isUpdated = false
+
+        // ---- Do processing ----
+        // If there is already a motion, flag it as finished.
+
+        // At first, remove the null elements from motions list.
+        motionEntries.removeAll(mutableSetOf<Any?>(null))
+
+        for (i in motionEntries.indices) {
+            isUpdated = true
+            val motionQueueEntry = motionEntries[i]
+
+            // 更新 model 参数
+            run {
+                motionQueueEntry.motion.updateParameters(model, motionQueueEntry, totalSeconds)
+            }
+
+            // 触发 UserData 内的 event
+            run {
+                motionQueueEntry.motion.getFiredEvent(
+                    motionQueueEntry.lastCheckEventTime - motionQueueEntry.startTime,
+                    totalSeconds - motionQueueEntry.startTime
+                ).forEach { event ->
+                    eventCallback.apply(this, event, eventCustomData)
+                }
+                motionQueueEntry.lastCheckEventTime = totalSeconds
+            }
+
+            // TODO::是不是该写到 entry ?
+            run {
+                // If any processes have already been finished, delete them.
+                if (motionQueueEntry.isFinished) {
+                    motionEntries[i] = null
+                } else {
+                    if (motionQueueEntry.isTriggeredFadeOut) {
+                        motionQueueEntry.startFadeOut(
+                            motionQueueEntry.fadeOutSeconds,
+                            totalSeconds
+                        )
+                    }
+                }
+            }
+        }
+
+        motionEntries.removeAll(mutableSetOf<Any?>(null))
+
         return isUpdated
     }
 

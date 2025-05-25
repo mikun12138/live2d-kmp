@@ -41,18 +41,14 @@ abstract class ACubismMotion {
         motionQueueEntry: CubismMotionQueueEntry,
         userTimeSeconds: Float
     ) {
-        if (!motionQueueEntry.isAvailable || motionQueueEntry.isFinished) {
+        if (motionQueueEntry.isFinished || motionQueueEntry.isStarted) {
             return
         }
 
-        if (motionQueueEntry.isStarted) {
-            return
-        }
-
-        motionQueueEntry.isStarted(true)
+        motionQueueEntry.isStarted = true
 
         // Record the start time of the motion.
-        motionQueueEntry.startTime = userTimeSeconds - offsetSeconds
+        motionQueueEntry.startTime = userTimeSeconds
         // Record the start time of fade-in
         motionQueueEntry.fadeInStartTime = userTimeSeconds
 
@@ -123,8 +119,6 @@ abstract class ACubismMotion {
     )
 
     protected fun adjustEndTime(motionQueueEntry: CubismMotionQueueEntry) {
-        val duration = this.duration
-
         // duration == -1 の場合はループする
         val endTime = if (duration <= 0)
             -1f
@@ -138,11 +132,6 @@ abstract class ACubismMotion {
     var fadeInSeconds: Float = -1.0f
     var fadeOutSeconds: Float = -1.0f
     var weight: Float = 1.0f
-
-    /**
-     * Start time for motion playback[s]
-     */
-    var offsetSeconds: Float = 0f
 
     /**
      * Enable/Disable loop

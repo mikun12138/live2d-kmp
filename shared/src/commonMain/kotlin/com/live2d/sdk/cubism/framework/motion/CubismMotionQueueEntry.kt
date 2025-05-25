@@ -10,7 +10,7 @@ package com.live2d.sdk.cubism.framework.motion
  * Manager class for each motion being played by CubismMotionQueueManager.
  */
 class CubismMotionQueueEntry(
-     val motion: CubismMotion
+     val motion: ACubismMotion
 ) {
 
     /**
@@ -80,4 +80,10 @@ class CubismMotionQueueEntry(
      */
     var isTriggeredFadeOut: Boolean = false
         private set
+    /**
+     * 再生中の表情モーションのウェイトのリスト
+     * 0为开始 fade, >=1为完成fade
+     */
+    var fadeWeight: Float = 0.0f
+
 }
