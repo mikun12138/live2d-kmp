@@ -219,10 +219,10 @@ abstract class ACubismMotion {
      * @param motionQueueEntry motion managed by CubismMotionQueueManager
      */
     protected abstract fun doUpdateParameters(
-        model: CubismModel?,
+        model: CubismModel,
         userTimeSeconds: Float,
         weight: Float,
-        motionQueueEntry: CubismMotionQueueEntry?
+        motionQueueEntry: CubismMotionQueueEntry
     )
 
     protected fun adjustEndTime(motionQueueEntry: CubismMotionQueueEntry) {

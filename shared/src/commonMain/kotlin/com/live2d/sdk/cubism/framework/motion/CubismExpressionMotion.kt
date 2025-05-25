@@ -9,69 +9,71 @@ package com.live2d.sdk.cubism.framework.motion
 import com.live2d.sdk.cubism.framework.CubismFramework.idManager
 import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.model.CubismModel
-import com.live2d.sdk.cubism.framework.utils.jsonparser.ACubismJsonValue
-import com.live2d.sdk.cubism.framework.utils.jsonparser.CubismJson
+import com.live2d.sdk.cubism.framework.utils.json.ExpressionJson
+import kotlinx.serialization.json.Json
 
 /**
  * A motion class for facial expressions.
  */
-class CubismExpressionMotion
-/**
- * デフォルトコンストラクタ
- */
-protected constructor() : ACubismMotion() {
-    /**
-     * Calculation method of facial expression parameter values.
-     */
-    enum class ExpressionBlendType(type: String) {
-        /**
-         * Addition
-         */
+class CubismExpressionMotion : ACubismMotion {
+
+    constructor(buffer: ByteArray) {
+        parse(buffer)
+    }
+
+    private fun parse(exp3Json: ByteArray) {
+        Json.decodeFromString<ExpressionJson>(String(exp3Json)).let { json ->
+            fadeInSeconds = json.fadeInTime?.let {
+                it
+            } ?: DEFAULT_FADE_TIME
+            fadeOutSeconds = json.fadeOutTime?.let {
+                it
+            } ?: DEFAULT_FADE_TIME
+
+            // Each parameter setting
+            for (param in json.parameters) {
+                // Parameter ID
+                val parameterId: CubismId = idManager.id(
+                    param.id
+                )
+                // Setting of calculation method.
+                val blendType = when (param.blend) {
+                    ExpressionBlendType.ADD.type -> {
+                        ExpressionBlendType.ADD
+                    }
+                    ExpressionBlendType.MULTIPLY.type -> {
+                        ExpressionBlendType.MULTIPLY
+                    }
+                    ExpressionBlendType.OVERWRITE.type -> {
+                        ExpressionBlendType.OVERWRITE
+                    }
+                    else -> {
+                        ExpressionBlendType.ADD
+                    }
+                }
+                // Value
+                val value = param.value
+
+                // Create a configuration object and add it to the list.
+                val item = ExpressionParameter(parameterId, blendType, value)
+                this.expressionParameters.add(item)
+            }
+        }
+    }
+
+    enum class ExpressionBlendType(
+         val type: String
+    ) {
         ADD("Add"),
-
-        /**
-         * Multiplication
-         */
         MULTIPLY("Multiply"),
-
-        /**
-         * Overwriting
-         */
         OVERWRITE("Overwrite");
-
-        private val type: String?
-
-        init {
-            this.type = type
-        }
     }
 
-    /**
-     * Internal class for expression parameter information.
-     */
-    class ExpressionParameter(id: CubismId, method: ExpressionBlendType, value: Float) {
-        /**
-         * Parameter ID
-         */
-        val parameterId: CubismId
-
-        /**
-         * Type of parameter calculation
-         */
-        val blendType: ExpressionBlendType
-
-        /**
-         * Value
-         */
-        val value: Float
-
-        init {
-            require(!(id == null || method == null)) { "id or method is null." }
-            this.parameterId = id
-            this.blendType = method
-            this.value = value
-        }
-    }
+    class ExpressionParameter(
+        val parameterId: CubismId,
+        val blendType: ExpressionBlendType,
+        val value: Float,
+    )
 
     /**
      * モデルの表情に関するパラメータを計算する。
@@ -201,7 +203,7 @@ protected constructor() : ACubismMotion() {
         model: CubismModel,
         userTimeSeconds: Float,
         weight: Float,
-        motionQueueEntry: CubismMotionQueueEntry?
+        motionQueueEntry: CubismMotionQueueEntry
     ) {
         for (i in expressionParameters.indices) {
             val parameter = expressionParameters.get(i)
@@ -230,53 +232,6 @@ protected constructor() : ACubismMotion() {
     }
 
     /**
-     * exp3.jsonをパースする。
-     *
-     * @param exp3Json exp3.jsonが読み込まれているbyte配列
-     */
-    protected fun parse(exp3Json: ByteArray?) {
-        val json = CubismJson.create(exp3Json!!)
-
-        setFadeInTime(json.root.get(ExpressionKey.FADE_IN.key).toFloat(DEFAULT_FADE_TIME))
-        setFadeOutTime(json.root.get(ExpressionKey.FADE_OUT.key).toFloat(DEFAULT_FADE_TIME))
-
-        val jsonParameters = json.root.get(ExpressionKey.PARAMETERS.key)
-        // Each parameter setting
-        for (i in 0..<jsonParameters.size()) {
-            val param = jsonParameters.get(i)
-
-            // Parameter ID
-            val parameterId: CubismId = idManager.getId(param.get(ExpressionKey.ID.key).string)
-            // Setting of calculation method.
-            val blendType = getBlendMethod(param)
-            // Value
-            val value = param.get(ExpressionKey.VALUE.key).toFloat()
-
-            // Create a configuration object and add it to the list.
-            val item = ExpressionParameter(parameterId, blendType, value)
-            this.expressionParameters.add(item)
-        }
-    }
-
-    /**
-     * Key of exp3.json.
-     */
-    private enum class ExpressionKey(key: String) {
-        FADE_IN("FadeInTime"),
-        FADE_OUT("FadeOutTime"),
-        PARAMETERS("Parameters"),
-        ID("Id"),
-        VALUE("Value"),
-        BLEND("Blend");
-
-        private val key: String?
-
-        init {
-            this.key = key
-        }
-    }
-
-    /**
      * 入力された値でブレンド計算をする。
      *
      * @param source 現在の値
@@ -289,22 +244,10 @@ protected constructor() : ACubismMotion() {
     }
 
     /**
-     * 表情が参照しているパラメータを取得する。
-     *
-     * @return 表情が参照しているパラメータ
-     */
-    /**
      * Parameter information list for facial expressions
      */
     val expressionParameters: MutableList<ExpressionParameter> = ArrayList<ExpressionParameter>()
 
-    /**
-     * 現在の表情のフェードのウェイト値を取得する。
-     *
-     * @return 表情のフェードのウェイト値
-     *
-     * @see CubismExpressionMotionManager.getFadeWeight
-     */
     /**
      * 表情の現在のウェイト
      *
@@ -319,52 +262,9 @@ protected constructor() : ACubismMotion() {
         private set
 
     companion object {
-        /**
-         * Default fade duration.
-         */
+
         const val DEFAULT_FADE_TIME: Float = 1.0f
-
-        /**
-         * 加算適用の初期値
-         */
         const val DEFAULT_ADDITIVE_VALUE: Float = 0.0f
-
-        /**
-         * 乗算適用の初期値
-         */
         const val DEFAULT_MULTIPLY_VALUE: Float = 1.0f
-
-        /**
-         * Create an ACubismMotion instance.
-         *
-         * @param buffer buffer where exp3.json file is loaded
-         * @return created instance
-         */
-        fun create(buffer: ByteArray?): CubismExpressionMotion {
-            val expression = CubismExpressionMotion()
-            expression.parse(buffer)
-
-            return expression
-        }
-
-        /**
-         * Get the calculation method for the parameter values of expressions set in JSON.
-         *
-         * @param parameter JSON parameter value
-         * @return calculation method set in JSON
-         */
-        private fun getBlendMethod(parameter: ACubismJsonValue): ExpressionBlendType {
-            val method = parameter.get(ExpressionKey.BLEND.key).string
-
-            if (method == ExpressionBlendType.ADD.type) {
-                return ExpressionBlendType.ADD
-            } else if (method == ExpressionBlendType.MULTIPLY.type) {
-                return ExpressionBlendType.MULTIPLY
-            } else if (method == ExpressionBlendType.OVERWRITE.type) {
-                return ExpressionBlendType.OVERWRITE
-            } else {
-                return ExpressionBlendType.ADD
-            }
-        }
     }
 }

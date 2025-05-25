@@ -200,9 +200,6 @@ abstract class CubismUserModel protected constructor() {
         }
     }
 
-    /**
-     * A Moc data,
-     */
     protected var moc: CubismMoc? = null
     /**
      * A model instance
