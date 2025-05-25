@@ -204,7 +204,7 @@ abstract class CubismUserModel protected constructor() {
     /**
      * A model instance
      */
-    var model: CubismModel? = null
+    lateinit var model: CubismModel
         protected set
 
     /**
@@ -237,12 +237,6 @@ abstract class CubismUserModel protected constructor() {
     protected var expressionManager: CubismExpressionMotionManager = CubismExpressionMotionManager()
     protected var physics: CubismPhysics? = null
     protected var modelUserData: CubismModelUserData? = null
-
-    /**
-     * An XY-position of mouse dragging
-     */
-    protected var dragX: Float = 0f
-    protected var dragY: Float = 0f
 
     /**
      * An acceleration in XYZ-axis direction

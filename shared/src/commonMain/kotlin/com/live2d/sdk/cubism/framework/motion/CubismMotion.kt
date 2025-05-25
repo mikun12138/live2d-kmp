@@ -18,7 +18,6 @@ import java.util.Collections
 import kotlin.Array
 import kotlin.Boolean
 import kotlin.ByteArray
-import kotlin.Deprecated
 import kotlin.Float
 import kotlin.Int
 import kotlin.String
@@ -36,83 +35,11 @@ import kotlin.text.equals
  * Motion class.
  */
 class CubismMotion : ACubismMotion() {
-    /**
-     * Enumerator for version control of Motion Behavior.
-     * For details, see the SDK Manual.
-     */
     enum class MotionBehavior {
         MOTION_BEHAVIOR_V1,
         MOTION_BEHAVIOR_V2,
     }
 
-    /**
-     * Set loop information.
-     *
-     * @param loop loop information
-     *
-     */
-    @Deprecated(
-        """Not recommended due to the relocation of isLoop to the base class.
-                  Use ACubismMotion.setLoop(boolean loop) instead."""
-    )
-    fun isLooped(loop: Boolean) {
-        CubismDebug.cubismLogWarning("isLoop(boolean loop) is a deprecated function. Please use setLoop(boolean loop).")
-        super.setLoop(loop)
-    }
-
-    @get:Deprecated(
-        """Not recommended due to the relocation of isLoop to the base class.
-                  Use ACubismMotion.getLoop() instead."""
-    )
-    val isLooped: Boolean
-        /**
-         * Whether the motion loops.
-         *
-         * @return If it loops, return true.
-         *
-         */
-        get() {
-            CubismDebug.cubismLogWarning("isLoop() is a deprecated function. Please use getLoop().")
-            return super.getLoop()
-        }
-
-    /**
-     * Set the fade-in information at looping.
-     *
-     * @param loopFadeIn fade-in information at looping
-     *
-     */
-    @Deprecated(
-        """Not recommended due to the relocation of isLoopFadeIn to the base class.
-                  Use ACubismMotion.setLoopFadeIn(boolean loopFadeIn) instead."""
-    )
-    fun isLoopFadeIn(loopFadeIn: Boolean) {
-        CubismDebug.cubismLogWarning("isLoopFadeIn(boolean loopFadeIn) is a deprecated function. Please use setLoopFadeIn(boolean loopFadeIn)")
-        super.setLoopFadeIn(loopFadeIn)
-    }
-
-    @get:Deprecated(
-        """Not recommended due to the relocation of isLoopFadeIn to the base class.
-                  Use ACubismMotion.getLoopFadeIn() instead."""
-    )
-    val isLoopFadeIn: Boolean
-        /**
-         * Whether the motion fade in at looping.
-         *
-         * @return If it fades in, return true.
-         *
-         */
-        get() {
-            CubismDebug.cubismLogWarning("isLoopFadeIn() is a deprecated function. Please use getLoopFadeIn().")
-            return super.getLoopFadeIn()
-        }
-
-    /**
-     * Set the fade-in duration for parameters.
-     *
-     * @param parameterId parameter ID
-     * @param value fade-in duration[s]
-     */
     fun setParameterFadeInTime(parameterId: CubismId, value: Float) {
         for (i in 0..<motionData.curves.size()) {
             val curve: CubismMotionCurve = motionData.curves.get(i)
@@ -124,12 +51,6 @@ class CubismMotion : ACubismMotion() {
         }
     }
 
-    /**
-     * Get the fade-in duration for parameters.
-     *
-     * @param parameterId parameter ID
-     * @return fade-in duration[s]
-     */
     fun getParameterFadeInTime(parameterId: CubismId): Float {
         for (i in 0..<motionData.curves.size()) {
             val curve: CubismMotionCurve = motionData.curves.get(i)
@@ -141,12 +62,6 @@ class CubismMotion : ACubismMotion() {
         return -1f
     }
 
-    /**
-     * Set the fade-out duration for parameters.
-     *
-     * @param parameterId parameter ID
-     * @param value fade-out duration[s]
-     */
     fun setParameterFadeOutTime(parameterId: CubismId, value: Float) {
         for (i in 0..<motionData.curves.size()) {
             val curve: CubismMotionCurve = motionData.curves.get(i)
@@ -158,12 +73,6 @@ class CubismMotion : ACubismMotion() {
         }
     }
 
-    /**
-     * Get the fade-out duration for parameters.
-     *
-     * @param parameterId parameter ID
-     * @return fade-out duration[s]
-     */
     fun getParameterFadeOutTime(parameterId: CubismId): Float {
         for (i in 0..<motionData.curves.size()) {
             val curve: CubismMotionCurve = motionData.curves.get(i)
@@ -192,21 +101,16 @@ class CubismMotion : ACubismMotion() {
         this.lipSyncParameterIds.addAll(lipSyncParameterIds)
     }
 
-    val duration: Float
-        get() = if (isLoop)
-            -1.0f
-        else
-            this.loopDuration
-
-    public override fun getFiredEvent(
+    override fun getFiredEvent(
         beforeCheckTimeSeconds: Float,
         motionTimeSeconds: Float
     ): MutableList<String?> {
         firedEventValues.clear()
 
-        for (i in 0..<motionData.events.size()) {
-            val event: CubismMotionEvent = motionData.events.get(i)
+        for (event in motionData.events) {
+            if (event.fireTime in beforeCheckTimeSeconds..motionTimeSeconds) {
 
+            }
             if ((event.fireTime > beforeCheckTimeSeconds) && (event.fireTime <= motionTimeSeconds)) {
                 firedEventValues.add(event.value)
             }
@@ -1062,7 +966,7 @@ class CubismMotion : ACubismMotion() {
     /**
      * length of the sequence of motions defined in the motion3.json file.
      */
-    var loopDuration: Float = -1.0f
+    var loopDurationSeconds: Float = -1.0f
         private set
 
     /**
@@ -1154,7 +1058,7 @@ class CubismMotion : ACubismMotion() {
             motion.parse(buffer)
 
             motion.sourceFrameRate = motion.motionData.fps
-            motion.loopDuration = motion.motionData.duration
+            motion.loopDurationSeconds = motion.motionData.duration
             motion.onFinishedMotion = finishedMotionCallBack
             motion.onBeganMotion = beganMotionCallBack
 

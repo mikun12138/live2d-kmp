@@ -6,7 +6,7 @@
  */
 package com.live2d.sdk.cubism.framework.motion
 
-interface ICubismMotionEventFunction {
+fun  interface ICubismMotionEventFunction {
     fun apply(
         caller: CubismMotionQueueManager?,
         eventValue: String?,

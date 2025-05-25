@@ -76,7 +76,7 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
      * @return 表情モーションが更新されたかどうか。更新されたならtrue。
      */
     fun updateMotion(model: CubismModel, deltaTimeSeconds: Float): Boolean {
-        userTimeSeconds += deltaTimeSeconds
+        totalSeconds += deltaTimeSeconds
         var isUpdated = false
         val motions: MutableList<CubismMotionQueueEntry> = getCubismMotionQueueEntries()
 
@@ -147,14 +147,14 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
             }
 
             // ------ 値を計算する ------
-            expressionMotion.setupMotionQueueEntry(motionQueueEntry, userTimeSeconds)
+            expressionMotion.setupMotionQueueEntry(motionQueueEntry, totalSeconds)
             setFadeWeight(
                 expressionIndex,
-                expressionMotion.updateFadeWeight(motionQueueEntry, userTimeSeconds)
+                expressionMotion.updateFadeWeight(motionQueueEntry, totalSeconds)
             )
             expressionMotion.calculateExpressionParameters(
                 model,
-                userTimeSeconds,
+                totalSeconds,
                 motionQueueEntry,
                 expressionParameterValues,
                 expressionIndex,
@@ -164,14 +164,14 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
             val easingSine = if (expressionMotion.getFadeInTime() === 0.0f)
                 1.0f
             else
-                getEasingSine((userTimeSeconds - motionQueueEntry.getFadeInStartTime()) / expressionMotion.getFadeInTime())
+                getEasingSine((totalSeconds - motionQueueEntry.getFadeInStartTime()) / expressionMotion.getFadeInTime())
             expressionWeight += easingSine
 
             isUpdated = true
 
             if (motionQueueEntry.isTriggeredFadeOut()) {
                 // フェードアウト開始
-                motionQueueEntry.startFadeOut(motionQueueEntry.getFadeOutSeconds(), userTimeSeconds)
+                motionQueueEntry.startFadeOut(motionQueueEntry.getFadeOutSeconds(), totalSeconds)
             }
 
             expressionIndex++

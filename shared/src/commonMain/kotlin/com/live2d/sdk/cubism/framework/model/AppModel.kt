@@ -6,8 +6,11 @@ import com.live2d.sdk.cubism.framework.effect.CubismBreath
 import com.live2d.sdk.cubism.framework.effect.CubismBreath.BreathParameterData
 import com.live2d.sdk.cubism.framework.effect.CubismEyeBlink
 import com.live2d.sdk.cubism.framework.id.CubismId
+import com.live2d.sdk.cubism.framework.model.AppModel.MotionGroup.IDLE
 import com.live2d.sdk.cubism.framework.motion.CubismExpressionMotion
 import com.live2d.sdk.cubism.framework.motion.CubismMotion
+import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
+import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
 import com.live2d.sdk.cubism.framework.utils.json.ModelJson
 import kotlinx.serialization.json.Json
 import kotlin.io.path.Path
@@ -21,8 +24,8 @@ class AppModel : CubismUserModel() {
     private val idParamEyeBallX: CubismId = idManager.id(ParameterId.EYE_BALL_X.id)
     private val idParamEyeBallY: CubismId = idManager.id(ParameterId.EYE_BALL_Y.id)
 
-    private val motionMap: MutableMap<String, CubismMotion> = mutableMapOf()
-    private val expressionMap: MutableMap<String, CubismExpressionMotion?> = mutableMapOf()
+    private val name_2_motionList: MutableMap<String, MutableList<CubismMotion>> = mutableMapOf()
+    private val name_2_expression: MutableMap<String, CubismExpressionMotion?> = mutableMapOf()
 
 
     fun init(dir: String, modelJsonFileName: String) {
@@ -35,7 +38,7 @@ class AppModel : CubismUserModel() {
 
     }
 
-    fun setupModel(dir: String, modelJson: ModelJson) {
+    private fun setupModel(dir: String, modelJson: ModelJson) {
         Path(dir, modelJson.fileReferences.moc).readBytes().let { buffer ->
             loadModel(buffer, true)
         }
@@ -50,7 +53,7 @@ class AppModel : CubismUserModel() {
 
         for (expression in modelJson.fileReferences.expressions) {
             Path(dir, expression.file).readBytes().let { buffer ->
-                expressionMap.put(expression.name, loadExpression(buffer))
+                name_2_expression.put(expression.name, loadExpression(buffer))
             }
         }
 
@@ -81,7 +84,7 @@ class AppModel : CubismUserModel() {
         // TODO:: layout
 //        modelJson.layout
 
-        model!!.saveParameters()
+        model.saveParameters()
 
         // Just preload motions
         for ((name, motionGroup) in modelJson.fileReferences.motionGroups) {
@@ -92,15 +95,82 @@ class AppModel : CubismUserModel() {
                         it.fadeOutSeconds = motion.fadeOutTime
                         // TODO::
                         it.setEffectIds()
-
-                        motionMap.put("${name}_${index}", it)
+                        name_2_motionList.getOrPut(name) {
+                            mutableListOf()
+                        }.add(it)
                     }
                 }
             }
         }
 
         motionManager.stopAllMotions()
+    }
 
+    fun update() {
+        val deltaTimeSeconds: Float = LAppPal.getDeltaTime()
+        userTimeSeconds += deltaTimeSeconds
+
+        dragManager.update(deltaTimeSeconds)
+
+        // Idle动画
+        run {
+            model.loadParameters()
+            run {
+                if (motionManager.isFinished) {
+                    startRandomMotion(IDLE, MotionPriority.IDLE)
+                }
+            }
+            model.saveParameters()
+        }
+    }
+
+    fun startRandomMotion(
+        motionGroupName: String,
+        priority: MotionPriority,
+        onFinishedMotionHandler: IFinishedMotionCallback = IFinishedMotionCallback { },
+        onBeganMotionHandler: IBeganMotionCallback = IBeganMotionCallback { },
+    ) {
+        name_2_motionList[motionGroupName]?.let {
+            startMotion(
+                it.random(),
+
+
+            )
+        } ?: error("Failed to start motion: Unknown motion group name($motionGroupName)")
+    }
+
+    fun startMotion(
+        motion: CubismMotion,
+        motionGroupName: String,
+        index: Int,
+        priority: MotionPriority,
+        onFinishedMotionHandler: IFinishedMotionCallback = IFinishedMotionCallback { },
+        onBeganMotionHandler: IBeganMotionCallback = IBeganMotionCallback { },
+    ) {
+        if (priority == MotionPriority.FORCE) {
+            motionManager.reservationPriority = priority.value
+        } else if (!motionManager.reserveMotion(priority.value)) {
+            // TODO:: log
+            return
+        }
+
+        motion
+
+
+    }
+
+    object MotionGroup {
+        const val IDLE = "Idle"
+        const val TAP_BODY = "TapBody"
+    }
+
+    enum class MotionPriority(
+        val value: Int
+    ) {
+        NONE(0),
+        IDLE(1),
+        NORMAL(2),
+        FORCE(3);
     }
 
 }

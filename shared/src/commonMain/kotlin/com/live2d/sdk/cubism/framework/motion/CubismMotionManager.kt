@@ -14,22 +14,13 @@ import com.live2d.sdk.cubism.framework.model.CubismModel
  * * Use multiple CubismMotionManager instances to play multiple motions at the same time, such as when motions for facial expressions and body motions are made separately.
  */
 class CubismMotionManager : CubismMotionQueueManager() {
-    /**
-     * Set a priority and start the motion.
-     *
-     * @param motion motion instance
-     * @param priority priority of motion
-     * @return Returns the identification number(OptionalInt) of the motion that has started. Used as an argument for isFinished(), which judges whether an individual motion has been completed. When it cannot be started, it returns an empty OptionalInt.
-     */
-    fun startMotionPriority(motion: ACubismMotion?, priority: Int): Int {
+    fun startMotionPriority(motion: ACubismMotion?, priority: Int) {
         if (priority == reservationPriority) {
             reservationPriority = 0 // Cancel the reservation.
         }
 
         // Set priority of the motion during playback.
         currentPriority = priority
-
-        return startMotion(motion)
     }
 
     /**
@@ -40,11 +31,11 @@ class CubismMotionManager : CubismMotionQueueManager() {
      * @return If it is updated, return true.
      */
     fun updateMotion(model: CubismModel?, deltaTimeSeconds: Float): Boolean {
-        userTimeSeconds += deltaTimeSeconds
+        totalSeconds += deltaTimeSeconds
 
-        val isUpdated: Boolean = doUpdateMotion(model, userTimeSeconds)
+        val isUpdated: Boolean = doUpdateMotion(model, totalSeconds)
 
-        if (isFinished()) {
+        if (isFinished) {
             currentPriority = 0 // 再生中モーションの優先度を解除
         }
         return isUpdated
@@ -70,27 +61,15 @@ class CubismMotionManager : CubismMotionQueueManager() {
     }
 
     /**
-     * Get the priority of the motion being played now.
-     *
-     * @return priority of the motion
-     */
-    /**
      * Priority of the currently playing motion.
+     * 当前播放的 motion 的优先级
      */
     var currentPriority: Int = 0
         private set
-    /**
-     * Get the priority of the reserved motion.
-     *
-     * @return priority of the motion
-     */
-    /**
-     * Set the priority to the reserved motion.
-     *
-     * @param priority motion's priority
-     */
+
     /**
      * Priority of the motion to be played. The value becomes 0 during playback. This is function for loading motion files in a separate thread.
+     * 将要播放的 motion 的优先级
      */
     var reservationPriority: Int = 0
 }

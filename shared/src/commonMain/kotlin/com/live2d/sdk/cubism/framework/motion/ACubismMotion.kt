@@ -12,18 +12,8 @@ import com.live2d.sdk.cubism.framework.model.CubismModel
 import com.live2d.sdk.cubism.framework.utils.CubismDebug.cubismLogError
 import java.util.Collections
 
-/**
- * Abstract base class for motion.
- * This class manages motion playback by MotionQueueManager.
- */
 abstract class ACubismMotion {
-    /**
-     * Update model's parameters.
-     *
-     * @param model target model
-     * @param motionQueueEntry motion managed by CubismMotionQueueManager
-     * @param userTimeSeconds total delta time[s]
-     */
+
     fun updateParameters(
         model: CubismModel?,
         motionQueueEntry: CubismMotionQueueEntry,
@@ -47,12 +37,6 @@ abstract class ACubismMotion {
         }
     }
 
-    /**
-     * モーションの再生を開始するためのセットアップを行う。
-     *
-     * @param motionQueueEntry CubismMotionQueueManagerによって管理されるモーション
-     * @param userTimeSeconds 総再生時間（秒）
-     */
     fun setupMotionQueueEntry(
         motionQueueEntry: CubismMotionQueueEntry,
         userTimeSeconds: Float
@@ -78,13 +62,6 @@ abstract class ACubismMotion {
         }
     }
 
-    /**
-     * モーションフェードのウェイト値を更新する。
-     *
-     * @param motionQueueEntry CubismMotionQueueManagerで管理されているモーション
-     * @param userTimeSeconds デルタ時間の積算値[秒]
-     * @return 更新されたウェイト値
-     */
     fun updateFadeWeight(motionQueueEntry: CubismMotionQueueEntry?, userTimeSeconds: Float): Float {
         if (motionQueueEntry == null) {
             cubismLogError("motionQueueEntry is null.")
@@ -111,29 +88,9 @@ abstract class ACubismMotion {
     }
 
 
-    open val duration: Float
-        /**
-         * Get the duration of the motion.
-         *
-         * @return duration of motion[s]
-         * (If it is a loop, "-1".
-         * Override if it is not a loop.
-         * If the value is positive, the process ends at the time it is retrieved.
-         * When the value is "-1", the process will not end unless there is a stop command from outside)
-         */
-        get() = -1.0f
+    open val duration: Float = -1.0f
 
-    open val loopDuration: Float
-        /**
-         * Get the duration of one motion loop.
-         *
-         * @return duration of one motion loop[s]
-         *
-         *
-         * (If it does not loop, it returns the same value as GetDuration().
-         * Return "-1" in case the duration of one loop cannot be defined (e.g., a subclass that keeps moving programmatically)).
-         */
-        get() = -1.0f
+    open val loopDuration: Float = -1.0f
 
     /**
      * Set the start time for motion playback.
@@ -237,56 +194,9 @@ abstract class ACubismMotion {
         motionQueueEntry.endTime = endTime
     }
 
-    protected open val modelOpacityValue: Float
-        /**
-         * 指定時間の透明度の値を返す。
-         * NOTE: 更新後の値を取るには`updateParameters()` の後に呼び出す。
-         *
-         * @return success : モーションの当該時間におけるOpacityの値
-         */
-        get() = 1.0f
-
-    /**
-     * Get the time it takes to fade in.
-     *
-     * @return time for fade in[s]
-     */
-    /**
-     * Set the time it takes to fade in.
-     *
-     * @param this.fadeInTime time for fade in [s]
-     */
-    /**
-     * Time for fade-in [s]
-     */
+    protected open val modelOpacityValue: Float = 1.0f
     var fadeInSeconds: Float = -1.0f
-    /**
-     * Get the time it takes to fade out.
-     *
-     * @return time for fade out[s]
-     */
-    /**
-     * Set a time it takes to fade out.
-     *
-     * @param this.fadeOutTime time for fade out[s]
-     */
-    /**
-     * Time for fade-out[s]
-     */
     var fadeOutSeconds: Float = -1.0f
-    /**
-     * Get the weight to be applied to the motion.
-     *
-     * @return weight(0.0 - 1.0)
-     */
-    /**
-     * Set the weight to be applied to the motion.
-     *
-     * @param weight weight(0.0 - 1.0)
-     */
-    /**
-     * Weight of motion
-     */
     var weight: Float = 1.0f
 
     /**
@@ -295,29 +205,9 @@ abstract class ACubismMotion {
     protected var offsetSeconds: Float = 0f
 
     /**
-     * Checks whether the motion is set to loop.
-     *
-     * @return true if the motion is set to loop; otherwise false.
-     */
-    /**
-     * Sets whether the motion should loop.
-     *
-     * @param loop true to set the motion to loop
-     */
-    /**
      * Enable/Disable loop
      */
     var loop: Boolean = false
-    /**
-     * Checks the setting for fade-in of looping motion.
-     *
-     * @return true if fade-in for looping motion is set; otherwise false.
-     */
-    /**
-     * Sets whether to perform fade-in for looping motion.
-     *
-     * @param loopFadeIn true to perform fade-in for looping motion
-     */
     /**
      * flag whether fade-in is enabled at looping. Default value is true.
      */
@@ -331,27 +221,15 @@ abstract class ACubismMotion {
     /**
      * List of events that have fired
      */
-    protected var firedEventValues: MutableList<String?> = ArrayList<String?>()
+    protected var firedEventValues: MutableList<String?> = ArrayList()
 
-    /**
-     * Get the start-of-motion playback callback function.
-     *
-     * @return registered start-of-motion playback callback function; if null, no function is registered
-     */
     /**
      * Start-of-motion playback callback function
      */
-    var beganMotionCallback: IBeganMotionCallback? = null
-        protected set
+    var beganMotionCallback: IBeganMotionCallback = IBeganMotionCallback { }
 
-    /**
-     * Get the end-of-motion playback callback function.
-     *
-     * @return registered end-of-motion playback callback function; if null, no function is registered
-     */
     /**
      * End-of-motion playback callback function
      */
-    var finishedMotionCallback: IFinishedMotionCallback? = null
-        protected set
+    var finishedMotionCallback: IFinishedMotionCallback = IFinishedMotionCallback { }
 }

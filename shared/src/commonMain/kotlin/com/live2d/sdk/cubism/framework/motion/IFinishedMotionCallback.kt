@@ -9,6 +9,6 @@ package com.live2d.sdk.cubism.framework.motion
 /**
  * モーション再生終了コールバック
  */
-interface IFinishedMotionCallback {
+fun interface IFinishedMotionCallback {
     fun execute(motion: ACubismMotion?)
 }
