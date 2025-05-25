@@ -88,18 +88,9 @@ abstract class ACubismMotion {
     }
 
 
-    open val duration: Float = -1.0f
+    val duration: Float = -1.0f
 
-    open val loopDuration: Float = -1.0f
-
-    /**
-     * Set the start time for motion playback.
-     *
-     * @param offsetSeconds start time for motion playback[s]
-     */
-    fun setOffsetTime(offsetSeconds: Float) {
-        this.offsetSeconds = offsetSeconds
-    }
+    val loopDuration: Float = -1.0f
 
     /**
      * Check for event firing.
@@ -114,57 +105,6 @@ abstract class ACubismMotion {
         motionTimeSeconds: Float
     ): MutableList<String?> {
         return Collections.unmodifiableList<String?>(firedEventValues)
-    }
-
-    /**
-     * Registers a motion playback start callback.
-     * It is not called in the following states:
-     * 1. when the currently playing motion is set as "loop"
-     * 2. when null is registered in the callback
-     *
-     * @param onBeganMotionHandler start-of-motion playback callback function
-     */
-    fun setBeganMotionHandler(onBeganMotionHandler: IBeganMotionCallback?) {
-        this.beganMotionCallback = onBeganMotionHandler
-    }
-
-    /**
-     * Registers a motion playback end callback.
-     * It is called when the isFinished flag is set.
-     * It is not called in the following states:
-     * 1. when the currently playing motion is set as "loop"
-     * 2. when null is registered in the callback
-     *
-     * @param onFinishedMotionHandler end-of-motion playback callback function
-     */
-    fun setFinishedMotionHandler(onFinishedMotionHandler: IFinishedMotionCallback?) {
-        this.finishedMotionCallback = onFinishedMotionHandler
-    }
-
-    open val isExistModelOpacity: Boolean
-        /**
-         * Check to see if a transparency curve exists.
-         *
-         * @return return true if the key exists
-         */
-        get() = false
-
-
-    open val modelOpacityIndex: Int
-        /**
-         * Return the index of the transparency curve.
-         *
-         * @return success: index of the transparency curve
-         */
-        get() = -1
-
-    /**
-     * Return the ID of the transparency curve.
-     *
-     * @return success: atransparency curve
-     */
-    open fun getModelOpacityId(index: Int): CubismId? {
-        return null
     }
 
     /**
@@ -202,7 +142,7 @@ abstract class ACubismMotion {
     /**
      * Start time for motion playback[s]
      */
-    protected var offsetSeconds: Float = 0f
+    var offsetSeconds: Float = 0f
 
     /**
      * Enable/Disable loop
@@ -223,13 +163,6 @@ abstract class ACubismMotion {
      */
     protected var firedEventValues: MutableList<String?> = ArrayList()
 
-    /**
-     * Start-of-motion playback callback function
-     */
     var beganMotionCallback: IBeganMotionCallback = IBeganMotionCallback { }
-
-    /**
-     * End-of-motion playback callback function
-     */
     var finishedMotionCallback: IFinishedMotionCallback = IFinishedMotionCallback { }
 }

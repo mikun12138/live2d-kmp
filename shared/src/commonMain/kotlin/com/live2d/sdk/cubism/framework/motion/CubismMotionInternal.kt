@@ -11,7 +11,7 @@ import com.live2d.sdk.cubism.framework.id.CubismId
 /**
  * Internal data used by the CubismMotion class.
  */
-internal class CubismMotionInternal {
+class CubismMotionInternal {
     /**
      * Type of motion curve.
      */
@@ -111,7 +111,7 @@ internal class CubismMotionInternal {
         /**
          * curve ID
          */
-        var id: CubismId? = null
+        var id: CubismId
 
         /**
          * number of segments
@@ -149,60 +149,28 @@ internal class CubismMotionInternal {
         var value: String? = null
     }
 
-    /**
-     * Motion data
-     */
-    class CubismMotionData {
-        /**
-         * motion duration
-         */
-        var duration: Float = 0f
+    data class CubismMotionData(
 
-        /**
-         * Whether the motion loops
-         */
-        var isLooped: Boolean = false
+        val duration: Float = 0f,
 
-        /**
-         * number of curves
-         */
-        var curveCount: Int = 0
+        val loop: Boolean = false,
 
-        /**
-         * number of UserData
-         */
-        var userDataCount: Int = 0
+        val curveCount: Int = 0,
 
-        /**
-         * framerate per second
-         */
-        var fps: Float = 0f
+        val userDataCount: Int = 0,
 
-        /**
-         * list of curves
-         */
-        var curves: MutableList<CubismMotionCurve> = mutableListOf()
+        val fps: Float = 0f,
 
-        /**
-         * list of segments
-         */
-        var segments: MutableList<CubismMotionSegment> = mutableListOf()
-
-        /**
-         * list of points
-         */
-        var points: MutableList<CubismMotionPoint> = mutableListOf()
-
-        /**
-         * list of events
-         */
-        var events: MutableList<CubismMotionEvent> = mutableListOf()
-    }
+        val curves: MutableList<CubismMotionCurve> = mutableListOf(),
+        val segments: MutableList<CubismMotionSegment> = mutableListOf(),
+        val points: MutableList<CubismMotionPoint> = mutableListOf(),
+        val events: MutableList<CubismMotionEvent> = mutableListOf(),
+    )
 
     /**
      * For strategy pattern.
      */
     interface CsmMotionSegmentEvaluationFunction {
-        fun evaluate(points: MutableList<CubismMotionPoint?>?, time: Float): Float
+        fun evaluate(points: List<CubismMotionPoint>, time: Float): Float
     }
 }

@@ -8,9 +8,9 @@ package com.live2d.sdk.cubism.framework.id
 
 @ConsistentCopyVisibility
 data class CubismId internal constructor(
-    val id: String
+    val value: String
 ) {
     override fun toString(): String {
-        return id
+        return value
     }
 }

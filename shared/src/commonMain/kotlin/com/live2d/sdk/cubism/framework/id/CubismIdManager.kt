@@ -24,7 +24,7 @@ class CubismIdManager {
     }
 
     fun registerId(cubismId: CubismId): CubismId {
-        return registerId(cubismId.id)
+        return registerId(cubismId.value)
     }
 
     fun isExist(id: String?): Boolean {
@@ -36,7 +36,7 @@ class CubismIdManager {
     }
 
     private fun findId(foundId: String?): CubismId? {
-        return ids.find { it.id == foundId }
+        return ids.find { it.value == foundId }
     }
 
     private fun findId(foundId: CubismId?): CubismId? {

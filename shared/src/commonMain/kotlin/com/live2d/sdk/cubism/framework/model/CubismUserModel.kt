@@ -168,7 +168,7 @@ abstract class CubismUserModel protected constructor() {
         onBeganMotionHandler: IBeganMotionCallback? = null
     ): CubismMotion? {
         try {
-            return CubismMotion.create(buffer, onFinishedMotionHandler, onBeganMotionHandler)
+            return CubismMotion(buffer, onFinishedMotionHandler, onBeganMotionHandler)
         } catch (e: Exception) {
             cubismLogError("Failed to loadMotion(). ${e.message}")
             return null
