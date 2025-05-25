@@ -35,26 +35,16 @@ class CubismMotionInternal {
     /**
      * Type of motion curve segment.
      */
-    enum class CubismMotionSegmentType {
-        /**
-         * linear
-         */
-        LINEAR,
+    enum class CubismMotionSegmentType(
+        val pointCount: Int
+    ) {
+        LINEAR(1),
 
-        /**
-         * bezier curve
-         */
-        BEZIER,
+        BEZIER(3),
 
-        /**
-         * step
-         */
-        STEPPED,
+        STEPPED(1),
 
-        /**
-         * inverse step
-         */
-        INVERSESTEPPED
+        INVERSESTEPPED(1)
     }
 
     /**
