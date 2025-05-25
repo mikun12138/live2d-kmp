@@ -14,13 +14,16 @@ import com.live2d.sdk.cubism.framework.model.CubismModel
  * * Use multiple CubismMotionManager instances to play multiple motions at the same time, such as when motions for facial expressions and body motions are made separately.
  */
 class CubismMotionManager : CubismMotionQueueManager() {
-    fun startMotionPriority(motion: ACubismMotion?, priority: Int) {
+    fun startMotionPriority(motion: ACubismMotion, priority: Int) {
         if (priority == reservationPriority) {
             reservationPriority = 0 // Cancel the reservation.
         }
 
         // Set priority of the motion during playback.
         currentPriority = priority
+
+        startMotion(motion)
+
     }
 
     /**

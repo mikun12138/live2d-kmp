@@ -21,7 +21,7 @@ open class CubismMotionQueueManager {
      * @param motion 開始するモーション
      * @return 開始したモーションの識別番号を返す。個別のモーションが終了したか否かを判定するisFinished()の引数として使用する。開始できない場合は「-1」を返す。
      */
-    fun startMotion(motion: CubismMotion) {
+    fun startMotion(motion: ACubismMotion) {
 
         // 既にモーションがあれば終了フラグを立てる。
         for (entry in motions) {

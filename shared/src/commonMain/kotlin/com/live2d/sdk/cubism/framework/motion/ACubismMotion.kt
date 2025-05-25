@@ -15,11 +15,11 @@ import java.util.Collections
 abstract class ACubismMotion {
 
     fun updateParameters(
-        model: CubismModel?,
+        model: CubismModel,
         motionQueueEntry: CubismMotionQueueEntry,
         userTimeSeconds: Float
     ) {
-        if (!motionQueueEntry.isAvailable || motionQueueEntry.isFinished) {
+        if (motionQueueEntry.isFinished) {
             return
         }
 
@@ -33,7 +33,7 @@ abstract class ACubismMotion {
         // 後処理
         // 終了時刻を過ぎたら終了フラグを立てる（CubismMotionQueueManager）
         if (motionQueueEntry.endTime > 0.0f && motionQueueEntry.endTime < userTimeSeconds) {
-            motionQueueEntry.isFinished(true) // 終了
+            motionQueueEntry.isFinished = true // 終了
         }
     }
 

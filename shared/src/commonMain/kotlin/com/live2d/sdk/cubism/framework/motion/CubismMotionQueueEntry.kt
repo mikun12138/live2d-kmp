@@ -39,10 +39,6 @@ class CubismMotionQueueEntry(
     }
 
     /**
-     * Enable flag
-     */
-    var isAvailable: Boolean = true
-    /**
      * finished flag
      */
     var isFinished: Boolean = false

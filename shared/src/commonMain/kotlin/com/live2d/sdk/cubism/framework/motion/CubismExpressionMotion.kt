@@ -32,37 +32,38 @@ class CubismExpressionMotion : ACubismMotion {
 
             // Each parameter setting
             for (param in json.parameters) {
-                // Parameter ID
-                val parameterId: CubismId = idManager.id(
-                    param.id
-                )
-                // Setting of calculation method.
-                val blendType = when (param.blend) {
-                    ExpressionBlendType.ADD.type -> {
-                        ExpressionBlendType.ADD
-                    }
-                    ExpressionBlendType.MULTIPLY.type -> {
-                        ExpressionBlendType.MULTIPLY
-                    }
-                    ExpressionBlendType.OVERWRITE.type -> {
-                        ExpressionBlendType.OVERWRITE
-                    }
-                    else -> {
-                        ExpressionBlendType.ADD
-                    }
-                }
-                // Value
-                val value = param.value
-
                 // Create a configuration object and add it to the list.
-                val item = ExpressionParameter(parameterId, blendType, value)
-                this.expressionParameters.add(item)
+                this.parameters.add(
+                    ExpressionParameter(
+                        parameterId = idManager.id(
+                            param.id
+                        ),
+                        blendType = when (param.blend) {
+                            ExpressionBlendType.ADD.value -> {
+                                ExpressionBlendType.ADD
+                            }
+
+                            ExpressionBlendType.MULTIPLY.value -> {
+                                ExpressionBlendType.MULTIPLY
+                            }
+
+                            ExpressionBlendType.OVERWRITE.value -> {
+                                ExpressionBlendType.OVERWRITE
+                            }
+
+                            else -> {
+                                ExpressionBlendType.ADD
+                            }
+                        },
+                        value = param.value
+                    )
+                )
             }
         }
     }
 
     enum class ExpressionBlendType(
-         val type: String
+        val value: String
     ) {
         ADD("Add"),
         MULTIPLY("Multiply"),
@@ -88,37 +89,18 @@ class CubismExpressionMotion : ACubismMotion {
     fun calculateExpressionParameters(
         model: CubismModel,
         userTimeSeconds: Float,
-        motionQueueEntry: CubismMotionQueueEntry?,
-        expressionParameterValues: MutableList<CubismExpressionMotionManager.ExpressionParameterValue>?,
+        motionQueueEntry: CubismMotionQueueEntry,
+        expressionParameterValues: MutableList<CubismExpressionMotionManager.ExpressionParameterValue>,
         expressionIndex: Int,
         fadeWeight: Float
     ) {
-        if (motionQueueEntry == null || expressionParameterValues == null) {
-            return
-        }
-
-        if (!motionQueueEntry.isAvailable()) {
-            return
-        }
-
-        // CubismExpressionMotion.fadeWeight は廃止予定です。
-        // 互換性のために処理は残りますが、実際には使用しておりません。
-        this.fadeWeight = updateFadeWeight(motionQueueEntry, userTimeSeconds)
 
         // モデルに適用する値を計算
-        for (i in expressionParameterValues.indices) {
-            val expParamValue: CubismExpressionMotionManager.ExpressionParameterValue =
-                expressionParameterValues.get(i)
-
-            if (expParamValue.parameterId == null) {
-                continue
-            }
+        for (expParamValue in expressionParameterValues) {
 
             expParamValue.overwriteValue = model.getParameterValue(expParamValue.parameterId)
-            val currentParameterValue: Float = expParamValue.overwriteValue
 
-            val expressionParameters =
-                this.expressionParameters
+            val expressionParameters = this.parameters
             var parameterIndex = -1
             for (j in expressionParameters.indices) {
                 if (expParamValue.parameterId !== expressionParameters.get(j).parameterId) {
@@ -134,7 +116,7 @@ class CubismExpressionMotion : ACubismMotion {
                 if (expressionIndex == 0) {
                     expParamValue.additiveValue = DEFAULT_ADDITIVE_VALUE
                     expParamValue.multiplyValue = DEFAULT_MULTIPLY_VALUE
-                    expParamValue.overwriteValue = currentParameterValue
+                    expParamValue.overwriteValue = expParamValue.overwriteValue
                 } else {
                     expParamValue.additiveValue = calculateValue(
                         expParamValue.additiveValue,
@@ -148,7 +130,7 @@ class CubismExpressionMotion : ACubismMotion {
                     )
                     expParamValue.overwriteValue = calculateValue(
                         expParamValue.overwriteValue,
-                        currentParameterValue,
+                        expParamValue.overwriteValue,
                         fadeWeight
                     )
                 }
@@ -165,13 +147,13 @@ class CubismExpressionMotion : ACubismMotion {
                 ExpressionBlendType.ADD -> {
                     newAdditiveValue = value
                     newMultiplyValue = DEFAULT_MULTIPLY_VALUE
-                    newOverwriteValue = currentParameterValue
+                    newOverwriteValue = expParamValue.overwriteValue
                 }
 
                 ExpressionBlendType.MULTIPLY -> {
                     newAdditiveValue = DEFAULT_ADDITIVE_VALUE
                     newMultiplyValue = value
-                    newOverwriteValue = currentParameterValue
+                    newOverwriteValue = expParamValue.overwriteValue
                 }
 
                 ExpressionBlendType.OVERWRITE -> {
@@ -199,14 +181,14 @@ class CubismExpressionMotion : ACubismMotion {
     }
 
 
-    protected override fun doUpdateParameters(
+    override fun doUpdateParameters(
         model: CubismModel,
         userTimeSeconds: Float,
         weight: Float,
         motionQueueEntry: CubismMotionQueueEntry
     ) {
-        for (i in expressionParameters.indices) {
-            val parameter = expressionParameters.get(i)
+        for (i in parameters.indices) {
+            val parameter = parameters.get(i)
             when (parameter.blendType) {
                 ExpressionBlendType.ADD -> model.addParameterValue(
                     parameter.parameterId,
@@ -243,23 +225,7 @@ class CubismExpressionMotion : ACubismMotion {
         return (source * (1.0f - fadeWeight)) + (destination * fadeWeight)
     }
 
-    /**
-     * Parameter information list for facial expressions
-     */
-    val expressionParameters: MutableList<ExpressionParameter> = ArrayList<ExpressionParameter>()
-
-    /**
-     * 表情の現在のウェイト
-     *
-     */
-    @get:Deprecated(
-        """CubismExpressionMotion.fadeWeightが削除予定のため非推奨。
-      CubismExpressionMotionManager.getFadeWeight(int index) を使用してください。
-      """
-    )
-    @Deprecated("不具合を引き起こす要因となるため非推奨。")
-    var fadeWeight: Float = 0f
-        private set
+    val parameters: MutableList<ExpressionParameter> = ArrayList<ExpressionParameter>()
 
     companion object {
 

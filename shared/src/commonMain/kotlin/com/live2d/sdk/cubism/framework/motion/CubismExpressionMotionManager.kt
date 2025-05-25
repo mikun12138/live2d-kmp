@@ -13,43 +13,19 @@ import com.live2d.sdk.cubism.framework.model.CubismModel
 import com.live2d.sdk.cubism.framework.utils.CubismDebug.cubismLogWarning
 
 class CubismExpressionMotionManager : CubismMotionQueueManager() {
-    class ExpressionParameterValue {
-        /**
-         * パラメータID
-         */
-        var parameterId: CubismId? = null
+    data class ExpressionParameterValue(
+        val parameterId: CubismId,
+        var additiveValue: Float = 0f,
+        var multiplyValue: Float = 0f,
+        var overwriteValue: Float = 0f,
+    )
 
-        /**
-         * 加算値
-         */
-        var additiveValue: Float = 0f
-
-        /**
-         * 乗算値
-         */
-        var multiplyValue: Float = 0f
-
-        /**
-         * 上書き値
-         */
-        var overwriteValue: Float = 0f
-    }
-
-    /**
-     * 現在の表情のフェードのウェイト値を取得する。
-     *
-     * @param index 取得する表情モーションのインデックス
-     *
-     * @return 表情のフェードのウェイト値
-     *
-     * @throws IllegalArgumentException if an argument is an invalid value.
-     */
     fun getFadeWeight(index: Int): Float {
         require(!fadeWeights.isEmpty()) { "No motion during playback." }
 
         require(!(fadeWeights.size <= index || index < 0)) { "The index is an invalid value." }
 
-        return fadeWeights.get(index)!!
+        return fadeWeights[index]!!
     }
 
     /**
@@ -59,13 +35,13 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
      * @param priority 優先度
      * @return 開始した表情モーションの識別番号。個別のモーションが終了したか否かを判断するisFinished()の引数で使用する。開始できないときは「-1」を返します。
      */
-    fun startMotionPriority(motion: ACubismMotion?, priority: Int): Int {
+    fun startMotionPriority(motion: ACubismMotion, priority: Int) {
         if (priority == reservePriority) {
             reservePriority = 0 // 予約を解除
         }
         currentPriority = priority // 再生中モーションの優先度を設定
 
-        return startMotion(motion)
+        startMotion(motion)
     }
 
     /**
@@ -137,11 +113,12 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
                     }
 
                     // パラメータがリストに存在しないなら新規追加
-                    val item = ExpressionParameterValue()
-                    item.parameterId = expressionParameters.get(paramIndex).parameterId
-                    item.additiveValue = CubismExpressionMotion.DEFAULT_ADDITIVE_VALUE
-                    item.multiplyValue = CubismExpressionMotion.DEFAULT_MULTIPLY_VALUE
-                    item.overwriteValue = model.getParameterValue(item.parameterId!!)
+                    val item = ExpressionParameterValue(
+                        parameterId = expressionParameters.get(paramIndex).parameterId,
+                        additiveValue = CubismExpressionMotion.DEFAULT_ADDITIVE_VALUE,
+                        multiplyValue = CubismExpressionMotion.DEFAULT_MULTIPLY_VALUE,
+                        overwriteValue = model.getParameterValue(item.parameterId!!),
+                    )
                     expressionParameterValues.add(item)
                 }
             }
@@ -234,26 +211,11 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
         ArrayList<ExpressionParameterValue>()
 
     /**
-     * 再生中の表情モーションの優先度を取得する。
-     *
-     * @return 表情モーションの優先度
-     */
-    /**
      * 現在再生中の表情モーションの優先度
      */
     var currentPriority: Int = 0
         private set
 
-    /**
-     * 予約中の表情モーションの優先度を取得する。
-     *
-     * @return 表情モーションの優先度
-     */
-    /**
-     * 予約中の表情モーションの優先度を設定する。
-     *
-     * @param priority 設定する表情モーションの優先度
-     */
     /**
      * 再生予定の表情モーションの優先度。再生中は0になる。
      * 表情モーションファイルを別スレッドで読み込むときの機能。
@@ -263,7 +225,7 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
     /**
      * 再生中の表情モーションのウェイトのリスト
      */
-    private val fadeWeights: MutableList<Float?> = ArrayList<Float?>()
+    private val fadeWeights: MutableList<Float> = mutableListOf()
 
     companion object {
         // nullが格納されたSet。null要素だけListから排除する際に使用される。
