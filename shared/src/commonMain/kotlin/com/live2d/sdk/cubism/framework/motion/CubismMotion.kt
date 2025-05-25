@@ -504,7 +504,9 @@ class CubismMotion : ACubismMotion() {
                     fout = tmpFadeOut
                 }
 
-                val paramWeight: Float = weight * fin * fout
+                val paramWeight: Float =
+//                    weight *
+                            fin * fout
 
                 // Apply each fading.
                 v = sourceValue + (value - sourceValue) * paramWeight

@@ -38,22 +38,11 @@ class CubismMotionQueueEntry(
         isTriggeredFadeOut = true
     }
 
-    /**
-     * finished flag
-     */
-    var isFinished: Boolean = false
-    /**
-     * start flag(0.9.00 or later)
-     */
-    var isStarted: Boolean = false
-    /**
-     * Motion playback start time[s]
-     */
-    var startTime: Float = -1.0f
-    /**
-     * Fade-in start time[s] (When in a loop, only the first time.)
-     */
-    var fadeInStartTime: Float = 0f
+     var startTime: Float = -1.0f
+//    /**
+//     * Fade-in start time[s] (When in a loop, only the first time.)
+//     */
+//    var fadeInStartTime: Float = -1.0f
     /**
      * Scheduled end time[s]
      */
@@ -85,5 +74,20 @@ class CubismMotionQueueEntry(
      * 0为开始 fade, >=1为完成fade
      */
     var fadeWeight: Float = 0.0f
+
+    var state: State = State.Init
+
+    enum class State {
+        Init,
+        FadeIn,
+        Playing,
+        FadeOut,
+        End
+        ;
+
+        fun inInit() = this == Init
+        fun inActive() = this == FadeIn || this == Playing || this == FadeOut
+        fun inEnd() = this == End
+    }
 
 }

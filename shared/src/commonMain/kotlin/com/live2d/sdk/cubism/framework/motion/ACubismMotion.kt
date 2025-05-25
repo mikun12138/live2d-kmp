@@ -6,10 +6,8 @@
  */
 package com.live2d.sdk.cubism.framework.motion
 
-import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
 import com.live2d.sdk.cubism.framework.model.CubismModel
-import com.live2d.sdk.cubism.framework.utils.CubismDebug.cubismLogError
 import java.util.Collections
 
 abstract class ACubismMotion {
@@ -37,48 +35,31 @@ abstract class ACubismMotion {
 
     fun setupMotionQueueEntry(
         motionQueueEntry: CubismMotionQueueEntry,
-        userTimeSeconds: Float
+        totalSeconds: Float
     ) {
-        if (motionQueueEntry.isFinished || motionQueueEntry.isStarted) {
-            return
-        }
-
-        motionQueueEntry.isStarted = true
+        motionQueueEntry.state = CubismMotionQueueEntry.State.FadeIn
 
         // Record the start time of the motion.
-        motionQueueEntry.startTime = userTimeSeconds
-        // Record the start time of fade-in
-        motionQueueEntry.fadeInStartTime = userTimeSeconds
+        motionQueueEntry.startTime = totalSeconds
 
-        // Deal with the case where the status is set "end" before it has started.
-        if (motionQueueEntry.endTime < 0) {
-            adjustEndTime(motionQueueEntry)
-        }
+        adjustEndTime(motionQueueEntry)
     }
 
-    fun updateFadeWeight(motionQueueEntry: CubismMotionQueueEntry?, userTimeSeconds: Float): Float {
-        if (motionQueueEntry == null) {
-            cubismLogError("motionQueueEntry is null.")
-        }
-
-        var fadeWeight = weight // 現在の値と掛け合わせる割合
-
-        // ---- フェードイン・アウトの処理 ----
-        // 単純なサイン関数でイージングする。
-        val fadeIn = if (this.fadeInSeconds == 0.0f)
+    fun updateFadeWeight(motionQueueEntry: CubismMotionQueueEntry, totalSeconds: Float): Float {
+        val fadeIn = if (this.fadeInSeconds < 0.0f)
             1.0f
         else
-            getEasingSine((userTimeSeconds - motionQueueEntry!!.fadeInStartTime) / this.fadeInSeconds)
-        val fadeOut = if (this.fadeOutSeconds == 0.0f || motionQueueEntry!!.endTime < 0.0f)
+            getEasingSine(
+                (totalSeconds - motionQueueEntry.startTime) / this.fadeInSeconds
+            )
+        val fadeOut = if (this.fadeOutSeconds < 0.0f || motionQueueEntry.endTime < 0.0f)
             1.0f
         else
-            getEasingSine((motionQueueEntry.endTime - userTimeSeconds) / this.fadeOutSeconds)
-        fadeWeight = fadeWeight * fadeIn * fadeOut
-//        motionQueueEntry!!.setState(userTimeSeconds, fadeWeight)
+            getEasingSine((motionQueueEntry.endTime - totalSeconds) / this.fadeOutSeconds)
 
-        assert(0.0f <= fadeWeight && fadeWeight <= 1.0f)
+        check(fadeIn * fadeOut in 0.0f..1.0f)
 
-        return fadeWeight
+        return fadeIn * fadeOut
     }
 
 
@@ -117,9 +98,8 @@ abstract class ACubismMotion {
     )
 
     protected fun adjustEndTime(motionQueueEntry: CubismMotionQueueEntry) {
-        // duration == -1 の場合はループする
-        val endTime = if (duration <= 0)
-            -1f
+        val endTime = if (duration < 0)
+            -1.0f
         else
             motionQueueEntry.startTime + duration
 
@@ -129,7 +109,6 @@ abstract class ACubismMotion {
     protected open val modelOpacityValue: Float = 1.0f
     var fadeInSeconds: Float = -1.0f
     var fadeOutSeconds: Float = -1.0f
-    var weight: Float = 1.0f
 
     /**
      * Enable/Disable loop

@@ -30,13 +30,24 @@ class CubismMotionManager : CubismMotionQueueManager() {
         totalSeconds += deltaTimeSeconds
         val isUpdated = !motionEntries.isEmpty()
 
+        motionEntries.forEachIndexed { index, entry ->
 
-            motionEntries.forEachIndexed { index, entry ->
+            if (entry.state.inInit()) {
+                entry.motion.setupMotionQueueEntry(
+                    entry, totalSeconds
+                )
+                return@forEachIndexed
+            }
+
+            if (entry.state.inActive()) {
+
+            }
+
+
 
             // 更新 model 参数
             run {
                 if (!entry.isFinished) {
-                    entry.motion.setupMotionQueueEntry(entry, totalSeconds)
 
                     val fadeWeight =
                         entry.motion.updateFadeWeight(entry, totalSeconds)

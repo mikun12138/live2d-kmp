@@ -63,9 +63,9 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
                     }
             }
 
-            // ------ 値を計算する ------
-            // TODO:: ??? 循环里放初始化
-            motion.setupMotionQueueEntry(entry, totalSeconds)
+            motion.setupMotionQueueEntry(
+                entry, totalSeconds
+            )
 
             entry.fadeWeight = motion.updateFadeWeight(entry, totalSeconds)
 
