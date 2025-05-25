@@ -26,62 +26,57 @@ class CubismMotionManager : CubismMotionQueueManager() {
 
     }
 
-    /**
-     * Update the motion and reflect the parameter values to the model.
-     *
-     * @param model target model
-     * @param deltaTimeSeconds delta time[s]
-     * @return If it is updated, return true.
-     */
     fun updateMotion(model: CubismModel, deltaTimeSeconds: Float): Boolean {
         totalSeconds += deltaTimeSeconds
+        val isUpdated = !motionEntries.isEmpty()
 
-        val isUpdated: Boolean = doUpdateMotion(model, totalSeconds)
 
-        if (isFinished) {
-            currentPriority = 0 // 再生中モーションの優先度を解除
-        }
-        return isUpdated
-    }
-
-    private fun doUpdateMotion(model: CubismModel, totalSeconds: Float): Boolean {
-        var isUpdated = false
-
-        // ---- Do processing ----
-        // If there is already a motion, flag it as finished.
-
-        // At first, remove the null elements from motions list.
-        motionEntries.removeAll(mutableSetOf<Any?>(null))
-
-        for (i in motionEntries.indices) {
-            isUpdated = true
-            val motionQueueEntry = motionEntries[i]
+            motionEntries.forEachIndexed { index, entry ->
 
             // 更新 model 参数
             run {
-                motionQueueEntry.motion.updateParameters(model, motionQueueEntry, totalSeconds)
+                if (!entry.isFinished) {
+                    entry.motion.setupMotionQueueEntry(entry, totalSeconds)
+
+                    val fadeWeight =
+                        entry.motion.updateFadeWeight(entry, totalSeconds)
+
+                    //---- 全てのパラメータIDをループする ----
+                    entry.motion.doUpdateParameters(
+                        model,
+                        totalSeconds,
+                        fadeWeight,
+                        entry
+                    )
+
+                    // 後処理
+                    // 終了時刻を過ぎたら終了フラグを立てる（CubismMotionQueueManager）
+                    if (entry.endTime > 0.0f && entry.endTime < totalSeconds) {
+                        entry.isFinished = true // 終了
+                    }
+                }
             }
 
             // 触发 UserData 内的 event
             run {
-                motionQueueEntry.motion.getFiredEvent(
-                    motionQueueEntry.lastCheckEventTime - motionQueueEntry.startTime,
-                    totalSeconds - motionQueueEntry.startTime
+                entry.motion.getFiredEvent(
+                    entry.lastCheckEventTime - entry.startTime,
+                    totalSeconds - entry.startTime
                 ).forEach { event ->
                     eventCallback.apply(this, event, eventCustomData)
                 }
-                motionQueueEntry.lastCheckEventTime = totalSeconds
+                entry.lastCheckEventTime = totalSeconds
             }
 
             // TODO::是不是该写到 entry ?
             run {
                 // If any processes have already been finished, delete them.
-                if (motionQueueEntry.isFinished) {
-                    motionEntries[i] = null
+                if (entry.isFinished) {
+                    motionEntries[index] = null
                 } else {
-                    if (motionQueueEntry.isTriggeredFadeOut) {
-                        motionQueueEntry.startFadeOut(
-                            motionQueueEntry.fadeOutSeconds,
+                    if (entry.isTriggeredFadeOut) {
+                        entry.startFadeOut(
+                            entry.fadeOutSeconds,
                             totalSeconds
                         )
                     }
@@ -90,6 +85,10 @@ class CubismMotionManager : CubismMotionQueueManager() {
         }
 
         motionEntries.removeAll(mutableSetOf<Any?>(null))
+
+        if (isFinished) {
+            currentPriority = 0 // 再生中モーションの優先度を解除
+        }
 
         return isUpdated
     }

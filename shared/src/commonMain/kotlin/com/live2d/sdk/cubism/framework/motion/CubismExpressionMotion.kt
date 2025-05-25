@@ -157,6 +157,7 @@ class CubismExpressionMotion : ACubismMotion {
     }
 
 
+    // TODO:: never used
     override fun doUpdateParameters(
         model: CubismModel,
         userTimeSeconds: Float,
@@ -184,7 +185,6 @@ class CubismExpressionMotion : ACubismMotion {
                     weight
                 )
 
-                else -> {}
             }
         }
     }

@@ -6,8 +6,6 @@
  */
 package com.live2d.sdk.cubism.framework.motion
 
-import com.live2d.sdk.cubism.framework.model.CubismModel
-
 /**
  * The manager class for playing motions. This is used to play ACubismMotion's subclasses such as CubismMotion's motion.
  *

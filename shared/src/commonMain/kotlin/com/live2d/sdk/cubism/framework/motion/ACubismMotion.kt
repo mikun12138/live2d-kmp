@@ -14,28 +14,26 @@ import java.util.Collections
 
 abstract class ACubismMotion {
 
-    fun updateParameters(
-        model: CubismModel,
-        motionQueueEntry: CubismMotionQueueEntry,
-        userTimeSeconds: Float
-    ) {
-        if (motionQueueEntry.isFinished) {
-            return
-        }
-
-        setupMotionQueueEntry(motionQueueEntry, userTimeSeconds)
-
-        val fadeWeight = updateFadeWeight(motionQueueEntry, userTimeSeconds)
-
-        //---- 全てのパラメータIDをループする ----
-        doUpdateParameters(model, userTimeSeconds, fadeWeight, motionQueueEntry)
-
-        // 後処理
-        // 終了時刻を過ぎたら終了フラグを立てる（CubismMotionQueueManager）
-        if (motionQueueEntry.endTime > 0.0f && motionQueueEntry.endTime < userTimeSeconds) {
-            motionQueueEntry.isFinished = true // 終了
-        }
-    }
+//    fun updateParameters(
+//        model: CubismModel,
+//        motionQueueEntry: CubismMotionQueueEntry,
+//        userTimeSeconds: Float
+//    ) {
+//        if (!motionQueueEntry.isFinished) {
+//            setupMotionQueueEntry(motionQueueEntry, userTimeSeconds)
+//
+//            val fadeWeight = updateFadeWeight(motionQueueEntry, userTimeSeconds)
+//
+//            //---- 全てのパラメータIDをループする ----
+//            doUpdateParameters(model, userTimeSeconds, fadeWeight, motionQueueEntry)
+//
+//            // 後処理
+//            // 終了時刻を過ぎたら終了フラグを立てる（CubismMotionQueueManager）
+//            if (motionQueueEntry.endTime > 0.0f && motionQueueEntry.endTime < userTimeSeconds) {
+//                motionQueueEntry.isFinished = true // 終了
+//            }
+//        }
+//    }
 
     fun setupMotionQueueEntry(
         motionQueueEntry: CubismMotionQueueEntry,
@@ -76,7 +74,7 @@ abstract class ACubismMotion {
         else
             getEasingSine((motionQueueEntry.endTime - userTimeSeconds) / this.fadeOutSeconds)
         fadeWeight = fadeWeight * fadeIn * fadeOut
-        motionQueueEntry!!.setState(userTimeSeconds, fadeWeight)
+//        motionQueueEntry!!.setState(userTimeSeconds, fadeWeight)
 
         assert(0.0f <= fadeWeight && fadeWeight <= 1.0f)
 
@@ -111,7 +109,7 @@ abstract class ACubismMotion {
      * @param weight weight of motion
      * @param motionQueueEntry motion managed by CubismMotionQueueManager
      */
-    protected abstract fun doUpdateParameters(
+    abstract fun doUpdateParameters(
         model: CubismModel,
         userTimeSeconds: Float,
         weight: Float,
@@ -137,6 +135,7 @@ abstract class ACubismMotion {
      * Enable/Disable loop
      */
     var loop: Boolean = false
+
     /**
      * flag whether fade-in is enabled at looping. Default value is true.
      */

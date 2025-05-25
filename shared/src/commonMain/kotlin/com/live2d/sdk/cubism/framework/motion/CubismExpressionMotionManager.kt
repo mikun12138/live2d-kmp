@@ -38,9 +38,6 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
      */
     fun updateMotion(model: CubismModel, deltaTimeSeconds: Float): Boolean {
         totalSeconds += deltaTimeSeconds
-
-        // 予めnull要素を全て削除
-        motionEntries.removeAll(nullSet)
         val isUpdated = !motionEntries.isEmpty()
 
         var expressionWeight = 0.0f
@@ -105,7 +102,6 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
 
         // 将值应用于 model
         for (value in expressionParameterValues) {
-
             model.setParameterValue(
                 value.parameterId,
                 (value.overwriteValue + value.additiveValue) * value.multiplyValue, // 先加算后乘算
