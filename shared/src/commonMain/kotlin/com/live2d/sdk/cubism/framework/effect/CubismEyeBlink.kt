@@ -6,15 +6,23 @@
  */
 package com.live2d.sdk.cubism.framework.effect
 
+import com.live2d.sdk.cubism.framework.CubismFramework.idManager
 import com.live2d.sdk.cubism.framework.ICubismModelSetting
 import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.model.CubismModel
+import com.live2d.sdk.cubism.framework.utils.json.ModelJson
 import java.util.Collections
 
 /**
  * This class offers auto eyeblink function.
  */
-class CubismEyeBlink private constructor(modelSetting: ICubismModelSetting) {
+class CubismEyeBlink {
+    constructor(modelJson: ModelJson) {
+        modelJson.groups.find { it.name == "EyeBlink" }?.let { group ->
+            parameterIds.addAll(group.ids.map { idManager.id(it) })
+        }
+    }
+
     /**
      * Eyeblink states
      */
@@ -147,17 +155,6 @@ class CubismEyeBlink private constructor(modelSetting: ICubismModelSetting) {
     private var openingSeconds = 0.15f
 
     private var userTimeSeconds = 0f
-
-
-    init {
-        for (i in 0..<modelSetting.eyeBlinkParameterCount) {
-            val eyeBlinkId = modelSetting.getEyeBlinkParameterId(i)
-
-            if (eyeBlinkId != null) {
-                parameterIds.add(eyeBlinkId)
-            }
-        }
-    }
 
     companion object {
 

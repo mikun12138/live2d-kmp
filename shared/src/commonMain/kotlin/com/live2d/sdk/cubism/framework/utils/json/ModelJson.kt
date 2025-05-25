@@ -47,9 +47,9 @@ data class ModelJson(
                 @SerialName("File")
                 val file: String,
                 @SerialName("FadeInTime")
-                val fadeInTime: Double,
+                val fadeInTime: Float,
                 @SerialName("FadeOutTime")
-                val fadeOutTime: Double,
+                val fadeOutTime: Float,
                 @SerialName("Sound")
                 val sound: String? = null
             )
@@ -65,6 +65,10 @@ data class ModelJson(
         @SerialName("Ids")
         val ids: List<String>,
     )
+
+    // TODO:: layout
+//    @Serializable
+//    data class Layout
 
     @Serializable
     data class HitArea(

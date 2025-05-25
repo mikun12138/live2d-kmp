@@ -13,37 +13,27 @@ package com.live2d.sdk.cubism.framework
  * Default value specifications are based on the following manual.
  * [...](http://docs.live2d.com/cubism-editor-manual/standard-parametor-list/)
  */
-class CubismDefaultParameterId
-/**
- * private constructor
- */
-private constructor() {
-    enum class HitAreaId(id: String) {
+object CubismDefaultParameterId
+    enum class HitAreaId(
+        val id: String
+    ) {
         PREFIX("HitArea"),
         HEAD("Head"),
         BODY("Body");
-
-        val id: String?
-
-        init {
-            this.id = id
-        }
     }
 
-    enum class PartId(id: String) {
+    enum class PartId(
+        val id: String
+    ) {
         CORE("Parts01Core"),
         ARM_PREFIX("Parts01Arm_"),
         ARM_L_PREFIX("Parts01ArmL_"),
         ARM_R_PREFIX("Parts01ArmR_");
-
-        val id: String?
-
-        init {
-            this.id = id
-        }
     }
 
-    enum class ParameterId(id: String) {
+    enum class ParameterId(
+        val id: String
+    ) {
         ANGLE_X("ParamAngleX"),
         ANGLE_Y("ParamAngleY"),
         ANGLE_Z("ParamAngleZ"),
@@ -99,11 +89,5 @@ private constructor() {
         BASE_Y("ParamBaseY"),
 
         NONE("NONE");
-
-        val id: String?
-
-        init {
-            this.id = id
-        }
     }
 }

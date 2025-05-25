@@ -175,9 +175,9 @@ abstract class CubismUserModel protected constructor() {
         }
     }
 
-    protected fun loadExpression(buffer: ByteArray?): CubismExpressionMotion? {
+    protected fun loadExpression(buffer: ByteArray): CubismExpressionMotion? {
         try {
-            return CubismExpressionMotion.create(buffer)
+            return CubismExpressionMotion(buffer)
         } catch (e: Exception) {
             cubismLogError("Failed to loadExpressionMotion(). ${e.message}")
             return null
