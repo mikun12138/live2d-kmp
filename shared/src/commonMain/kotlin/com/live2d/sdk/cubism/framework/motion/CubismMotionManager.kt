@@ -117,4 +117,6 @@ class CubismMotionManager : CubismMotionQueueManager() {
      * 将要播放的 motion 的优先级
      */
     var reservationPriority: Int = 0
+
+
 }

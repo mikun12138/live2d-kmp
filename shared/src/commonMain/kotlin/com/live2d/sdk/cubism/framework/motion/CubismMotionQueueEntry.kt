@@ -15,6 +15,8 @@ import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveI
 import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveIdOpacity
 import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal.CubismMotionCurveTarget
 import com.live2d.sdk.cubism.util.State
+import com.live2d.sdk.cubism.util.Stateful
+import com.live2d.sdk.cubism.util.switchStateTo
 
 /**
  * Manager class for each motion being played by CubismMotionQueueManager.
@@ -23,7 +25,7 @@ import com.live2d.sdk.cubism.util.State
 // TODO:: level 0, make children for expression and motion
 class CubismMotionQueueEntry(
     val motion: CubismMotion
-) {
+) : Stateful<CubismMotionQueueEntry.MotionQueueEntryState>{
 
     fun setFadeOut() {
         isTriggeredFadeOut = true
@@ -42,7 +44,7 @@ class CubismMotionQueueEntry(
     fun setup(
         totalSeconds: Float
     ) {
-        state = MotionQueueEntryState.FadeIn
+        this switchStateTo MotionQueueEntryState.FadeIn
 
         // Record the start time of the motion.
         startTimePoint = totalSeconds
@@ -64,11 +66,11 @@ class CubismMotionQueueEntry(
         model: CubismModel,
         totalSeconds: Float,
     ) {
-        if (previousLoopState != loop) {
-            // 終了時間を再計算する
-            adjustEndTime()
-            previousLoopState = loop
-        }
+//        if (previousLoopState != loop) {
+//            // 終了時間を再計算する
+//            adjustEndTime()
+//            previousLoopState = loop
+//        }
 
         val start_2_nowSeconds: Float = totalSeconds - startTimePoint
         check(start_2_nowSeconds >= 0.0f)
@@ -190,7 +192,7 @@ class CubismMotionQueueEntry(
                             if (curve.fadeInTime == 0.0f)
                                 1.0f
                             else
-                                CubismMath.getEasingSine((totalSeconds - startTimePoint) / curve.fadeInTime)
+                                getEasingSine((totalSeconds - startTimePoint) / curve.fadeInTime)
                         } else {
                             tmpFadeIn
                         }
@@ -198,7 +200,7 @@ class CubismMotionQueueEntry(
                             if (curve.fadeOutTime == 0.0f || endTimePoint < 0.0f)
                                 1.0f
                             else
-                                CubismMath.getEasingSine((endTimePoint - totalSeconds) / curve.fadeOutTime)
+                                getEasingSine((endTimePoint - totalSeconds) / curve.fadeOutTime)
                         } else {
                             tmpFadeOut
                         }
@@ -340,7 +342,6 @@ class CubismMotionQueueEntry(
 //     */
 //    var fadeInStartTime: Float = -1.0f
     var endTimePoint: Float = -1.0f
-    var lastTotalSeconds: Float = 0f
     // TODO:: remove it
 //    /**
 //     * state of time[s]
@@ -367,17 +368,18 @@ class CubismMotionQueueEntry(
      */
     var fadeWeight: Float = 0.0f
 
-    var state: MotionQueueEntryState = MotionQueueEntryState.Init
-    var lastState: MotionQueueEntryState = MotionQueueEntryState.Init
-
     enum class MotionQueueEntryState(
-        override val onEnter: (State) -> Unit = { },
-        override val onExit: (State) -> Unit = { }
+        override val onEnter: (lastState: State) -> Unit = { },
+        override val onExit: (nextState: State) -> Unit = { }
     ) : State {
         Init,
         FadeIn,
         Playing,
-        FadeOut,
+        FadeOut(
+            onEnter = { lastState ->
+
+            }
+        ),
         End
         ;
 
@@ -385,7 +387,5 @@ class CubismMotionQueueEntry(
         fun inActive() = this == FadeIn || this == Playing || this == FadeOut
         fun inEnd() = this == End
     }
-
-
 
 }

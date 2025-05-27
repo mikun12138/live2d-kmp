@@ -66,7 +66,9 @@ open class CubismMotionQueueManager {
     /**
      * total delta time[s]
      */
-    protected var totalSeconds: Float = 0f
+    var totalSeconds: Float = 0f
+    var lastTotalSeconds: Float = 0f
+
 
 
     /**
