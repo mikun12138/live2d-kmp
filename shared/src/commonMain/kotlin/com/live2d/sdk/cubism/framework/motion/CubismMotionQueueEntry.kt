@@ -9,6 +9,7 @@ package com.live2d.sdk.cubism.framework.motion
 import com.live2d.sdk.cubism.framework.math.CubismMath
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
 import com.live2d.sdk.cubism.framework.model.CubismModel
+import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.MotionBehavior
 import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveIdEyeBlink
 import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveIdLipSync
 import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveIdOpacity
@@ -17,8 +18,10 @@ import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal.CubismMotionC
 /**
  * Manager class for each motion being played by CubismMotionQueueManager.
  */
+
+// TODO:: level 0, make children for expression and motion
 class CubismMotionQueueEntry(
-    val motion: ACubismMotion
+    val motion: CubismMotion
 ) {
 
     fun setFadeOut() {
@@ -34,44 +37,39 @@ class CubismMotionQueueEntry(
         isTriggeredFadeOut = true
     }
 
-    fun calFadeWeight(totalSeconds: Float): Float {
-        val fadeIn = if (motion.fadeInSeconds < 0.0f)
-            1.0f
-        else
-            getEasingSine(
-                (totalSeconds - startTimePoint) / motion.fadeInSeconds
-            )
-        val fadeOut = if (motion.fadeOutSeconds < 0.0f || endTimePoint < 0.0f)
-            1.0f
-        else
-            getEasingSine((endTimePoint - totalSeconds) / motion.fadeOutSeconds)
 
-        check(fadeIn * fadeOut in 0.0f..1.0f)
+    fun setup(
+        totalSeconds: Float
+    ) {
+        state = State.FadeIn
 
-        return fadeIn * fadeOut
+        // Record the start time of the motion.
+        startTimePoint = totalSeconds
+
+        adjustEndTime()
     }
 
-    /**
-     * Update parameters of the model.
-     *
-     * @param model target model
-     * @param totalSeconds current time[s]
-     * @param fadeWeight weight of motion
-     * @param motionQueueEntry motion managed by CubismMotionQueueManager
-     */
-    override fun doUpdateParameters(
+    private fun adjustEndTime() {
+        val endTime = if (motion.loop || motion.motionData.duration < 0)
+            -1.0f
+        else
+            startTimePoint + motion.motionData.duration
+
+        endTimePoint = endTime
+    }
+
+
+    fun doUpdateParameters(
         model: CubismModel,
         totalSeconds: Float,
-        fadeWeight: Float,
-        motionQueueEntry: CubismMotionQueueEntry
     ) {
         if (previousLoopState != loop) {
             // 終了時間を再計算する
-            adjustEndTime(motionQueueEntry)
+            adjustEndTime()
             previousLoopState = loop
         }
 
-        val start_2_nowSeconds: Float = totalSeconds - motionQueueEntry.startTimePoint
+        val start_2_nowSeconds: Float = totalSeconds - startTimePoint
         check(start_2_nowSeconds >= 0.0f)
 
 //        val MAX_TARGET_SIZE = 64
@@ -89,18 +87,17 @@ class CubismMotionQueueEntry(
 
             // 'Repeat time as necessary'
             var time = start_2_nowSeconds
-            var duration: Float = motionData.duration
-            val isCorrection = loop
+            var duration: Float = motion.motionData.duration
+            val isCorrection = motion.loop
 
-            if (loop) {
-                duration += 1.0f / motionData.fps
+            if (motion.loop) {
+                duration += 1.0f / motion.motionData.fps
                 while (time > duration) {
                     time -= duration
                 }
                 // TODO:: use this
 //                time %= duration
             }
-
 
             var eyeBlinkValue = 0f
             var lipSyncValue = 0f
@@ -112,11 +109,11 @@ class CubismMotionQueueEntry(
             var value: Float
 
             // Evaluate model curves
-            motionData.curves.filter { it.type == CubismMotionCurveTarget.MODEL }
+            motion.motionData.curves.filter { it.type == CubismMotionCurveTarget.MODEL }
                 .forEach { curve ->
 
                     // Evaluate curve and call handler.
-                    value = evaluateCurve(
+                    value = motion.evaluateCurve(
                         curve, time, isCorrection, duration
                     )
 
@@ -132,24 +129,23 @@ class CubismMotionQueueEntry(
                         }
 
                         modelCurveIdOpacity -> {
-                            this.modelOpacityValue = value
-
                             // 不透明度の値が存在すれば反映する。
-                            model.modelOpacity = this.modelOpacityValue
+                            model.modelOpacity = value
                         }
                     }
                 }
 
-            val tmpFadeIn = if (fadeInSeconds <= 0.0f)
+            val tmpFadeIn = if (motion.fadeInSeconds <= 0.0f)
                 1.0f
             else
-                CubismMath.getEasingSine((totalSeconds - motionQueueEntry.startTimePoint) / fadeInSeconds)
-            val tmpFadeOut = if (fadeOutSeconds <= 0.0f || motionQueueEntry.endTimePoint < 0.0f)
+                getEasingSine((totalSeconds - startTimePoint) / motion.fadeInSeconds)
+            val tmpFadeOut = if (motion.fadeOutSeconds <= 0.0f || endTimePoint < 0.0f)
                 1.0f
             else
-                CubismMath.getEasingSine((motionQueueEntry.endTimePoint - totalSeconds) / fadeOutSeconds)
+                getEasingSine((endTimePoint - totalSeconds) / motion.fadeOutSeconds)
 
-            motionData.curves.filter { it.type == CubismMotionCurveTarget.PARAMETER }
+            val fadeWeight = calFadeWeight(totalSeconds)
+            motion.motionData.curves.filter { it.type == CubismMotionCurveTarget.PARAMETER }
                 .forEach { curve ->
 
                     // Find parameter index.
@@ -163,43 +159,45 @@ class CubismMotionQueueEntry(
                     val sourceValue = model.getParameterValue(parameterIndex)
 
                     // Evaluate curve and apply value.
-                    value = evaluateCurve(
+                    value = motion.evaluateCurve(
                         curve, time, isCorrection, duration
                     )
 
                     if (isUpdatedEyeBlink) {
-                        eyeBlinkParameterIds.indexOfFirst { it == curve.id }.takeIf { it >= 0 }
+                        motion.eyeBlinkParameterIds.indexOfFirst { it == curve.id }
+                            .takeIf { it >= 0 }
                             ?.let {
                                 value *= eyeBlinkValue
-                                eyeBlinkOverrideFlags.set(it)
+                                motion.eyeBlinkOverrideFlags.set(it)
                             }
                     }
 
                     if (isUpdatedLipSync) {
-                        lipSyncParameterIds.indexOfFirst { it == curve.id }.takeIf { it >= 0 }
+                        motion.lipSyncParameterIds.indexOfFirst { it == curve.id }
+                            .takeIf { it >= 0 }
                             ?.let {
                                 value += lipSyncValue
-                                lipSyncOverrideFlags.set(it)
+                                motion.lipSyncOverrideFlags.set(it)
                             }
                     }
 
                     val v: Float
-                    if (existFade(curve)) {
+                    if (motion.existFade(curve)) {
 
                         // If the parameter has a fade-in or fade-out setting, apply it.
-                        val fin: Float = if (existFadeIn(curve)) {
+                        val fin: Float = if (motion.existFadeIn(curve)) {
                             if (curve.fadeInTime == 0.0f)
                                 1.0f
                             else
-                                CubismMath.getEasingSine((totalSeconds - motionQueueEntry.startTimePoint) / curve.fadeInTime)
+                                CubismMath.getEasingSine((totalSeconds - startTimePoint) / curve.fadeInTime)
                         } else {
                             tmpFadeIn
                         }
-                        val fout: Float = if (existFadeOut(curve)) {
-                            if (curve.fadeOutTime == 0.0f || motionQueueEntry.endTimePoint < 0.0f)
+                        val fout: Float = if (motion.existFadeOut(curve)) {
+                            if (curve.fadeOutTime == 0.0f || endTimePoint < 0.0f)
                                 1.0f
                             else
-                                CubismMath.getEasingSine((motionQueueEntry.endTimePoint - totalSeconds) / curve.fadeOutTime)
+                                CubismMath.getEasingSine((endTimePoint - totalSeconds) / curve.fadeOutTime)
                         } else {
                             tmpFadeOut
                         }
@@ -219,10 +217,10 @@ class CubismMotionQueueEntry(
 
 
             if (isUpdatedEyeBlink) {
-                eyeBlinkParameterIds.forEachIndexed { index, id ->
+                motion.eyeBlinkParameterIds.forEachIndexed { index, id ->
 
                     // Blink does not apply when there is a motion overriding.
-                    if (eyeBlinkOverrideFlags.get(index)) {
+                    if (motion.eyeBlinkOverrideFlags.get(index)) {
                         return@forEachIndexed
                     }
 
@@ -234,10 +232,10 @@ class CubismMotionQueueEntry(
             }
 
             if (isUpdatedLipSync) {
-                lipSyncParameterIds.forEachIndexed { index, id ->
+                motion.lipSyncParameterIds.forEachIndexed { index, id ->
 
                     // Lip-sync does not apply when there is a motion overriding.
-                    if (lipSyncOverrideFlags.get(index)) {
+                    if (motion.lipSyncOverrideFlags.get(index)) {
                         return@forEachIndexed
                     }
 
@@ -248,8 +246,7 @@ class CubismMotionQueueEntry(
                 }
             }
 
-
-            motionData.curves.filter { it.type == CubismMotionCurveTarget.PART_OPACITY }
+            motion.motionData.curves.filter { it.type == CubismMotionCurveTarget.PART_OPACITY }
                 .forEach { curve ->
 
                     // Find parameter index.
@@ -261,34 +258,78 @@ class CubismMotionQueueEntry(
                     }
 
                     // Evaluate curve and apply value.
-                    value = evaluateCurve(curve, time, isCorrection, duration)
+                    value = motion.evaluateCurve(curve, time, isCorrection, duration)
                     model.setParameterValue(parameterIndex, value)
                 }
-        }
 
-
-        if (start_2_nowSeconds >= duration) {
-            finishedMotionCallback(this)
-            if (loop) {
-                updateForNextLoop(motionQueueEntry, totalSeconds, time)
-            } else {
-                motionQueueEntry.isFinished = true
+            if (start_2_nowSeconds >= duration) {
+                motion.finishedMotionCallback(motion)
+                if (motion.loop) {
+                    updateForNextLoop(motionQueueEntry, totalSeconds, time)
+                } else {
+                    motionQueueEntry.isFinished = true
+                }
             }
         }
-        lastWeight = fadeWeight
     }
 
+    private fun calFadeWeight(totalSeconds: Float): Float {
+        val fadeIn = if (motion.fadeInSeconds < 0.0f)
+            1.0f
+        else
+            getEasingSine(
+                (totalSeconds - startTimePoint) / motion.fadeInSeconds
+            )
+        val fadeOut = if (motion.fadeOutSeconds < 0.0f || endTimePoint < 0.0f)
+            1.0f
+        else
+            getEasingSine((endTimePoint - totalSeconds) / motion.fadeOutSeconds)
 
-    fun setup(
-        totalSeconds: Float
+        check(fadeIn * fadeOut in 0.0f..1.0f)
+
+        return fadeIn * fadeOut
+    }
+
+    private fun updateForNextLoop(
+        motionQueueEntry: CubismMotionQueueEntry,
+        totalSeconds: Float,
+        time: Float
     ) {
-        state = State.FadeIn
+        when (MotionBehavior.MOTION_BEHAVIOR_V2) {
+            /*
+            MotionBehavior.MOTION_BEHAVIOR_V1 -> {
+                // 旧ループ処理
+                motionQueueEntry.setStartTime(userTimeSeconds) //最初の状態へ
+                if (isLoopFadeIn) {
+                    //ループ中でループ用フェードインが有効のときは、フェードイン設定し直し
+                    motionQueueEntry.setFadeInStartTime(userTimeSeconds)
+                }
+            }
+            */
 
-        // Record the start time of the motion.
-        startTimePoint = totalSeconds
-
-        adjustEndTime(motionQueueEntry)
+            MotionBehavior.MOTION_BEHAVIOR_V2 -> {
+                motionQueueEntry.startTimePoint = totalSeconds - time //最初の状態へ
+                if (loopFadeIn) {
+                    //ループ中でループ用フェードインが有効のときは、フェードイン設定し直し
+                    // TODO:: 你知道我要todo什么
+//                    motionQueueEntry.setFadeInStartTime(totalSeconds - time)
+                }
+            }
+        }
     }
+
+
+    val firedEvents: List<String?>
+        get() = run {
+//            if ((event.fireTime > beforeCheckTimeSeconds) && (event.fireTime <= motionTimeSeconds)) {
+            val beforeCheckTimeSeconds: Float = lastTotalSeconds - startTimePoint
+            val motionTimeSeconds: Float = totalSeconds - startTimePoint
+
+            motion.motionData.events
+                .filter { it.fireTime in beforeCheckTimeSeconds..motionTimeSeconds }
+                .map { it.value }
+        }
+
 
     var startTimePoint: Float = -1.0f
 
@@ -315,14 +356,22 @@ class CubismMotionQueueEntry(
         private set
 
     /**
+     * flag whether fade-in is enabled at looping. Default value is true.
+     */
+    var loopFadeIn: Boolean = true
+
+    /**
      * 再生中の表情モーションのウェイトのリスト
      * 0为开始 fade, >=1为完成fade
      */
     var fadeWeight: Float = 0.0f
 
     var state: State = State.Init
+    var lastState: State = State.Init
 
-    enum class State {
+    enum class State(
+
+    ) {
         Init,
         FadeIn,
         Playing,
@@ -330,9 +379,15 @@ class CubismMotionQueueEntry(
         End
         ;
 
+        fun switchTo(state: State) {
+            this = state
+        }
+
         fun inInit() = this == Init
         fun inActive() = this == FadeIn || this == Playing || this == FadeOut
         fun inEnd() = this == End
     }
+
+
 
 }

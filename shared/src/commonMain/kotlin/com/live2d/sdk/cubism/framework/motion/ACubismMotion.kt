@@ -6,10 +6,6 @@
  */
 package com.live2d.sdk.cubism.framework.motion
 
-import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
-import com.live2d.sdk.cubism.framework.model.CubismModel
-import java.util.Collections
-
 abstract class ACubismMotion {
 
 //    fun updateParameters(
@@ -33,70 +29,24 @@ abstract class ACubismMotion {
 //        }
 //    }
 
+//    /**
+//     * Perform parameter updates for the model.
+//     *
+//     * @param model target model
+//     * @param userTimeSeconds total delta time[s]
+//     * @param weight weight of motion
+//     * @param motionQueueEntry motion managed by CubismMotionQueueManager
+//     */
+//    abstract fun doUpdateParameters(
+//        model: CubismModel,
+//        userTimeSeconds: Float,
+//        weight: Float,
+//        motionQueueEntry: CubismMotionQueueEntry
+//    )
 
-
-    /**
-     * Check for event firing.
-     * The input time reference is set to zero at the called motion timing.
-     *
-     * @param beforeCheckTimeSeconds last event check time [s]
-     * @param motionTimeSeconds playback time this time [s]
-     * @return list of events that have fired
-     */
-    open fun getFiredEvent(
-        beforeCheckTimeSeconds: Float,
-        motionTimeSeconds: Float
-    ): MutableList<String?> {
-        return Collections.unmodifiableList<String?>(firedEventValues)
-    }
-
-    /**
-     * Perform parameter updates for the model.
-     *
-     * @param model target model
-     * @param userTimeSeconds total delta time[s]
-     * @param weight weight of motion
-     * @param motionQueueEntry motion managed by CubismMotionQueueManager
-     */
-    abstract fun doUpdateParameters(
-        model: CubismModel,
-        userTimeSeconds: Float,
-        weight: Float,
-        motionQueueEntry: CubismMotionQueueEntry
-    )
-
-    protected fun adjustEndTime(motionQueueEntry: CubismMotionQueueEntry) {
-        val endTime = if (duration < 0)
-            -1.0f
-        else
-            motionQueueEntry.startTimePoint + duration
-
-        motionQueueEntry.endTimePoint = endTime
-    }
     var fadeInSeconds: Float = -1.0f
-    val duration: Float = -1.0f
     var fadeOutSeconds: Float = -1.0f
 
-    /**
-     * Enable/Disable loop
-     */
-    var loop: Boolean = false
 
-    /**
-     * flag whether fade-in is enabled at looping. Default value is true.
-     */
-    var loopFadeIn: Boolean = true
 
-    /**
-     * The previous state of `_isLoop`.
-     */
-    protected var previousLoopState: Boolean = this.loop
-
-    /**
-     * List of events that have fired
-     */
-    protected var firedEventValues: MutableList<String?> = ArrayList()
-
-    var beganMotionCallback: IBeganMotionCallback = IBeganMotionCallback { }
-    var finishedMotionCallback: IFinishedMotionCallback = IFinishedMotionCallback { }
 }

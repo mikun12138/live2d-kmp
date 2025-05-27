@@ -123,7 +123,15 @@ class CubismMotionInternal {
 
     data class CubismMotionData(
 
-        val duration: Float = 0f,
+        val duration: Float = 0f
+                get () = run {
+
+            if (loop)
+                -1.0f
+            else
+                field
+        },
+
 
         val loop: Boolean = false,
 

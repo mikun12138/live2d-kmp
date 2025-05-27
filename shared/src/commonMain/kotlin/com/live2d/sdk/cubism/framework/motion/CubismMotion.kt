@@ -9,18 +9,16 @@ package com.live2d.sdk.cubism.framework.motion
 import com.live2d.sdk.cubism.framework.CubismFramework.idManager
 import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.math.CubismMath
-import com.live2d.sdk.cubism.framework.model.CubismModel
 import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal.*
 import com.live2d.sdk.cubism.framework.utils.json.MotionJson
 import kotlinx.serialization.json.Json
 import java.util.BitSet
-import java.util.Collections
 import kotlin.math.max
 
 /**
  * Motion class.
  */
-class CubismMotion : ACubismMotion() {
+class CubismMotion : ACubismMotion {
 
     constructor(
         buffer: ByteArray,
@@ -29,8 +27,6 @@ class CubismMotion : ACubismMotion() {
     ) {
         parse(buffer)
 
-        sourceFrameRate = motionData.fps
-        loopDurationSeconds = motionData.duration
         beganMotionCallback = beganMotionCallBack
         finishedMotionCallback = finishedMotionCallBack
     }
@@ -282,24 +278,6 @@ class CubismMotion : ACubismMotion() {
         this.lipSyncParameterIds.addAll(lipSyncParameterIds)
     }
 
-    override fun getFiredEvent(
-        beforeCheckTimeSeconds: Float,
-        motionTimeSeconds: Float
-    ): MutableList<String?> {
-        firedEventValues.clear()
-
-        for (event in motionData.events) {
-            if (event.fireTime in beforeCheckTimeSeconds..motionTimeSeconds) {
-//            }
-//            if ((event.fireTime > beforeCheckTimeSeconds) && (event.fireTime <= motionTimeSeconds)) {
-                firedEventValues.add(event.value)
-            }
-        }
-        return Collections.unmodifiableList<String?>(firedEventValues)
-    }
-
-
-
     private fun updateForNextLoop(
         motionQueueEntry: CubismMotionQueueEntry,
         totalSeconds: Float,
@@ -328,7 +306,7 @@ class CubismMotion : ACubismMotion() {
         }
     }
 
-    private fun evaluateCurve(
+    fun evaluateCurve(
         curve: CubismMotionCurve,
         time: Float,
         isCorrection: Boolean,
@@ -488,28 +466,34 @@ class CubismMotion : ACubismMotion() {
         }
     }
 
-    private fun existFadeIn(curve: CubismMotionCurve): Boolean {
+    fun existFadeIn(curve: CubismMotionCurve): Boolean {
         return curve.fadeInTime >= 0.0f
     }
 
-    private fun existFadeOut(curve: CubismMotionCurve): Boolean {
+    fun existFadeOut(curve: CubismMotionCurve): Boolean {
         return curve.fadeOutTime >= 0.0f
     }
 
-    private fun existFade(curve: CubismMotionCurve): Boolean {
+    fun existFade(curve: CubismMotionCurve): Boolean {
         return existFadeIn(curve) || existFadeOut(curve)
     }
 
-    var sourceFrameRate = 30.0f
-    var loopDurationSeconds: Float = -1.0f
+    lateinit var motionData: CubismMotionData
 
-    private lateinit var motionData: CubismMotionData
-    private val eyeBlinkParameterIds: MutableList<CubismId> = ArrayList<CubismId>()
-    private val lipSyncParameterIds: MutableList<CubismId> = ArrayList<CubismId>()
-    private val eyeBlinkOverrideFlags = BitSet(eyeBlinkParameterIds.size)
-    private val lipSyncOverrideFlags = BitSet(lipSyncParameterIds.size)
+    /**
+     * Enable/Disable loop
+     */
+    // TODO::
+    var loop: Boolean = false
 
-    var modelOpacityValue: Float = 0f
+    val eyeBlinkParameterIds: MutableList<CubismId> = mutableListOf()
+    val lipSyncParameterIds: MutableList<CubismId> = mutableListOf()
+    val eyeBlinkOverrideFlags = BitSet(eyeBlinkParameterIds.size)
+    val lipSyncOverrideFlags = BitSet(lipSyncParameterIds.size)
+
+    // event / userdata
+    var beganMotionCallback: IBeganMotionCallback = IBeganMotionCallback { }
+    var finishedMotionCallback: IFinishedMotionCallback = IFinishedMotionCallback { }
 
     companion object {
 
@@ -517,6 +501,7 @@ class CubismMotion : ACubismMotion() {
             //        MOTION_BEHAVIOR_V1,
             MOTION_BEHAVIOR_V2,
         }
+
         private enum class EffectID(
             val value: String
         ) {
