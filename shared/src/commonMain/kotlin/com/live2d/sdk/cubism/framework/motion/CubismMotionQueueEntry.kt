@@ -14,6 +14,7 @@ import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveI
 import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveIdLipSync
 import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveIdOpacity
 import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal.CubismMotionCurveTarget
+import com.live2d.sdk.cubism.util.State
 
 /**
  * Manager class for each motion being played by CubismMotionQueueManager.
@@ -41,7 +42,7 @@ class CubismMotionQueueEntry(
     fun setup(
         totalSeconds: Float
     ) {
-        state = State.FadeIn
+        state = MotionQueueEntryState.FadeIn
 
         // Record the start time of the motion.
         startTimePoint = totalSeconds
@@ -366,22 +367,19 @@ class CubismMotionQueueEntry(
      */
     var fadeWeight: Float = 0.0f
 
-    var state: State = State.Init
-    var lastState: State = State.Init
+    var state: MotionQueueEntryState = MotionQueueEntryState.Init
+    var lastState: MotionQueueEntryState = MotionQueueEntryState.Init
 
-    enum class State(
-
-    ) {
+    enum class MotionQueueEntryState(
+        override val onEnter: (State) -> Unit = { },
+        override val onExit: (State) -> Unit = { }
+    ) : State {
         Init,
         FadeIn,
         Playing,
         FadeOut,
         End
         ;
-
-        fun switchTo(state: State) {
-            this = state
-        }
 
         fun inInit() = this == Init
         fun inActive() = this == FadeIn || this == Playing || this == FadeOut

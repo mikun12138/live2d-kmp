@@ -65,7 +65,7 @@ class CubismMotionManager : CubismMotionQueueManager() {
                 // 後処理
                 // 終了時刻を過ぎたら終了フラグを立てる（CubismMotionQueueManager）
                 if (entry.endTimePoint > 0.0f && entry.endTimePoint < totalSeconds) {
-                    entry.state = CubismMotionQueueEntry.State.End // 終了
+                    entry.state = CubismMotionQueueEntry.MotionQueueEntryState.End // 終了
                 }
                 return@forEachIndexed
             }
