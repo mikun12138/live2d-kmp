@@ -33,9 +33,7 @@ class CubismMotionManager : CubismMotionQueueManager() {
         motionEntries.forEachIndexed { index, entry ->
 
             if (entry.state.inInit()) {
-                entry.motion.setupMotionQueueEntry(
-                    entry, totalSeconds
-                )
+                entry.setup()
                 return@forEachIndexed
             }
 
@@ -43,6 +41,7 @@ class CubismMotionManager : CubismMotionQueueManager() {
                 val fadeWeight =
                     entry.motion.updateFadeWeight(entry, totalSeconds)
                 //---- 全てのパラメータIDをループする ----
+                // TODO:: level 0, change to CubismMotionQueueEntry.doUpdateParameters
                 entry.motion.doUpdateParameters(
                     model,
                     totalSeconds,
@@ -52,7 +51,7 @@ class CubismMotionManager : CubismMotionQueueManager() {
 
                 if (entry.isTriggeredFadeOut) {
                     entry.startFadeOut(
-                        entry.fadeOutSeconds,
+                        entry.motion.fadeOutSeconds,
                         totalSeconds
                     )
                 }

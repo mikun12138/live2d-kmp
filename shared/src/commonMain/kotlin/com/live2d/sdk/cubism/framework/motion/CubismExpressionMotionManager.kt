@@ -63,7 +63,7 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
                     }
             }
 
-            motion.setupMotionQueueEntry(
+            motion.setup(
                 entry, totalSeconds
             )
 
@@ -87,7 +87,7 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
                 if (entry.isTriggeredFadeOut) {
                     // フェードアウト開始
                     entry.startFadeOut(
-                        entry.fadeOutSeconds, totalSeconds
+                        entry.motion.fadeOutSeconds, totalSeconds
                     )
                 }
             }

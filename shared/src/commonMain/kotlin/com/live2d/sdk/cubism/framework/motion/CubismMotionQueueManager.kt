@@ -23,7 +23,7 @@ open class CubismMotionQueueManager {
 
         // 既にモーションがあれば終了フラグを立てる。
         for (entry in motionEntries) {
-            entry.setFadeOut(entry.motion.fadeOutSeconds)
+            entry.setFadeOut()
         }
 
         motionEntries.add(CubismMotionQueueEntry(motion))
