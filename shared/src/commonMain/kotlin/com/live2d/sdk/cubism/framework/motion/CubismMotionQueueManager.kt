@@ -68,6 +68,7 @@ open class CubismMotionQueueManager {
      */
     protected var totalSeconds: Float = 0f
 
+
     /**
      * List of motions
      */

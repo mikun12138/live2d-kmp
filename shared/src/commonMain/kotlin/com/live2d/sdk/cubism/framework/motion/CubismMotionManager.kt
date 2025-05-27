@@ -40,59 +40,47 @@ class CubismMotionManager : CubismMotionQueueManager() {
             }
 
             if (entry.state.inActive()) {
+                val fadeWeight =
+                    entry.motion.updateFadeWeight(entry, totalSeconds)
+                //---- 全てのパラメータIDをループする ----
+                entry.motion.doUpdateParameters(
+                    model,
+                    totalSeconds,
+                    fadeWeight,
+                    entry
+                )
 
-            }
-
-
-
-            // 更新 model 参数
-            run {
-                if (!entry.isFinished) {
-
-                    val fadeWeight =
-                        entry.motion.updateFadeWeight(entry, totalSeconds)
-
-                    //---- 全てのパラメータIDをループする ----
-                    entry.motion.doUpdateParameters(
-                        model,
-                        totalSeconds,
-                        fadeWeight,
-                        entry
+                if (entry.isTriggeredFadeOut) {
+                    entry.startFadeOut(
+                        entry.fadeOutSeconds,
+                        totalSeconds
                     )
+                }
 
-                    // 後処理
-                    // 終了時刻を過ぎたら終了フラグを立てる（CubismMotionQueueManager）
-                    if (entry.endTime > 0.0f && entry.endTime < totalSeconds) {
-                        entry.isFinished = true // 終了
+                // 触发 UserData 内的 event
+                run {
+                    entry.motion.getFiredEvent(
+                        entry.lastTotalSeconds - entry.startTimePoint,
+                        totalSeconds - entry.startTimePoint
+                    ).forEach { event ->
+                        eventCallback.apply(this, event, eventCustomData)
                     }
+                    entry.lastTotalSeconds = totalSeconds
                 }
+
+                // 後処理
+                // 終了時刻を過ぎたら終了フラグを立てる（CubismMotionQueueManager）
+                if (entry.endTimePoint > 0.0f && entry.endTimePoint < totalSeconds) {
+                    entry.state = CubismMotionQueueEntry.State.End // 終了
+                }
+                return@forEachIndexed
             }
 
-            // 触发 UserData 内的 event
-            run {
-                entry.motion.getFiredEvent(
-                    entry.lastCheckEventTime - entry.startTime,
-                    totalSeconds - entry.startTime
-                ).forEach { event ->
-                    eventCallback.apply(this, event, eventCustomData)
-                }
-                entry.lastCheckEventTime = totalSeconds
+
+            if (entry.state.inEnd()) {
+                motionEntries[index] = null
             }
 
-            // TODO::是不是该写到 entry ?
-            run {
-                // If any processes have already been finished, delete them.
-                if (entry.isFinished) {
-                    motionEntries[index] = null
-                } else {
-                    if (entry.isTriggeredFadeOut) {
-                        entry.startFadeOut(
-                            entry.fadeOutSeconds,
-                            totalSeconds
-                        )
-                    }
-                }
-            }
         }
 
         motionEntries.removeAll(mutableSetOf<Any?>(null))

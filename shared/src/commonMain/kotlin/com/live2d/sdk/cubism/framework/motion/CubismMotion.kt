@@ -11,27 +11,11 @@ import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.math.CubismMath
 import com.live2d.sdk.cubism.framework.model.CubismModel
 import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal.*
-import com.live2d.sdk.cubism.framework.utils.CubismDebug
 import com.live2d.sdk.cubism.framework.utils.json.MotionJson
 import kotlinx.serialization.json.Json
 import java.util.BitSet
 import java.util.Collections
-import kotlin.Array
-import kotlin.Boolean
-import kotlin.ByteArray
-import kotlin.Float
-import kotlin.Int
-import kotlin.String
-import kotlin.collections.ArrayList
-import kotlin.collections.MutableList
-import kotlin.collections.indices
-import kotlin.collections.minus
-import kotlin.compareTo
-import kotlin.div
 import kotlin.math.max
-import kotlin.run
-import kotlin.sequences.minus
-import kotlin.text.equals
 
 /**
  * Motion class.
@@ -102,13 +86,9 @@ class CubismMotion : ACubismMotion() {
         for (curveIndex in 0..<motionData.curveCount) {
             motionData.curves[curveIndex].let { curve ->
                 // Register target type.
-                val targetName = json.curves[curveIndex].target
-                curve.type = when (targetName) {
-                    CurveTargetName.MODEL.value -> CubismMotionCurveTarget.MODEL
-                    CurveTargetName.PARAMETER.value -> CubismMotionCurveTarget.PARAMETER
-                    CurveTargetName.PART_OPACITY.value -> CubismMotionCurveTarget.PART_OPACITY
-                    else -> error("Warning: Unable to get segment type from Curve! The number of \"CurveCount\" may be incorrect!")
-                }
+                curve.type = CubismMotionCurveTarget.byName(
+                    json.curves[curveIndex].target
+                )
 
                 curve.id = idManager.id(
                     json.curves[curveIndex].id
@@ -342,8 +322,8 @@ class CubismMotion : ACubismMotion() {
             previousLoopState = loop
         }
 
-        val passedSeconds: Float = totalSeconds - motionQueueEntry.startTime
-        check(passedSeconds >= 0.0f)
+        val start_2_nowSeconds: Float = totalSeconds - motionQueueEntry.startTimePoint
+        check(start_2_nowSeconds >= 0.0f)
 
 //        val MAX_TARGET_SIZE = 64
 //
@@ -359,7 +339,7 @@ class CubismMotion : ACubismMotion() {
         run {
 
             // 'Repeat time as necessary'
-            var time = passedSeconds
+            var time = start_2_nowSeconds
             var duration: Float = motionData.duration
             val isCorrection = loop
 
@@ -368,9 +348,10 @@ class CubismMotion : ACubismMotion() {
                 while (time > duration) {
                     time -= duration
                 }
+                // TODO:: use this
+//                time %= duration
             }
 
-            val curves: MutableList<CubismMotionCurve> = motionData.curves
 
             var eyeBlinkValue = 0f
             var lipSyncValue = 0f
@@ -382,147 +363,118 @@ class CubismMotion : ACubismMotion() {
             var value: Float
 
             // Evaluate model curves
-            for (curve in curves) {
-                if (curve.type != CubismMotionCurveTarget.MODEL) {
-                    continue
+            motionData.curves.filter { it.type == CubismMotionCurveTarget.MODEL }
+                .forEach { curve ->
+
+                    // Evaluate curve and call handler.
+                    value = evaluateCurve(
+                        curve, time, isCorrection, duration
+                    )
+
+                    when (curve.id) {
+                        modelCurveIdEyeBlink -> {
+                            eyeBlinkValue = value
+                            isUpdatedEyeBlink = true
+                        }
+
+                        modelCurveIdLipSync -> {
+                            lipSyncValue = value
+                            isUpdatedLipSync = true
+                        }
+
+                        modelCurveIdOpacity -> {
+                            this.modelOpacityValue = value
+
+                            // 不透明度の値が存在すれば反映する。
+                            model.modelOpacity = this.modelOpacityValue
+                        }
+                    }
                 }
-
-                // Evaluate curve and call handler.
-                value = evaluateCurve(
-                    curve, time, isCorrection, duration
-                )
-
-                if (curve.id.equals(modelCurveIdEyeBlink)) {
-                    eyeBlinkValue = value
-                    isUpdatedEyeBlink = true
-                } else if (curve.id.equals(modelCurveIdLipSync)) {
-                    lipSyncValue = value
-                    isUpdatedLipSync = true
-                } else if (curve.id.equals(modelCurveIdOpacity)) {
-                    this.modelOpacityValue = value
-
-                    // 不透明度の値が存在すれば反映する。
-                    model.modelOpacity = this.modelOpacityValue
-                }
-            }
 
             val tmpFadeIn = if (fadeInSeconds <= 0.0f)
                 1.0f
             else
-                CubismMath.getEasingSine((totalSeconds - motionQueueEntry.getFadeInStartTime()) / fadeInSeconds)
-            val tmpFadeOut = if (fadeOutSeconds <= 0.0f || motionQueueEntry.getEndTime() < 0.0f)
+                CubismMath.getEasingSine((totalSeconds - motionQueueEntry.startTimePoint) / fadeInSeconds)
+            val tmpFadeOut = if (fadeOutSeconds <= 0.0f || motionQueueEntry.endTimePoint < 0.0f)
                 1.0f
             else
-                CubismMath.getEasingSine((motionQueueEntry.getEndTime() - totalSeconds) / fadeOutSeconds)
+                CubismMath.getEasingSine((motionQueueEntry.endTimePoint - totalSeconds) / fadeOutSeconds)
 
-            for (i in curves.indices) {
-                val curve: CubismMotionCurve = curves.get(i)
+            motionData.curves.filter { it.type == CubismMotionCurveTarget.PARAMETER }
+                .forEach { curve ->
 
-                if (curve.type !== CubismMotionCurveTarget.PARAMETER) {
-                    continue
-                }
+                    // Find parameter index.
+                    val parameterIndex = model.getParameterIndex(curve.id)
 
-                // Find parameter index.
-                val parameterIndex = model.getParameterIndex(curve.id)
-
-                // Skip curve evaluation if no value.
-                if (parameterIndex == -1) {
-                    continue
-                }
-
-                val sourceValue = model.getParameterValue(parameterIndex)
-
-                // Evaluate curve and apply value.
-                value = evaluateCurve(motionData, i, time, isCorrection, duration)
-
-                if (isUpdatedEyeBlink) {
-                    for (j in eyeBlinkParameterIds.indices) {
-                        val id: CubismId = eyeBlinkParameterIds.get(j)
-
-                        if (j == MAX_TARGET_SIZE) {
-                            break
-                        }
-
-                        if (id == curve.id) {
-                            value *= eyeBlinkValue
-                            eyeBlinkFlags.set(j)
-                            break
-                        }
-                    }
-                }
-
-                if (isUpdatedLipSync) {
-                    for (j in lipSyncParameterIds.indices) {
-                        val id: CubismId = lipSyncParameterIds.get(j)
-
-                        if (j == MAX_TARGET_SIZE) {
-                            break
-                        }
-
-                        if (id == curve.id) {
-                            value += lipSyncValue
-                            lipSyncFlags.set(j)
-                            break
-                        }
-                    }
-                }
-
-                val v: Float
-                if (existFade(curve)) {
-                    // If the parameter has a fade-in or fade-out setting, apply it.
-                    val fin: Float
-                    val fout: Float
-
-                    if (existFadeIn(curve)) {
-                        val easedValue: Float =
-                            (totalSeconds - motionQueueEntry.getFadeInStartTime()) / curve.fadeInTime
-
-                        fin = if (curve.fadeInTime === 0.0f)
-                            1.0f
-                        else
-                            CubismMath.getEasingSine(easedValue)
-                    } else {
-                        fin = tmpFadeIn
+                    // Skip curve evaluation if no value.
+                    if (parameterIndex == -1) {
+                        return@forEach
                     }
 
-                    if (existFadeOut(curve)) {
-                        val easedValue: Float =
-                            (motionQueueEntry.getEndTime() - totalSeconds) / curve.fadeOutTime
+                    val sourceValue = model.getParameterValue(parameterIndex)
 
-                        fout =
-                            if (curve.fadeOutTime === 0.0f || motionQueueEntry.getEndTime() < 0.0f)
+                    // Evaluate curve and apply value.
+                    value = evaluateCurve(
+                        curve, time, isCorrection, duration
+                    )
+
+                    if (isUpdatedEyeBlink) {
+                        eyeBlinkParameterIds.indexOfFirst { it == curve.id }.takeIf { it >= 0 }
+                            ?.let {
+                                value *= eyeBlinkValue
+                                eyeBlinkOverrideFlags.set(it)
+                            }
+                    }
+
+                    if (isUpdatedLipSync) {
+                        lipSyncParameterIds.indexOfFirst { it == curve.id }.takeIf { it >= 0 }
+                            ?.let {
+                                value += lipSyncValue
+                                lipSyncOverrideFlags.set(it)
+                            }
+                    }
+
+                    val v: Float
+                    if (existFade(curve)) {
+
+                        // If the parameter has a fade-in or fade-out setting, apply it.
+                        val fin: Float = if (existFadeIn(curve)) {
+                            if (curve.fadeInTime == 0.0f)
                                 1.0f
                             else
-                                CubismMath.getEasingSine(easedValue)
-                    } else {
-                        fout = tmpFadeOut
-                    }
+                                CubismMath.getEasingSine((totalSeconds - motionQueueEntry.startTimePoint) / curve.fadeInTime)
+                        } else {
+                            tmpFadeIn
+                        }
+                        val fout: Float = if (existFadeOut(curve)) {
+                            if (curve.fadeOutTime == 0.0f || motionQueueEntry.endTimePoint < 0.0f)
+                                1.0f
+                            else
+                                CubismMath.getEasingSine((motionQueueEntry.endTimePoint - totalSeconds) / curve.fadeOutTime)
+                        } else {
+                            tmpFadeOut
+                        }
 
-                    val paramWeight: Float =
+                        val paramWeight: Float =
 //                    weight *
-                        fin * fout
+                            fin * fout
 
-                    // Apply each fading.
-                    v = sourceValue + (value - sourceValue) * paramWeight
-                } else {
-                    // Apply each fading.
-                    v = sourceValue + (value - sourceValue) * fadeWeight
+                        // Apply each fading.
+                        v = sourceValue + (value - sourceValue) * paramWeight
+                    } else {
+                        // Apply each fading.
+                        v = sourceValue + (value - sourceValue) * fadeWeight
+                    }
+                    model.setParameterValue(parameterIndex, v)
                 }
-                model.setParameterValue(parameterIndex, v)
-            }
 
 
             if (isUpdatedEyeBlink) {
-                for (i in eyeBlinkParameterIds.indices) {
-                    val id: CubismId = eyeBlinkParameterIds.get(i)
-
-                    if (i == MAX_TARGET_SIZE) {
-                        break
-                    }
+                eyeBlinkParameterIds.forEachIndexed { index, id ->
 
                     // Blink does not apply when there is a motion overriding.
-                    if (eyeBlinkFlags.get(i)) {
-                        continue
+                    if (eyeBlinkOverrideFlags.get(index)) {
+                        return@forEachIndexed
                     }
 
                     val sourceValue: Float = model.getParameterValue(id)
@@ -533,67 +485,57 @@ class CubismMotion : ACubismMotion() {
             }
 
             if (isUpdatedLipSync) {
-                for (i in lipSyncParameterIds.indices) {
-                    val id: CubismId = lipSyncParameterIds.get(i)
-
-                    if (i == MAX_TARGET_SIZE) {
-                        break
-                    }
+                lipSyncParameterIds.forEachIndexed { index, id ->
 
                     // Lip-sync does not apply when there is a motion overriding.
-                    if (lipSyncFlags.get(i)) {
-                        continue
+                    if (lipSyncOverrideFlags.get(index)) {
+                        return@forEachIndexed
                     }
 
                     val sourceValue: Float = model.getParameterValue(id)
-
                     val v = sourceValue + (lipSyncValue - sourceValue) * fadeWeight
 
                     model.setParameterValue(id, v)
                 }
             }
 
-            val curveSize = curves.size
-            for (i in 0..<curveSize) {
-                val curve: CubismMotionCurve = curves.get(i)
 
-                if (curve.type !== CubismMotionCurveTarget.PART_OPACITY) {
-                    continue
+            motionData.curves.filter { it.type == CubismMotionCurveTarget.PART_OPACITY }
+                .forEach { curve ->
+
+                    // Find parameter index.
+                    val parameterIndex = model.getParameterIndex(curve.id)
+
+                    // Skip curve evaluation if no value.
+                    if (parameterIndex == -1) {
+                        return@forEach
+                    }
+
+                    // Evaluate curve and apply value.
+                    value = evaluateCurve(curve, time, isCorrection, duration)
+                    model.setParameterValue(parameterIndex, value)
                 }
-
-                // Find parameter index.
-                val parameterIndex = model.getParameterIndex(curve.id)
-
-                // Skip curve evaluation if no value.
-                if (parameterIndex == -1) {
-                    continue
-                }
-
-                // Evaluate curve and apply value.
-                value = evaluateCurve(motionData, i, time, isCorrection, duration)
-                model.setParameterValue(parameterIndex, value)
-            }
         }
 
-        if (passedSeconds >= duration) {
-            if (isLoop) {
-                UpdateForNextLoop(motionQueueEntry, totalSeconds, time)
+
+        if (start_2_nowSeconds >= duration) {
+            finishedMotionCallback(this)
+            if (loop) {
+                updateForNextLoop(motionQueueEntry, totalSeconds, time)
             } else {
-                if (onFinishedMotion != null) {
-                    onFinishedMotion.execute(this)
-                }
-                motionQueueEntry.isFinished(true)
+                motionQueueEntry.isFinished = true
             }
         }
         lastWeight = fadeWeight
     }
 
-    private fun UpdateForNextLoop(
+    private fun updateForNextLoop(
         motionQueueEntry: CubismMotionQueueEntry,
-        userTimeSeconds: Float,
+        totalSeconds: Float,
         time: Float
     ) {
-        when (motionBehavior) {
+        when (MotionBehavior.MOTION_BEHAVIOR_V2) {
+            /*
             MotionBehavior.MOTION_BEHAVIOR_V1 -> {
                 // 旧ループ処理
                 motionQueueEntry.setStartTime(userTimeSeconds) //最初の状態へ
@@ -602,27 +544,14 @@ class CubismMotion : ACubismMotion() {
                     motionQueueEntry.setFadeInStartTime(userTimeSeconds)
                 }
             }
+            */
 
             MotionBehavior.MOTION_BEHAVIOR_V2 -> {
-                motionQueueEntry.setStartTime(userTimeSeconds - time) //最初の状態へ
-                if (isLoopFadeIn) {
+                motionQueueEntry.startTimePoint = totalSeconds - time //最初の状態へ
+                if (loopFadeIn) {
                     //ループ中でループ用フェードインが有効のときは、フェードイン設定し直し
-                    motionQueueEntry.setFadeInStartTime(userTimeSeconds - time)
-                }
-
-                if (this.onFinishedMotion != null) {
-                    this.onFinishedMotion.execute(this)
-                }
-            }
-
-            else -> {
-                motionQueueEntry.setStartTime(userTimeSeconds - time)
-                if (isLoopFadeIn) {
-                    motionQueueEntry.setFadeInStartTime(userTimeSeconds - time)
-                }
-
-                if (this.onFinishedMotion != null) {
-                    this.onFinishedMotion.execute(this)
+                    // TODO:: 你知道我要todo什么
+//                    motionQueueEntry.setFadeInStartTime(totalSeconds - time)
                 }
             }
         }
@@ -636,42 +565,39 @@ class CubismMotion : ACubismMotion() {
         endTime: Float
     ): Float {
 
-        var target = -1
-        val totalSegmentCount: Int = curve.baseSegmentIndex + curve.segmentCount
-        var pointPosition = 0
-        for (i in curve.baseSegmentIndex..<totalSegmentCount) {
+        val nextBaseSegmentIndex: Int = curve.baseSegmentIndex + curve.segmentCount
+        var nextSegmentBasicPointIndex = 0
+        return (curve.baseSegmentIndex until nextBaseSegmentIndex).firstOrNull {
             // Get first point of next segment.
-            pointPosition =
-                motionData.segments[i].basePointIndex + motionData.segments[i].segmentType.pointCount
-
+            nextSegmentBasicPointIndex =
+                motionData.segments[it].basePointIndex + motionData.segments[it].segmentType.pointCount
             // Break if time lies within current segment.
-            if (motionData.points[pointPosition].time > time) {
-                target = i
-                break
-            }
-        }
+            motionData.points[nextSegmentBasicPointIndex].time > time
+        }?.let { it: Int ->
 
-        if (target == -1) {
+            val points: MutableList<CubismMotionPoint> =
+                motionData.points.subList(
+                    motionData.segments[it].basePointIndex,
+                    nextSegmentBasicPointIndex
+                )
+
+            motionData.segments[it].evaluator.evaluate(points, time)
+        } ?: run {
             if (isCorrection && time < endTime) {
                 // 終点から始点への補正処理
-                return correctEndPoint(
+                correctEndPoint(
                     motionData,
-                    totalSegmentCount - 1,
-                    motionData.segments.get(curve.baseSegmentIndex).basePointIndex,
-                    pointPosition,
+                    nextBaseSegmentIndex - 1,
+                    motionData.segments[curve.baseSegmentIndex].basePointIndex,
+                    nextSegmentBasicPointIndex,
                     time,
                     endTime
                 )
             }
 
-            return motionData.points.get(pointPosition).value
+            motionData.points[nextSegmentBasicPointIndex].value
         }
 
-        val segment: CubismMotionSegment = motionData.segments.get(target)
-
-        val points: MutableList<CubismMotionPoint?>? =
-            motionData.points.subList(segment.basePointIndex, motionData.points.size())
-        return segment.evaluator.evaluate(points, time)
     }
 
     private fun correctEndPoint(
@@ -682,50 +608,37 @@ class CubismMotion : ACubismMotion() {
         time: Float,
         endTime: Float
     ): Float {
-        val motionPoint: ArrayList<CubismMotionPoint?> = ArrayList<CubismMotionPoint?>(2)
-        run {
-            val src: CubismMotionPoint = motionData.points.get(endIndex)
-            motionPoint.add(CubismMotionPoint(src.time, src.value))
-        }
-        run {
-            val src: CubismMotionPoint = motionData.points.get(beginIndex)
-            motionPoint.add(CubismMotionPoint(src.time, src.value))
-        }
-        motionPoint.get(1).time = endTime
+        val motionPoint = listOf(
+            run {
+                val src: CubismMotionPoint = motionData.points[endIndex]
+                CubismMotionPoint(src.time, src.value)
+            },
+            run {
+                val src: CubismMotionPoint = motionData.points[beginIndex]
+                CubismMotionPoint(endTime, src.value)
+            },
+        )
 
-        return when (motionData.segments.get(segmentIndex).segmentType) {
-            CubismMotionSegmentType.STEPPED -> SteppedEvaluator.evaluate(motionPoint, time)
+        return when (motionData.segments[segmentIndex].segmentType) {
+            CubismMotionSegmentType.STEPPED -> SteppedEvaluator.evaluate(
+                motionPoint,
+                time
+            )
+
             CubismMotionSegmentType.INVERSESTEPPED -> InverseSteppedEvaluator.evaluate(
                 motionPoint,
                 time
             )
 
-            CubismMotionSegmentType.LINEAR -> LinearEvaluator.evaluate(motionPoint, time)
-            CubismMotionSegmentType.BEZIER -> BezierEvaluator.evaluate(motionPoint, time)
+            CubismMotionSegmentType.LINEAR,
+            CubismMotionSegmentType.BEZIER -> LinearEvaluator.evaluate(
+                motionPoint,
+                time
+            )
+
         }
     }
 
-
-    private enum class EffectID(
-        val value: String
-    ) {
-        EYE_BLINK("EyeBlink"),
-        LIP_SYNC("LipSync");
-    }
-
-    private enum class OpacityID(
-        val value: String
-    ) {
-        OPACITY("Opacity")
-    }
-
-    private enum class CurveTargetName(
-        val value: String
-    ) {
-        MODEL("Model"),
-        PARAMETER("Parameter"),
-        PART_OPACITY("PartOpacity");
-    }
 
     object LinearEvaluator : CsmMotionSegmentEvaluationFunction {
         override fun evaluate(points: List<CubismMotionPoint>, time: Float): Float {
@@ -818,30 +731,31 @@ class CubismMotion : ACubismMotion() {
         return existFadeIn(curve) || existFadeOut(curve)
     }
 
-
     var sourceFrameRate = 30.0f
     var loopDurationSeconds: Float = -1.0f
 
-//    val motionBehavior: MotionBehavior = MotionBehavior.MOTION_BEHAVIOR_V2
-
     private lateinit var motionData: CubismMotionData
-
-    /**
-     * list of parameter ID handles to which automatic eye blinking is applied. Corresponds to a model (model setting) and a parameter.
-     */
     private val eyeBlinkParameterIds: MutableList<CubismId> = ArrayList<CubismId>()
-
-    /**
-     * list of parameter ID handles to which lip-syncing is applied. Corresponds to a model (model setting) and a parameter.
-     */
     private val lipSyncParameterIds: MutableList<CubismId> = ArrayList<CubismId>()
-    private val eyeBlinkFlags = BitSet(eyeBlinkParameterIds.size)
-    private val lipSyncFlags = BitSet(lipSyncParameterIds.size)
-
+    private val eyeBlinkOverrideFlags = BitSet(eyeBlinkParameterIds.size)
+    private val lipSyncOverrideFlags = BitSet(lipSyncParameterIds.size)
 
     override var modelOpacityValue: Float = 0f
 
     companion object {
+
+        private enum class EffectID(
+            val value: String
+        ) {
+            EYE_BLINK("EyeBlink"),
+            LIP_SYNC("LipSync");
+        }
+
+        private enum class OpacityID(
+            val value: String
+        ) {
+            OPACITY("Opacity")
+        }
 
         val modelCurveIdEyeBlink: CubismId = idManager.id(EffectID.EYE_BLINK.value)
 
@@ -860,14 +774,10 @@ class CubismMotion : ACubismMotion() {
             a: CubismMotionPoint,
             b: CubismMotionPoint,
             t: Float
-        ): CubismMotionPoint {
-            val result = CubismMotionPoint()
-
-            result.time = a.time + ((b.time - a.time) * t)
-            result.value = a.value + ((b.value - a.value) * t)
-
-            return result
-        }
+        ): CubismMotionPoint = CubismMotionPoint(
+            a.time + ((b.time - a.time) * t),
+            a.value + ((b.value - a.value) * t),
+        )
     }
 
     private fun bezierEvaluateBinarySearch(points: Array<CubismMotionPoint?>, time: Float): Float {

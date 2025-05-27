@@ -15,21 +15,31 @@ class CubismMotionInternal {
     /**
      * Type of motion curve.
      */
-    enum class CubismMotionCurveTarget {
+    enum class CubismMotionCurveTarget(
+        val value: String
+    ) {
         /**
          * motion curve for the model
          */
-        MODEL,
+        MODEL("Model"),
 
         /**
          * motion curve for parameters
          */
-        PARAMETER,
+        PARAMETER("Parameter"),
 
         /**
          * motion curve for part opacity
          */
-        PART_OPACITY
+        PART_OPACITY("PartOpacity")
+        ;
+
+        companion object {
+            fun byName(name: String): CubismMotionCurveTarget {
+                return entries.find { it.value == name }
+                    ?: error("Unknown CubismMotionCurveTarget: [$name]")
+            }
+        }
     }
 
     /**
@@ -50,24 +60,10 @@ class CubismMotionInternal {
     /**
      * Motion curve control points.
      */
-    class CubismMotionPoint {
-        /**
-         * time[s]
-         */
-        var time: Float = 0f
-
-        /**
-         * value
-         */
-        var value: Float = 0f
-
-        constructor()
-
-        constructor(time: Float, value: Float) {
-            this.time = time
-            this.value = value
-        }
-    }
+    data class CubismMotionPoint(
+        var time: Float = 0f,
+        var value: Float = 0f,
+    )
 
     /**
      * Segment of motion curve.
@@ -76,7 +72,7 @@ class CubismMotionInternal {
         /**
          * used evaluation function
          */
-        var evaluator: CsmMotionSegmentEvaluationFunction? = null
+        var evaluator: CsmMotionSegmentEvaluationFunction = null
 
         /**
          * index to the first segment
@@ -93,14 +89,7 @@ class CubismMotionInternal {
      * Motion curve
      */
     class CubismMotionCurve {
-        /**
-         * type of curve
-         */
         var type: CubismMotionCurveTarget = CubismMotionCurveTarget.MODEL
-
-        /**
-         * curve ID
-         */
         var id: CubismId
 
         /**
@@ -113,14 +102,7 @@ class CubismMotionInternal {
          */
         var baseSegmentIndex: Int = 0
 
-        /**
-         * time for fade-in[s]
-         */
         var fadeInTime: Float = 0f
-
-        /**
-         * time for fade-out[s]
-         */
         var fadeOutTime: Float = 0f
     }
 

@@ -40,7 +40,7 @@ abstract class ACubismMotion {
         motionQueueEntry.state = CubismMotionQueueEntry.State.FadeIn
 
         // Record the start time of the motion.
-        motionQueueEntry.startTime = totalSeconds
+        motionQueueEntry.startTimePoint = totalSeconds
 
         adjustEndTime(motionQueueEntry)
     }
@@ -50,12 +50,12 @@ abstract class ACubismMotion {
             1.0f
         else
             getEasingSine(
-                (totalSeconds - motionQueueEntry.startTime) / this.fadeInSeconds
+                (totalSeconds - motionQueueEntry.startTimePoint) / this.fadeInSeconds
             )
-        val fadeOut = if (this.fadeOutSeconds < 0.0f || motionQueueEntry.endTime < 0.0f)
+        val fadeOut = if (this.fadeOutSeconds < 0.0f || motionQueueEntry.endTimePoint < 0.0f)
             1.0f
         else
-            getEasingSine((motionQueueEntry.endTime - totalSeconds) / this.fadeOutSeconds)
+            getEasingSine((motionQueueEntry.endTimePoint - totalSeconds) / this.fadeOutSeconds)
 
         check(fadeIn * fadeOut in 0.0f..1.0f)
 
@@ -101,9 +101,9 @@ abstract class ACubismMotion {
         val endTime = if (duration < 0)
             -1.0f
         else
-            motionQueueEntry.startTime + duration
+            motionQueueEntry.startTimePoint + duration
 
-        motionQueueEntry.endTime = endTime
+        motionQueueEntry.endTimePoint = endTime
     }
 
     protected open val modelOpacityValue: Float = 1.0f
