@@ -76,85 +76,7 @@ class CubismExpressionMotion : ACubismMotion {
         val value: Float,
     )
 
-    /**
-     * モデルの表情に関するパラメータを計算する。
-     */
-    fun calculateExpressionParameters(
-        model: CubismModel,
-        expressionParameterValues: MutableList<CubismExpressionMotionManager.ExpressionParameterValue>,
-        isFirstExpression: Boolean,
-        fadeWeight: Float
-    ) {
 
-        // モデルに適用する値を計算
-        for (expParamValue in expressionParameterValues) {
-
-            expParamValue.overwriteValue = model.getParameterValue(expParamValue.parameterId)
-
-            parameters.find { it.parameterId == expParamValue.parameterId }?.let {
-
-                // 値を計算
-                val newAdditiveValue: Float
-                val newMultiplyValue: Float
-                val newOverwriteValue: Float
-
-                when (it.blendType) {
-                    ExpressionBlendType.ADD -> {
-                        newAdditiveValue = it.value
-                        newMultiplyValue = DEFAULT_MULTIPLY_VALUE
-                        newOverwriteValue = expParamValue.overwriteValue
-                    }
-
-                    ExpressionBlendType.MULTIPLY -> {
-                        newAdditiveValue = DEFAULT_ADDITIVE_VALUE
-                        newMultiplyValue = it.value
-                        newOverwriteValue = expParamValue.overwriteValue
-                    }
-
-                    ExpressionBlendType.OVERWRITE -> {
-                        newAdditiveValue = DEFAULT_ADDITIVE_VALUE
-                        newMultiplyValue = DEFAULT_MULTIPLY_VALUE
-                        newOverwriteValue = it.value
-                    }
-                }
-
-                if (isFirstExpression) {
-                    expParamValue.additiveValue = newAdditiveValue
-                    expParamValue.multiplyValue = newMultiplyValue
-                    expParamValue.overwriteValue = newOverwriteValue
-                } else {
-                    expParamValue.additiveValue =
-                        (expParamValue.additiveValue * (1.0f - fadeWeight)) + newAdditiveValue * fadeWeight
-                    expParamValue.multiplyValue =
-                        (expParamValue.multiplyValue * (1.0f - fadeWeight)) + newMultiplyValue * fadeWeight
-                    expParamValue.overwriteValue =
-                        (expParamValue.overwriteValue * (1.0f - fadeWeight)) + newOverwriteValue * fadeWeight
-                }
-            } ?: run {
-                // 再生中のExpressionが参照していないパラメータは初期値を適用
-                if (isFirstExpression) {
-                    expParamValue.additiveValue = DEFAULT_ADDITIVE_VALUE
-                    expParamValue.multiplyValue = DEFAULT_MULTIPLY_VALUE
-                } else {
-                    expParamValue.additiveValue = calculateValue(
-                        expParamValue.additiveValue,
-                        DEFAULT_ADDITIVE_VALUE,
-                        fadeWeight
-                    )
-                    expParamValue.multiplyValue = calculateValue(
-                        expParamValue.multiplyValue,
-                        DEFAULT_MULTIPLY_VALUE,
-                        fadeWeight
-                    )
-                    expParamValue.overwriteValue = calculateValue(
-                        expParamValue.overwriteValue,
-                        expParamValue.overwriteValue,
-                        fadeWeight
-                    )
-                }
-            }
-        }
-    }
 
 
     // TODO:: never used
@@ -189,17 +111,6 @@ class CubismExpressionMotion : ACubismMotion {
 //        }
 //    }
 
-    /**
-     * 入力された値でブレンド計算をする。
-     *
-     * @param source 現在の値
-     * @param destination 適用する値
-     *
-     * @return 計算されたブレンド値
-     */
-    private fun calculateValue(source: Float, destination: Float, fadeWeight: Float): Float {
-        return (source * (1.0f - fadeWeight)) + (destination * fadeWeight)
-    }
 
     val parameters: MutableList<ExpressionParameter> = ArrayList<ExpressionParameter>()
 

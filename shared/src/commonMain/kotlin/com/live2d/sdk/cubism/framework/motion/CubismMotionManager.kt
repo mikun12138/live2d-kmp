@@ -13,7 +13,7 @@ import com.live2d.sdk.cubism.framework.model.CubismModel
  * * If another motion do startMotion() during playback, it will smoothly change to the new motion and the old motion will be suspended.
  * * Use multiple CubismMotionManager instances to play multiple motions at the same time, such as when motions for facial expressions and body motions are made separately.
  */
-class CubismMotionManager : CubismMotionQueueManager() {
+class CubismMotionManager : AMotionManager() {
     fun startMotionPriority(motion: ACubismMotion, priority: Int) {
         if (priority == reservationPriority) {
             reservationPriority = 0 // Cancel the reservation.
@@ -38,21 +38,12 @@ class CubismMotionManager : CubismMotionQueueManager() {
             }
 
             if (entry.state.inActive()) {
-                val fadeWeight =
                 //---- 全てのパラメータIDをループする ----
                 // TODO:: level 0, change to CubismMotionQueueEntry.doUpdateParameters
                 entry.doUpdateParameters(
                     model,
                     totalSeconds,
                 )
-
-                if (entry.isTriggeredFadeOut) {
-                    entry.startFadeOut(
-                        entry.motion.fadeOutSeconds,
-                        totalSeconds
-                    )
-                }
-
 
                 // 触发 UserData 内的 event
                 run {
@@ -62,10 +53,17 @@ class CubismMotionManager : CubismMotionQueueManager() {
                     entry.lastTotalSeconds = totalSeconds
                 }
 
+                if (entry.isTriggeredFadeOut) {
+                    entry.startFadeOut(
+                        entry.motion.fadeOutSeconds,
+                        totalSeconds
+                    )
+                }
+
                 // 後処理
                 // 終了時刻を過ぎたら終了フラグを立てる（CubismMotionQueueManager）
                 if (entry.endTimePoint > 0.0f && entry.endTimePoint < totalSeconds) {
-                    entry.state = CubismMotionQueueEntry.MotionQueueEntryState.End // 終了
+                    entry.state = MotionQueueEntry.State.End // 終了
                 }
                 return@forEachIndexed
             }

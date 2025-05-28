@@ -12,7 +12,7 @@ import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
 import com.live2d.sdk.cubism.framework.model.CubismModel
 import kotlin.math.min
 
-class CubismExpressionMotionManager : CubismMotionQueueManager() {
+class CubismExpressionMotionManager : AMotionManager() {
     data class ExpressionParameterValue(
         val parameterId: CubismId,
         var additiveValue: Float = 0f,
@@ -29,13 +29,6 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
         startMotion(motion)
     }
 
-    /**
-     * 表情モーションを更新して、モデルにパラメータ値を反映する。
-     *
-     * @param model 対象のモデル
-     * @param deltaTimeSeconds デルタ時間[秒]
-     * @return 表情モーションが更新されたかどうか。更新されたならtrue。
-     */
     fun updateMotion(model: CubismModel, deltaTimeSeconds: Float): Boolean {
         totalSeconds += deltaTimeSeconds
         val isUpdated = !motionEntries.isEmpty()
@@ -46,49 +39,56 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
         // 既に表情モーションがあれば終了フラグを立てる
         motionEntries.forEachIndexed { index, entry ->
 
-            val motion = entry.motion as CubismExpressionMotion
+            /*
+                init
+             */
+            if (entry.state.inInit()) {
 
-            // 再生中のExpressionが参照しているパラメータをすべてリストアップ
-            for (parameter in motion.parameters) {
-                expressionParameterValues.find { it.parameterId == parameter.parameterId }
-                    ?: run {
-                        // パラメータがリストに存在しないなら新規追加
-                        val item = ExpressionParameterValue(
-                            parameterId = parameter.parameterId,
-                            additiveValue = CubismExpressionMotion.DEFAULT_ADDITIVE_VALUE,
-                            multiplyValue = CubismExpressionMotion.DEFAULT_MULTIPLY_VALUE,
-                            overwriteValue = model.getParameterValue(parameter.parameterId),
-                        )
-                        expressionParameterValues.add(item)
-                    }
+                // 再生中のExpressionが参照しているパラメータをすべてリストアップ
+                for (parameter in (entry.motion as CubismExpressionMotion).parameters) {
+                    expressionParameterValues.find { it.parameterId == parameter.parameterId }
+                        ?: run {
+                            // パラメータがリストに存在しないなら新規追加
+                            val item = ExpressionParameterValue(
+                                parameterId = parameter.parameterId,
+                                additiveValue = CubismExpressionMotion.DEFAULT_ADDITIVE_VALUE,
+                                multiplyValue = CubismExpressionMotion.DEFAULT_MULTIPLY_VALUE,
+                                overwriteValue = model.getParameterValue(parameter.parameterId),
+                            )
+                            expressionParameterValues.add(item)
+                        }
+                }
+
+                entry.setup()
             }
 
-            motion.setup(
-                entry, totalSeconds
-            )
+            /*
+                update
+             */
 
-            entry.fadeWeight = motion.updateFadeWeight(entry, totalSeconds)
+            if (entry.state.inActive()) {
 
-            motion.calculateExpressionParameters(
-                model,
-                expressionParameterValues,
-                index == 0,
-                entry.fadeWeight
-            )
+                entry.updateParameter(
+                    model,
+                    expressionParameterValues,
+                    index == 0,
+                    totalSeconds
+                )
 
-            val easingSine = if (motion.fadeInSeconds <= 0.0f)
-                1.0f
-            else
-                getEasingSine((totalSeconds - entry.fadeInStartTime) / motion.fadeInSeconds)
-            expressionWeight += easingSine
+                val easingSine = if (motion.fadeInSeconds <= 0.0f)
+                    1.0f
+                else
+                    getEasingSine((totalSeconds - entry.fadeInStartTime) / motion.fadeInSeconds)
+                expressionWeight += easingSine
 
 
-            run {
-                if (entry.isTriggeredFadeOut) {
-                    // フェードアウト開始
-                    entry.startFadeOut(
-                        entry.motion.fadeOutSeconds, totalSeconds
-                    )
+                run {
+                    if (entry.isTriggeredFadeOut) {
+                        // フェードアウト開始
+                        entry.startFadeOut(
+                            entry.motion.fadeOutSeconds, totalSeconds
+                        )
+                    }
                 }
             }
         }
@@ -100,6 +100,14 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
             }
         }
 
+
+
+        return isUpdated
+    }
+
+    private fun applyParameterValue(
+
+    ) {
         // 将值应用于 model
         for (value in expressionParameterValues) {
             model.setParameterValue(
@@ -110,8 +118,6 @@ class CubismExpressionMotionManager : CubismMotionQueueManager() {
             value.additiveValue = CubismExpressionMotion.DEFAULT_ADDITIVE_VALUE
             value.multiplyValue = CubismExpressionMotion.DEFAULT_MULTIPLY_VALUE
         }
-
-        return isUpdated
     }
 
     /**

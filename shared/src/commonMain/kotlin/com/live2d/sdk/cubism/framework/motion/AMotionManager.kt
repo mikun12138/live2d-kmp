@@ -12,7 +12,7 @@ package com.live2d.sdk.cubism.framework.motion
  *
  * If another motion is done "StartMotion()" during playback, the motion changes smoothly to the new motion and the old motion is interrupted. When multiple motions are played back simultaneously (For example, separate motions for facial expressions, body motions, etc.), multiple CubismMotionQueueManager instances are used.
  */
-open class CubismMotionQueueManager {
+open class AMotionManager {
     /**
      * 引数で指定したモーションを再生する。同じタイプのモーションが既にある場合は、既存のモーションに終了フラグを立て、フェードアウトを開始する。
      *
@@ -26,7 +26,7 @@ open class CubismMotionQueueManager {
             entry.setFadeOut()
         }
 
-        motionEntries.add(CubismMotionQueueEntry(motion))
+        motionEntries.add(MotionQueueEntry(motion))
 
         // began callback
         motion.beganMotionCallback(motion)
@@ -74,7 +74,7 @@ open class CubismMotionQueueManager {
     /**
      * List of motions
      */
-    val motionEntries: MutableList<CubismMotionQueueEntry?> = ArrayList()
+    val motionEntries: MutableList<MotionQueueEntry?> = ArrayList()
 
     private var eventCallback: ICubismMotionEventFunction? = null
     private var eventCustomData: Any? = null

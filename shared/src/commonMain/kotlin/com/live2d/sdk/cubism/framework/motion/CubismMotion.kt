@@ -279,7 +279,7 @@ class CubismMotion : ACubismMotion {
     }
 
     private fun updateForNextLoop(
-        motionQueueEntry: CubismMotionQueueEntry,
+        motionQueueEntry: MotionQueueEntry,
         totalSeconds: Float,
         time: Float
     ) {

@@ -6,15 +6,17 @@
  */
 package com.live2d.sdk.cubism.framework.motion
 
-import com.live2d.sdk.cubism.framework.math.CubismMath
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
 import com.live2d.sdk.cubism.framework.model.CubismModel
+import com.live2d.sdk.cubism.framework.motion.CubismExpressionMotion.Companion.DEFAULT_ADDITIVE_VALUE
+import com.live2d.sdk.cubism.framework.motion.CubismExpressionMotion.Companion.DEFAULT_MULTIPLY_VALUE
+import com.live2d.sdk.cubism.framework.motion.CubismExpressionMotion.ExpressionBlendType
 import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.MotionBehavior
 import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveIdEyeBlink
 import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveIdLipSync
 import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveIdOpacity
 import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal.CubismMotionCurveTarget
-import com.live2d.sdk.cubism.util.State
+import com.live2d.sdk.cubism.util.IState
 import com.live2d.sdk.cubism.util.Stateful
 import com.live2d.sdk.cubism.util.switchStateTo
 
@@ -23,9 +25,9 @@ import com.live2d.sdk.cubism.util.switchStateTo
  */
 
 // TODO:: level 0, make children for expression and motion
-class CubismMotionQueueEntry(
+class MotionQueueEntry(
     val motion: CubismMotion
-) : Stateful<CubismMotionQueueEntry.MotionQueueEntryState>{
+) : Stateful<MotionQueueEntry.State> {
 
     fun setFadeOut() {
         isTriggeredFadeOut = true
@@ -44,7 +46,7 @@ class CubismMotionQueueEntry(
     fun setup(
         totalSeconds: Float
     ) {
-        this switchStateTo MotionQueueEntryState.FadeIn
+        this switchStateTo State.FadeIn
 
         // Record the start time of the motion.
         startTimePoint = totalSeconds
@@ -294,7 +296,7 @@ class CubismMotionQueueEntry(
     }
 
     private fun updateForNextLoop(
-        motionQueueEntry: CubismMotionQueueEntry,
+        motionQueueEntry: MotionQueueEntry,
         totalSeconds: Float,
         time: Float
     ) {
@@ -319,6 +321,89 @@ class CubismMotionQueueEntry(
                 }
             }
         }
+    }
+
+    // TODO:: move below to another class
+
+    fun updateParameter(
+        model: CubismModel,
+        parameterValueList: List<CubismExpressionMotionManager.ExpressionParameterValue>,
+        isFirstExpression: Boolean,
+        totalSeconds: Float
+    ) {
+        val fadeWeight = calFadeWeight(totalSeconds)
+        parameterValueList.forEach { parameterValue ->
+
+            parameterValue.overwriteValue = model.getParameterValue(parameterValue.parameterId)
+
+            (motion as CubismExpressionMotion).parameters.find { it.parameterId == parameterValue.parameterId }
+                ?.let {
+
+                    // 値を計算
+                    val newAdditiveValue: Float
+                    val newMultiplyValue: Float
+                    val newOverwriteValue: Float
+
+                    when (it.blendType) {
+                        ExpressionBlendType.ADD -> {
+                            newAdditiveValue = it.value
+                            newMultiplyValue = DEFAULT_MULTIPLY_VALUE
+                            newOverwriteValue = parameterValue.overwriteValue
+                        }
+
+                        ExpressionBlendType.MULTIPLY -> {
+                            newAdditiveValue = DEFAULT_ADDITIVE_VALUE
+                            newMultiplyValue = it.value
+                            newOverwriteValue = parameterValue.overwriteValue
+                        }
+
+                        ExpressionBlendType.OVERWRITE -> {
+                            newAdditiveValue = DEFAULT_ADDITIVE_VALUE
+                            newMultiplyValue = DEFAULT_MULTIPLY_VALUE
+                            newOverwriteValue = it.value
+                        }
+                    }
+
+                    if (isFirstExpression) {
+                        parameterValue.additiveValue = newAdditiveValue
+                        parameterValue.multiplyValue = newMultiplyValue
+                        parameterValue.overwriteValue = newOverwriteValue
+                    } else {
+                        parameterValue.additiveValue =
+                            (parameterValue.additiveValue * (1.0f - fadeWeight)) + newAdditiveValue * fadeWeight
+                        parameterValue.multiplyValue =
+                            (parameterValue.multiplyValue * (1.0f - fadeWeight)) + newMultiplyValue * fadeWeight
+                        parameterValue.overwriteValue =
+                            (parameterValue.overwriteValue * (1.0f - fadeWeight)) + newOverwriteValue * fadeWeight
+                    }
+                } ?: run {
+                // 再生中のExpressionが参照していないパラメータは初期値を適用
+                if (isFirstExpression) {
+                    parameterValue.additiveValue = DEFAULT_ADDITIVE_VALUE
+                    parameterValue.multiplyValue = DEFAULT_MULTIPLY_VALUE
+                } else {
+                    parameterValue.additiveValue = calculateValue(
+                        parameterValue.additiveValue,
+                        DEFAULT_ADDITIVE_VALUE,
+                        fadeWeight
+                    )
+                    parameterValue.multiplyValue = calculateValue(
+                        parameterValue.multiplyValue,
+                        DEFAULT_MULTIPLY_VALUE,
+                        fadeWeight
+                    )
+                    parameterValue.overwriteValue = calculateValue(
+                        parameterValue.overwriteValue,
+                        parameterValue.overwriteValue,
+                        fadeWeight
+                    )
+                }
+            }
+        }
+    }
+
+    private fun calculateValue(source: Float, destination: Float, fadeWeight: Float): Float {
+        return (source * (1.0f - fadeWeight)) + (destination * fadeWeight)
     }
 
 
@@ -362,22 +447,22 @@ class CubismMotionQueueEntry(
      */
     var loopFadeIn: Boolean = true
 
-    /**
-     * 再生中の表情モーションのウェイトのリスト
-     * 0为开始 fade, >=1为完成fade
-     */
-    var fadeWeight: Float = 0.0f
-
-    enum class MotionQueueEntryState(
-        override val onEnter: (lastState: State) -> Unit = { },
-        override val onExit: (nextState: State) -> Unit = { }
-    ) : State {
+    //    /**
+//     * 再生中の表情モーションのウェイトのリスト
+//     * 0为开始 fade, >=1为完成fade
+//     */
+//    var fadeWeight: Float = 0.0f
+//
+    enum class State(
+        override val onEnter: (lastState: IState) -> Unit = { },
+        override val onExit: (nextState: IState) -> Unit = { }
+    ) : IState {
         Init,
         FadeIn,
         Playing,
         FadeOut(
             onEnter = { lastState ->
-
+                // TODO:: fadein
             }
         ),
         End
