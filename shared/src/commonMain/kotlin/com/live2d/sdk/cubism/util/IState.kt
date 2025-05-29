@@ -1,24 +1,22 @@
 package com.live2d.sdk.cubism.util
 
-interface Stateful<T : IState> {
-    var state: T
+interface Stateful<C : Stateful<C, S>, S : IState<C, S>> {
+    var state: S
         @Deprecated(message = "use Stateful.switchState(nextState)")
         set
-    var lastState: T
-        @Deprecated("damedame")
-        set
+
 }
 
-infix fun <T : IState> Stateful<T>.switchStateTo(nextState: T) {
-    state.onExit(nextState)
-    nextState.onEnter(state)
+infix fun <C : Stateful<C, S>, S : IState<C, S>> C.switchStateTo(nextState: S) {
+    state.onExit(this, nextState)
+    nextState.onEnter(this, state)
 
-    lastState = state
     state = nextState
 }
 
-interface IState {
-    val onEnter: (lastState: IState) -> Unit
-    val onExit: (nextState: IState) -> Unit
+interface IState<C : Stateful<C, S>, S : IState<C, S>> {
+
+    val onEnter: (context: C, lastState: S) -> Unit
+    val onExit: (context: C, nextState: S) -> Unit
 }
 

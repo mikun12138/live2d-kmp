@@ -21,12 +21,7 @@ open class AMotionManager {
      */
     fun startMotion(motion: ACubismMotion) {
 
-        // 既にモーションがあれば終了フラグを立てる。
-        for (entry in motionEntries) {
-            entry.setFadeOut()
-        }
-
-        motionEntries.add(MotionQueueEntry(motion))
+        motionEntries.add(MotionQueueEntry(this, motion))
 
         // began callback
         motion.beganMotionCallback(motion)

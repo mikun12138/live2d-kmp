@@ -26,11 +26,13 @@ import com.live2d.sdk.cubism.util.switchStateTo
 
 // TODO:: level 0, make children for expression and motion
 class MotionQueueEntry(
-    val motion: CubismMotion
-) : Stateful<MotionQueueEntry.State> {
+    val manager: AMotionManager,
+    val motion: CubismMotion,
+) : Stateful<MotionQueueEntry, MotionQueueEntry.State> {
 
     fun setFadeOut() {
-        isTriggeredFadeOut = true
+        this switchStateTo State.FadeOut
+//        isTriggeredFadeOut = true
     }
 
     fun startFadeOut(fadeOutSeconds: Float, totalSeconds: Float) {
@@ -43,8 +45,8 @@ class MotionQueueEntry(
     }
 
 
-    fun setup(
-        totalSeconds: Float
+    fun init(
+        totalSeconds: Float,
     ) {
         this switchStateTo State.FadeIn
 
@@ -270,9 +272,9 @@ class MotionQueueEntry(
             if (start_2_nowSeconds >= duration) {
                 motion.finishedMotionCallback(motion)
                 if (motion.loop) {
-                    updateForNextLoop(motionQueueEntry, totalSeconds, time)
+                    updateForNextLoop(totalSeconds, time)
                 } else {
-                    motionQueueEntry.isFinished = true
+                    this switchStateTo State.End
                 }
             }
         }
@@ -296,9 +298,8 @@ class MotionQueueEntry(
     }
 
     private fun updateForNextLoop(
-        motionQueueEntry: MotionQueueEntry,
         totalSeconds: Float,
-        time: Float
+        time: Float,
     ) {
         when (MotionBehavior.MOTION_BEHAVIOR_V2) {
             /*
@@ -313,7 +314,7 @@ class MotionQueueEntry(
             */
 
             MotionBehavior.MOTION_BEHAVIOR_V2 -> {
-                motionQueueEntry.startTimePoint = totalSeconds - time //最初の状態へ
+                startTimePoint = totalSeconds - time //最初の状態へ
                 if (loopFadeIn) {
                     //ループ中でループ用フェードインが有効のときは、フェードイン設定し直し
                     // TODO:: 你知道我要todo什么
@@ -329,7 +330,7 @@ class MotionQueueEntry(
         model: CubismModel,
         parameterValueList: List<CubismExpressionMotionManager.ExpressionParameterValue>,
         isFirstExpression: Boolean,
-        totalSeconds: Float
+        totalSeconds: Float,
     ) {
         val fadeWeight = calFadeWeight(totalSeconds)
         parameterValueList.forEach { parameterValue ->
@@ -418,7 +419,6 @@ class MotionQueueEntry(
                 .map { it.value }
         }
 
-
     var startTimePoint: Float = -1.0f
 
     // TODO:: 你知道我要todo什么
@@ -427,20 +427,6 @@ class MotionQueueEntry(
 //     */
 //    var fadeInStartTime: Float = -1.0f
     var endTimePoint: Float = -1.0f
-    // TODO:: remove it
-//    /**
-//     * state of time[s]
-//     */
-//    var stateSeconds: Float = 0f
-//    /**
-//     * state of weight
-//     */
-//    var stateWeight: Float = 0f
-    /**
-     * Whether the motion fade-out is started
-     */
-    var isTriggeredFadeOut: Boolean = false
-        private set
 
     /**
      * flag whether fade-in is enabled at looping. Default value is true.
@@ -453,24 +439,25 @@ class MotionQueueEntry(
 //     */
 //    var fadeWeight: Float = 0.0f
 //
+
+
     enum class State(
-        override val onEnter: (lastState: IState) -> Unit = { },
-        override val onExit: (nextState: IState) -> Unit = { }
-    ) : IState {
+        override val onEnter: (MotionQueueEntry, State) -> Unit = { _, _ -> },
+        override val onExit: (MotionQueueEntry, State) -> Unit = { _, _ -> },
+    ) : IState<MotionQueueEntry, State> {
         Init,
         FadeIn,
         Playing,
-        FadeOut(
-            onEnter = { lastState ->
-                // TODO:: fadein
-            }
-        ),
+        FadeOut(),
         End
         ;
 
         fun inInit() = this == Init
         fun inActive() = this == FadeIn || this == Playing || this == FadeOut
         fun inEnd() = this == End
+
+
     }
+
 
 }

@@ -10,6 +10,7 @@ package com.live2d.sdk.cubism.framework.motion
 import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
 import com.live2d.sdk.cubism.framework.model.CubismModel
+import com.live2d.sdk.cubism.util.switchStateTo
 import kotlin.math.min
 
 class CubismExpressionMotionManager : AMotionManager() {
@@ -35,6 +36,12 @@ class CubismExpressionMotionManager : AMotionManager() {
 
         var expressionWeight = 0.0f
 
+        if (motionEntries.last().state.inInit()) {
+            motionEntries.dropLast(1).forEach { entry ->
+                entry switchStateTo MotionQueueEntry.State.FadeOut
+            }
+        }
+
         // ------ 処理を行う ------
         // 既に表情モーションがあれば終了フラグを立てる
         motionEntries.forEachIndexed { index, entry ->
@@ -59,7 +66,7 @@ class CubismExpressionMotionManager : AMotionManager() {
                         }
                 }
 
-                entry.setup()
+                entry.init()
             }
 
             /*
@@ -81,19 +88,22 @@ class CubismExpressionMotionManager : AMotionManager() {
                     getEasingSine((totalSeconds - entry.fadeInStartTime) / motion.fadeInSeconds)
                 expressionWeight += easingSine
 
-
                 run {
-                    if (entry.isTriggeredFadeOut) {
+                    if (entry.state == MotionQ) {
                         // フェードアウト開始
                         entry.startFadeOut(
                             entry.motion.fadeOutSeconds, totalSeconds
                         )
                     }
                 }
+
             }
         }
 
+        applyParameterValues()
+
         // 若最新的 motion 完全淡入 则删除前面的所有motion
+        motionEntries.lastOrNull()
         if (!motionEntries.isEmpty()) {
             if (motionEntries.last().fadeWeight >= 1.0f) {
                 motionEntries.subList(0, motionEntries.lastIndex).clear()
@@ -105,7 +115,7 @@ class CubismExpressionMotionManager : AMotionManager() {
         return isUpdated
     }
 
-    private fun applyParameterValue(
+    private fun applyParameterValues(
 
     ) {
         // 将值应用于 model

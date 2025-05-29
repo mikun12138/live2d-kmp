@@ -33,7 +33,7 @@ class CubismMotionManager : AMotionManager() {
         motionEntries.forEachIndexed { index, entry ->
 
             if (entry.state.inInit()) {
-                entry.setup()
+                entry.init()
                 return@forEachIndexed
             }
 
@@ -50,7 +50,7 @@ class CubismMotionManager : AMotionManager() {
                     entry.firedEvents.forEach { event ->
                         eventCallback.apply(this, event, eventCustomData)
                     }
-                    entry.lastTotalSeconds = totalSeconds
+                    lastTotalSeconds = totalSeconds
                 }
 
                 if (entry.isTriggeredFadeOut) {
