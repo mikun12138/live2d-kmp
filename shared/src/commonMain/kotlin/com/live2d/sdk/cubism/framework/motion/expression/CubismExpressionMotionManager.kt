@@ -5,15 +5,20 @@
  * Use of this source code is governed by the Live2D Open Software license
  * that can be found at https://www.live2d.com/eula/live2d-open-software-license-agreement_en.html.
  */
-package com.live2d.sdk.cubism.framework.motion
+package com.live2d.sdk.cubism.framework.motion.expression
 
 import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
-import com.live2d.sdk.cubism.framework.model.CubismModel
+import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.motion.ACubismMotion
+import com.live2d.sdk.cubism.framework.motion.AMotionManager
+import com.live2d.sdk.cubism.framework.motion.AMotionQueueEntry
 import com.live2d.sdk.cubism.util.switchStateTo
 import kotlin.math.min
 
-class CubismExpressionMotionManager : AMotionManager() {
+class CubismExpressionMotionManager(
+    override val motionEntries: MutableList<ExpressionMotionQueueEntry> = mutableListOf()
+) : AMotionManager() {
     data class ExpressionParameterValue(
         val parameterId: CubismId,
         var additiveValue: Float = 0f,
@@ -21,26 +26,15 @@ class CubismExpressionMotionManager : AMotionManager() {
         var overwriteValue: Float = 0f,
     )
 
-    fun startMotionPriority(motion: ACubismMotion, priority: Int) {
-        if (priority == reservePriority) {
-            reservePriority = 0 // 予約を解除
-        }
-        currentPriority = priority // 再生中モーションの優先度を設定
 
-        startMotion(motion)
+    override fun doStartMotion(motion: ACubismMotion) {
+        check(motion is CubismExpressionMotion)
+        motionEntries.add(ExpressionMotionQueueEntry(this, motion))
     }
 
-    fun updateMotion(model: CubismModel, deltaTimeSeconds: Float): Boolean {
-        totalSeconds += deltaTimeSeconds
-        val isUpdated = !motionEntries.isEmpty()
+    override fun doUpdateMotion(model: Model, deltaTimeSeconds: Float) {
 
         var expressionWeight = 0.0f
-
-        if (motionEntries.last().state.inInit()) {
-            motionEntries.dropLast(1).forEach { entry ->
-                entry switchStateTo MotionQueueEntry.State.FadeOut
-            }
-        }
 
         // ------ 処理を行う ------
         // 既に表情モーションがあれば終了フラグを立てる
@@ -66,7 +60,7 @@ class CubismExpressionMotionManager : AMotionManager() {
                         }
                 }
 
-                entry.init()
+                entry.init(totalSeconds)
             }
 
             /*
@@ -77,46 +71,33 @@ class CubismExpressionMotionManager : AMotionManager() {
 
                 entry.updateParameter(
                     model,
-                    expressionParameterValues,
-                    index == 0,
                     totalSeconds
                 )
 
-                val easingSine = if (motion.fadeInSeconds <= 0.0f)
+                val easingSine = if (entry.motion.fadeInSeconds <= 0.0f)
                     1.0f
                 else
-                    getEasingSine((totalSeconds - entry.fadeInStartTime) / motion.fadeInSeconds)
+                    getEasingSine((totalSeconds - entry.startTimePoint) / entry.motion.fadeInSeconds)
                 expressionWeight += easingSine
 
-                run {
-                    if (entry.state == MotionQ) {
-                        // フェードアウト開始
-                        entry.startFadeOut(
-                            entry.motion.fadeOutSeconds, totalSeconds
-                        )
-                    }
-                }
-
             }
         }
 
-        applyParameterValues()
+        applyParameterValues(model, expressionWeight)
 
         // 若最新的 motion 完全淡入 则删除前面的所有motion
-        motionEntries.lastOrNull()
         if (!motionEntries.isEmpty()) {
-            if (motionEntries.last().fadeWeight >= 1.0f) {
-                motionEntries.subList(0, motionEntries.lastIndex).clear()
+            if (motionEntries.last().calFadeWeight(totalSeconds) >= 1.0f) {
+                motionEntries.subList(0, motionEntries.lastIndex).forEach { entry ->
+                    entry switchStateTo AMotionQueueEntry.State.End
+                }
             }
         }
 
-
-
-        return isUpdated
     }
 
     private fun applyParameterValues(
-
+        model: Model, expressionWeight: Float
     ) {
         // 将值应用于 model
         for (value in expressionParameterValues) {
@@ -133,23 +114,5 @@ class CubismExpressionMotionManager : AMotionManager() {
     /**
      * モデルに適用する各パラメータの値
      */
-    private val expressionParameterValues: MutableList<ExpressionParameterValue> =
-        ArrayList<ExpressionParameterValue>()
-
-    /**
-     * 現在再生中の表情モーションの優先度
-     */
-    var currentPriority: Int = 0
-        private set
-
-    /**
-     * 再生予定の表情モーションの優先度。再生中は0になる。
-     * 表情モーションファイルを別スレッドで読み込むときの機能。
-     */
-    var reservePriority: Int = 0
-
-    companion object {
-        // nullが格納されたSet。null要素だけListから排除する際に使用される。
-        private val nullSet = mutableSetOf<Any?>(null)
-    }
+    val expressionParameterValues: MutableList<ExpressionParameterValue> = mutableListOf()
 }

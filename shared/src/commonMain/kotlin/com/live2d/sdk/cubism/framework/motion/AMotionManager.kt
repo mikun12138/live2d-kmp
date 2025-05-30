@@ -6,13 +6,28 @@
  */
 package com.live2d.sdk.cubism.framework.motion
 
+import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.util.switchStateTo
+
 /**
  * The manager class for playing motions. This is used to play ACubismMotion's subclasses such as CubismMotion's motion.
  *
  *
  * If another motion is done "StartMotion()" during playback, the motion changes smoothly to the new motion and the old motion is interrupted. When multiple motions are played back simultaneously (For example, separate motions for facial expressions, body motions, etc.), multiple CubismMotionQueueManager instances are used.
  */
-open class AMotionManager {
+abstract class AMotionManager(
+    open val motionEntries: MutableList<out AMotionQueueEntry> = mutableListOf(),
+) {
+
+    fun startMotionPriority(motion: ACubismMotion, priority: Int) {
+        if (priority == reservePriority) {
+            reservePriority = 0 // 予約を解除
+        }
+        currentPriority = priority // 再生中モーションの優先度を設定
+
+        startMotion(motion)
+    }
+
     /**
      * 引数で指定したモーションを再生する。同じタイプのモーションが既にある場合は、既存のモーションに終了フラグを立て、フェードアウトを開始する。
      *
@@ -20,30 +35,37 @@ open class AMotionManager {
      * @return 開始したモーションの識別番号を返す。個別のモーションが終了したか否かを判定するisFinished()の引数として使用する。開始できない場合は「-1」を返す。
      */
     fun startMotion(motion: ACubismMotion) {
-
-        motionEntries.add(MotionQueueEntry(this, motion))
-
-        // began callback
-        motion.beganMotionCallback(motion)
+        doStartMotion(motion)
     }
 
-    val isFinished: Boolean
-        get() {
-            // ---- Do processing ----
-            // If there is already a motion, flag it as finished.
+    protected abstract fun doStartMotion(motion: ACubismMotion)
 
-            // motionがnullならば要素をnullとする
-            // 後でnull要素を全て削除する。
-            for (motionQueueEntry in motionEntries) {
-                if (!motionQueueEntry.isFinished) {
-                    return false
-                }
+    fun updateMotion(model: Model, deltaTimeSeconds: Float): Boolean {
+        totalSeconds += deltaTimeSeconds
+        val isUpdated = !motionEntries.isEmpty()
+
+        if (motionEntries.last().state.inInit()) {
+            motionEntries.dropLast(1).forEach { entry ->
+                entry switchStateTo AMotionQueueEntry.State.FadeOut
             }
-
-            motionEntries.removeAll(mutableSetOf<Any?>(null))
-
-            return true
         }
+
+        run {
+            doUpdateMotion(model, deltaTimeSeconds)
+        }
+
+        motionEntries.removeIf { it.state.inEnd() }
+
+
+        return isUpdated
+
+    }
+
+    protected abstract fun doUpdateMotion(model: Model, deltaTimeSeconds: Float)
+
+
+    val isFinished: Boolean
+        get() = motionEntries.isEmpty()
 
     /**
      * Stop all motions.
@@ -52,26 +74,31 @@ open class AMotionManager {
         motionEntries.clear()
     }
 
-    fun setEventCallback(callback: ICubismMotionEventFunction, customData: Any?) {
-        eventCallback = callback
-        eventCustomData = customData
-    }
-
-
     /**
      * total delta time[s]
      */
     var totalSeconds: Float = 0f
     var lastTotalSeconds: Float = 0f
 
-
+    /**
+     * Priority of the currently playing motion.
+     * 当前播放的 motion 的优先级
+     */
+    var currentPriority: Int = 0
+        get() = if (isFinished)
+            0
+        else
+            field
 
     /**
-     * List of motions
+     * Priority of the motion to be played. The value becomes 0 during playback. This is function for loading motion files in a separate thread.
+     * 将要播放的 motion 的优先级
      */
-    val motionEntries: MutableList<MotionQueueEntry?> = ArrayList()
+    var reservePriority: Int = 0
+        get() = if (isFinished)
+            0
+        else
+            field
 
-    private var eventCallback: ICubismMotionEventFunction? = null
-    private var eventCustomData: Any? = null
 
 }

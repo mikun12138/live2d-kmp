@@ -9,8 +9,8 @@ package com.live2d.sdk.cubism.framework.physics
 import com.live2d.sdk.cubism.framework.CubismFramework.idManager
 import com.live2d.sdk.cubism.framework.math.CubismMath
 import com.live2d.sdk.cubism.framework.math.CubismVector2
-import com.live2d.sdk.cubism.framework.model.CubismModel
-import com.live2d.sdk.cubism.framework.utils.json.PhysicsJson
+import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.data.PhysicsJson
 import kotlinx.serialization.json.Json
 
 /**
@@ -59,7 +59,7 @@ class CubismPhysics {
      *
      * @param model 物理演算の結果を適用するモデル
      */
-    fun stabilization(model: CubismModel) {
+    fun stabilization(model: Model) {
         val totalAngle = FloatArray(1)
         var weight: Float
         var radAngle: Float
@@ -255,7 +255,7 @@ class CubismPhysics {
      * @param model Model to which the results of physics operation are applied
      * @param deltaTimeSeconds rendering delta time[s]
      */
-    fun evaluate(model: CubismModel, deltaTimeSeconds: Float) {
+    fun evaluate(model: Model, deltaTimeSeconds: Float) {
         var weight: Float
         var radAngle: Float
         var outputValue: Float
@@ -706,7 +706,7 @@ class CubismPhysics {
      * @param model model applied the result of physics operation
      * @param weight weight of the latest result
      */
-    private fun interpolate(model: CubismModel, weight: Float) {
+    private fun interpolate(model: Model, weight: Float) {
         for (settingIndex in 0..<physicsRig.subRigCount) {
             val currentSetting: CubismPhysicsSubRig = physicsRig.settings.get(settingIndex)
             val outputs: MutableList<CubismPhysicsOutput> = physicsRig.outputs
@@ -756,7 +756,7 @@ class CubismPhysics {
      * @return total amount of model's angle
      */
     private fun loadInputParameters(
-        model: CubismModel,
+        model: Model,
         transition: CubismVector2?,
         settingIndex: Int
     ): Float {

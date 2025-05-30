@@ -8,9 +8,7 @@ package com.live2d.sdk.cubism.framework.effect
 
 import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.math.CubismMath.PI
-import com.live2d.sdk.cubism.framework.math.CubismMath.sinF
-import com.live2d.sdk.cubism.framework.model.CubismModel
-import java.util.Collections
+import com.live2d.sdk.cubism.framework.model.Model
 import kotlin.math.sin
 
 /**
@@ -54,7 +52,7 @@ class CubismBreath {
      * @param model the target model
      * @param deltaTimeSeconds the delta time[s]
      */
-    fun updateParameters(model: CubismModel, deltaTimeSeconds: Float) {
+    fun updateParameters(model: Model, deltaTimeSeconds: Float) {
         userTimeSeconds += deltaTimeSeconds
         val t: Float = userTimeSeconds * 2.0f * PI
 

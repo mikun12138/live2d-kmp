@@ -9,8 +9,7 @@ package com.live2d.sdk.cubism.framework.rendering
 import com.live2d.sdk.cubism.framework.CubismFramework.VERTEX_OFFSET
 import com.live2d.sdk.cubism.framework.CubismFramework.VERTEX_STEP
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import com.live2d.sdk.cubism.framework.math.CubismVector2
-import com.live2d.sdk.cubism.framework.model.CubismModel
+import com.live2d.sdk.cubism.framework.model.Model
 import com.live2d.sdk.cubism.framework.rendering.CubismRenderer.CubismTextureColor
 import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.CLIPPING_MASK_BUFFER_SIZE_X
 import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.CLIPPING_MASK_BUFFER_SIZE_Y
@@ -31,7 +30,7 @@ import kotlin.math.min
 abstract class ACubismClippingManager : ICubismClippingManager {
 
     override fun initialize(
-        model: CubismModel,
+        model: Model,
         maskBufferCount: Int
     ) {
         framebufferCount = maskBufferCount
@@ -74,7 +73,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
         }
     }
 
-    override fun setupMatrixForHighPrecision(model: CubismModel) {
+    override fun setupMatrixForHighPrecision(model: Model) {
         // 全てのクリッピングを用意する。
         // 同じクリップ（複数の場合はまとめて1つのクリップ）を使う場合は1度だけ設定する。
         clippingContextForMask_2_ClippedDrawableIndexList.keys.count {
@@ -390,7 +389,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
      * @param model           モデルのインスタンス
      * @param clippingContext クリッピングマスクのコンテキスト
      */
-    fun calcClippedDrawTotalBounds(model: CubismModel, clippingContext: ACubismClippingContext) {
+    fun calcClippedDrawTotalBounds(model: Model, clippingContext: ACubismClippingContext) {
         // 被クリッピングマスク（マスクされる描画オブジェクト）の全体の矩形
         var clippedDrawTotalMinX = Float.Companion.MAX_VALUE
         var clippedDrawTotalMinY = Float.Companion.MAX_VALUE

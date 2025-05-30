@@ -6,7 +6,6 @@
  */
 package com.live2d.sdk.cubism.framework
 
-import com.live2d.sdk.cubism.core.CubismCoreVersion
 import com.live2d.sdk.cubism.core.ICubismLogger
 import com.live2d.sdk.cubism.core.Live2DCubismCore
 import com.live2d.sdk.cubism.framework.id.CubismIdManager
@@ -36,183 +35,68 @@ object CubismFramework {
      * Required to run this method before using API.
      * Once prepared, if you run this again, the inner processes are skipped.
      *
-     * @param option Option Class's instance
+     * @param config Option Class's instance
      * @return if preparing process has finished, return true
      */
-    fun startUp(option: Option?): Boolean {
-        if (s_isStarted) {
+    fun startUp(config: CubismFrameworkConfig){
+        if (isStarted) {
             cubismLogInfo("CubismFramework.startUp() is already done.")
-
-            return s_isStarted
+            return
         }
+        isStarted = true
 
-        s_option = option
+        this.config = config
+        Live2DCubismCore.logger = config.logFunction
 
-        if (s_option != null) {
-            Live2DCubismCore.logger = option!!.logFunction
-        }
-
-        s_isStarted = true
 
         // Display the version information of Live2D Cubism Core.
-        val version: CubismCoreVersion = Live2DCubismCore.version
+        cubismLogInfo("Live2D Cubism Core version: ${Live2DCubismCore.version}")
 
-        cubismLogInfo("Live2D Cubism Core version: $version")
-
-        cubismLogInfo("CubismFramework.startUp() is complete.")
-
-        return s_isStarted
+        init()
     }
 
-    /**
-     * Clear each parameter in CubismFramework initialized by startUp() method.
-     * Use this method at reusing CubismFramework done dispose() method.
-     */
-    fun cleanUp() {
-        s_isStarted = false
-        s_isInitialized = false
-        s_option = null
-        s_cubismIdManager = null
-    }
-
-    val isStarted: Boolean
-        /**
-         * Whether Cubism Framework API has been prepared already.
-         *
-         * @return if API has been already prepared, return true
-         */
-        get() = s_isStarted
-
-    /**
-     * Initializing resources in Cubism Framework, the model is enabled to display.
-     * If you would like to use initialize() method again, first you need to run dispose() method.
-     */
-    fun initialize() {
-        assert(s_isStarted)
-
-        if (!s_isStarted) {
+    fun reinit() {
+        if (!isStarted) {
             cubismLogWarning("CubismFramework is not started.")
             return
         }
-
-        // Disturb consecutive securing resources.
-        if (s_isInitialized) {
-            cubismLogWarning("CubismFramework.initialize() skipped, already initialized.")
-            return
-        }
-
-        // ----- Static Release -----
-        s_cubismIdManager = CubismIdManager()
-        s_isInitialized = true
-
-        cubismLogInfo("CubismFramework::Initialize() is complete.")
+        init()
     }
 
-    /**
-     * Releases all resources in the Cubism Framework.
-     */
-    fun dispose() {
-        assert(s_isStarted)
-
-        if (!s_isStarted) {
-            cubismLogWarning("CubismFramework is not started.")
-            return
-        }
-
-        // If you use dispose() method, it is required to run initialize() method firstly.
-        if (!s_isInitialized) {
-            cubismLogWarning("CubismFramework.dispose() skipped, not initialized.")
-            return
-        }
-
-        //---- static release ----
-        s_cubismIdManager = null
-        // Release static resources of renderer(cf. Shader programs)
-        Live2DRendererWindows.staticRelease()
-
-        s_isInitialized = false
-
-        cubismLogInfo("CubismFramework.dispose() is complete.")
+    private fun init() {
+        CubismIdManager.clear()
     }
-
-    val isInitialized: Boolean
-        /**
-         * Whether having already initialized CubismFramework's resources.
-         *
-         * @return If securing resources have already done, return true
-         */
-        get() = s_isInitialized
 
     /**
      * Execute log function bound Core API
      *
      * @param message log message
      */
-    fun coreLogFunction(message: String?) {
-        Live2DCubismCore.logger?.print(message)
+    fun coreLogFunction(message: String) {
+        Live2DCubismCore.logger.print(message)
     }
 
-    val loggingLevel: CubismFrameworkConfig.LogLevel
-        /**
-         * Return the current value of log output level setting.
-         *
-         * @return the current value of log output level setting
-         */
-        get() {
-            return s_option?.loggingLevel ?: CubismFrameworkConfig.LogLevel.OFF
-        }
+    private var isStarted = false
 
-    val idManager: CubismIdManager
-        /**
-         * Get the instance of ID manager.
-         *
-         * @return CubismIdManager class's instance
-         */
-        get() = s_cubismIdManager
+    lateinit var config: CubismFrameworkConfig
+
+}
+
+class CubismFrameworkConfig(
+    val logLevel: LogLevel = LogLevel.VERBOSE,
+    //TODO:: 和 Live2DCubismCore 内的 2 select 1
+    internal val logFunction: ICubismLogger = ICubismLogger { }
+) {
 
     /**
-     * Flag whether the framework has been started or not.
+     * ログ出力レベルを定義する列挙体。
      */
-    private var s_isStarted = false
-
-    /**
-     * Flag whether the framework has been initialized or not.
-     */
-    private var s_isInitialized = false
-
-    /**
-     * Option object
-     */
-    private var s_option: Option? = null
-
-    /**
-     * CubismIDManager object
-     */
-    private var s_cubismIdManager: CubismIdManager? = null
-
-    /**
-     * Inner class that define optional elements to be set in CubismFramework.
-     */
-    class Option {
-        /**
-         * Set the log output function.
-         *
-         * @param logger log output function
-         */
-        fun setLogFunction(logger: ICubismLogger) {
-            requireNotNull(logger) { "logger is null." }
-            logFunction = logger
-        }
-
-        /**
-         * Functional interface of logging.
-         */
-        var logFunction: ICubismLogger? = null
-
-        /**
-         * Log output level.
-         * (Default value is OFF(Log outputting is not executed.))
-         */
-        var loggingLevel: CubismFrameworkConfig.LogLevel? = CubismFrameworkConfig.LogLevel.OFF
+    enum class LogLevel(val id: Int) {
+        VERBOSE(0),
+        DEBUG(1),
+        INFO(2),
+        WARNING(3),
+        ERROR(4),
+        OFF(5)
     }
 }

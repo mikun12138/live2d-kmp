@@ -1,4 +1,4 @@
-package com.live2d.sdk.cubism.framework.utils.json
+package com.live2d.sdk.cubism.framework.data
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

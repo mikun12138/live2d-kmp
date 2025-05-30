@@ -6,10 +6,10 @@
  */
 package com.live2d.sdk.cubism.framework.effect
 
-import com.live2d.sdk.cubism.framework.CubismFramework.idManager
 import com.live2d.sdk.cubism.framework.id.CubismId
-import com.live2d.sdk.cubism.framework.model.CubismModel
-import com.live2d.sdk.cubism.framework.utils.json.PoseJson
+import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.data.PoseJson
+import com.live2d.sdk.cubism.framework.id.CubismIdManager
 import kotlinx.serialization.json.Json
 
 /**
@@ -32,13 +32,13 @@ class CubismPose {
             fun setupPartGroup(partInfo: PoseJson.PartInfo): PartData {
 
                 val partData = PartData(
-                    partId = idManager.id(partInfo.id)
+                    partId = CubismIdManager.id(partInfo.id)
                 )
 
                 for (linkedPart in partInfo.link) {
                     partData.linkedParameter.add(
                         PartData(
-                            partId = idManager.id(linkedPart)
+                            partId = CubismIdManager.id(linkedPart)
                         )
                     )
                 }
@@ -59,7 +59,7 @@ class CubismPose {
         var partIndex: Int = 0,
         var linkedParameter: MutableList<PartData> = mutableListOf(),
     ) {
-        fun init(model: CubismModel) {
+        fun init(model: Model) {
             parameterIndex = model.getParameterIndex(partId!!)
             partIndex = model.getPartIndex(partId!!)
 
@@ -73,7 +73,7 @@ class CubismPose {
      * @param model the target model
      * @param deltaTimeSeconds delta time[s]
      */
-    fun updateParameters(model: CubismModel, deltaTimeSeconds: Float) {
+    fun updateParameters(model: Model, deltaTimeSeconds: Float) {
         // If given model is different from previous model, it is required to initialize some parameters.
         var deltaTimeSeconds = deltaTimeSeconds
         if (model != lastModel) {
@@ -103,7 +103,7 @@ class CubismPose {
      *
      * @param model the target model(Parameters that initial opacity is not 0, the opacity is set to 1.)
      */
-    private fun reset(model: CubismModel) {
+    private fun reset(model: Model) {
         var beginIndex = 0
 
         for (j in partGroupCounts.indices) {
@@ -148,7 +148,7 @@ class CubismPose {
      *
      * @param model the target model
      */
-    private fun copyPartOpacities(model: CubismModel) {
+    private fun copyPartOpacities(model: Model) {
         for (i in partGroups.indices) {
             val partData = partGroups.get(i)
             if (partData.linkedParameter == null) {
@@ -181,7 +181,7 @@ class CubismPose {
      * @param partGroupCount the number of parts groups done fading
      */
     private fun doFade(
-        model: CubismModel,
+        model: Model,
         deltaTimeSeconds: Float,
         beginIndex: Int,
         partGroupCount: Int
@@ -232,7 +232,7 @@ class CubismPose {
      * @param deltaTime delta time[s]
      * @return new calculated opacity. If fade time is 0.0[s], return 1.0f.
      */
-    private fun calculateOpacity(model: CubismModel, index: Int, deltaTime: Float): Float {
+    private fun calculateOpacity(model: Model, index: Int, deltaTime: Float): Float {
         if (fadeTimeSeconds == 0f) {
             return 1.0f
         }
@@ -289,7 +289,7 @@ class CubismPose {
 
     private var fadeTimeSeconds = DEFAULT_FADE_IN_SECONDS
 
-    private var lastModel: CubismModel? = null
+    private var lastModel: Model? = null
 
     companion object {
         private const val EPSILON = 0.001f

@@ -7,7 +7,7 @@
 package com.live2d.sdk.cubism.framework.rendering
 
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import com.live2d.sdk.cubism.framework.model.CubismModel
+import com.live2d.sdk.cubism.framework.model.Model
 import kotlin.Boolean
 import kotlin.Int
 
@@ -44,7 +44,7 @@ abstract class CubismRenderer protected constructor() {
      *
      * @param model model instance
      */
-    fun initialize(model: CubismModel) {
+    fun initialize(model: Model) {
         this.model = model
     }
 
@@ -55,7 +55,7 @@ abstract class CubismRenderer protected constructor() {
      * @param model モデルのインスタンス
      * @param maskBufferCount バッファの生成数
      */
-    abstract fun initialize(model: CubismModel?, maskBufferCount: Int)
+    abstract fun initialize(model: Model?, maskBufferCount: Int)
 
     fun close() {
         model.close()
@@ -104,7 +104,7 @@ abstract class CubismRenderer protected constructor() {
 
     var anisotropy: Float = 0f
 
-    lateinit var model: CubismModel
+    lateinit var model: Model
     /**
      * If this is false, the masks are drawn together. If this is true, the masks are redrawn for each part drawing.
      */

@@ -1,28 +1,28 @@
 package com.live2d.sdk.cubism.framework.model
 
-import com.live2d.sdk.cubism.framework.CubismFramework.idManager
-import com.live2d.sdk.cubism.framework.ParameterId
+import com.live2d.sdk.cubism.framework.CubismDefaultParameterId
+import com.live2d.sdk.cubism.framework.data.ModelJson
 import com.live2d.sdk.cubism.framework.effect.CubismBreath
 import com.live2d.sdk.cubism.framework.effect.CubismBreath.BreathParameterData
 import com.live2d.sdk.cubism.framework.effect.CubismEyeBlink
 import com.live2d.sdk.cubism.framework.id.CubismId
+import com.live2d.sdk.cubism.framework.id.CubismIdManager
 import com.live2d.sdk.cubism.framework.model.AppModel.MotionGroup.IDLE
-import com.live2d.sdk.cubism.framework.motion.CubismExpressionMotion
-import com.live2d.sdk.cubism.framework.motion.CubismMotion
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
 import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
-import com.live2d.sdk.cubism.framework.utils.json.ModelJson
+import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotion
+import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion
+import com.live2d.sdk.cubism.framework.rendering.CubismRenderer
 import kotlinx.serialization.json.Json
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
 class AppModel : CubismUserModel() {
-    private val idParamAngleX: CubismId = idManager.id(ParameterId.ANGLE_X.id)
-    private val idParamAngleY: CubismId = idManager.id(ParameterId.ANGLE_Y.id)
-    private val idParamAngleZ: CubismId = idManager.id(ParameterId.ANGLE_Z.id)
-    private val idParamBodyAngleX: CubismId = idManager.id(ParameterId.BODY_ANGLE_X.id)
-    private val idParamEyeBallX: CubismId = idManager.id(ParameterId.EYE_BALL_X.id)
-    private val idParamEyeBallY: CubismId = idManager.id(ParameterId.EYE_BALL_Y.id)
+
+    lateinit var renderer: CubismRenderer
+
+//    private val eyeBlinkIds: MutableList<CubismId> = mutableListOf()
+//    private val lipSyncIds: MutableList<CubismId> = mutableListOf()
 
     private val name_2_motionList: MutableMap<String, MutableList<CubismMotion>> = mutableMapOf()
     private val name_2_expression: MutableMap<String, CubismExpressionMotion?> = mutableMapOf()
@@ -35,8 +35,24 @@ class AppModel : CubismUserModel() {
 
         setupRenderer()
         setupTextures()
-
     }
+
+    /**
+     * 生成されたレンダラーを受け取って初期化する。<br></br>
+     * クリッピングマスクの描画に使うバッファの枚数をデフォルトの1枚より増やしたい場合は、このメソッドを使用する。
+     *
+     * @note 第1引数にnullが与えられた場合`NullPointerException`が投げられる。
+     *
+     * @param renderer CubismRendererを継承したレンダラークラスのインスタンス
+     * @param maskBufferCount 生成したいマスクバッファの枚数
+     */
+    private fun setupRenderer(renderer: CubismRenderer, maskBufferCount: Int = 1) {
+        this.renderer = renderer
+
+        // Bind a renderer with a model instance
+        this.renderer.initialize(model, maskBufferCount)
+    }
+
 
     private fun setupModel(dir: String, modelJson: ModelJson) {
         Path(dir, modelJson.fileReferences.moc).readBytes().let { buffer ->
@@ -63,17 +79,41 @@ class AppModel : CubismUserModel() {
 
         // Load eye blink data
         // TODO:: save it
-        CubismEyeBlink(modelJson)
+        eyeBlink = CubismEyeBlink(modelJson)
 
         // Load Breath Data
         // TODO:: save it
-        CubismBreath(
-            BreathParameterData(idParamAngleX, 0.0f, 15.0f, 6.5345f, 0.5f),
-            BreathParameterData(idParamAngleY, 0.0f, 8.0f, 3.5345f, 0.5f),
-            BreathParameterData(idParamAngleZ, 0.0f, 10.0f, 5.5345f, 0.5f),
-            BreathParameterData(idParamBodyAngleX, 0.0f, 4.0f, 15.5345f, 0.5f),
+        breath = CubismBreath(
             BreathParameterData(
-                idManager.id(ParameterId.BREATH.id),
+                CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_X.id),
+                0.0f,
+                15.0f,
+                6.5345f,
+                0.5f
+            ),
+            BreathParameterData(
+                CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_Y.id),
+                0.0f,
+                8.0f,
+                3.5345f,
+                0.5f
+            ),
+            BreathParameterData(
+                CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_Z.id),
+                0.0f,
+                10.0f,
+                5.5345f,
+                0.5f
+            ),
+            BreathParameterData(
+                CubismIdManager.id(CubismDefaultParameterId.ParameterId.BODY_ANGLE_X.id),
+                0.0f,
+                4.0f,
+                15.5345f,
+                0.5f
+            ),
+            BreathParameterData(
+                CubismIdManager.id(CubismDefaultParameterId.ParameterId.BREATH.id),
                 0.5f,
                 0.5f,
                 3.2345f,
@@ -94,7 +134,20 @@ class AppModel : CubismUserModel() {
                         it.fadeInSeconds = motion.fadeInTime
                         it.fadeOutSeconds = motion.fadeOutTime
                         // TODO::
-                        it.setEffectIds()
+                        it.setEffectIds(
+                            eyeBlinkParameterIds =
+                                modelJson.groups.find { it.name == "EyeBlink" }?.ids!!.map { value ->
+                                    CubismIdManager.id(
+                                        value
+                                    )
+                                },
+                            lipSyncParameterIds =
+                                modelJson.groups.find { it.name == "LipSync" }?.ids!!.map { value ->
+                                    CubismIdManager.id(
+                                        value
+                                    )
+                                }
+                        )
                         name_2_motionList.getOrPut(name) {
                             mutableListOf()
                         }.add(it)
@@ -106,57 +159,134 @@ class AppModel : CubismUserModel() {
         motionManager.stopAllMotions()
     }
 
-    fun update() {
-        val deltaTimeSeconds: Float = LAppPal.getDeltaTime()
-        userTimeSeconds += deltaTimeSeconds
+    override fun doUpdate(deltaSeconds: Float) {
 
-        dragManager.update(deltaTimeSeconds)
+        dragManager.update(deltaSeconds)
 
+        // モーションによるパラメーター更新の有無
+        var isMotionUpdated = false
         // Idle动画
         run {
             model.loadParameters()
             run {
-                if (motionManager.isFinished) {
+                isMotionUpdated = if (motionManager.isFinished) {
                     startRandomMotion(IDLE, MotionPriority.IDLE)
+                    false
+                } else {
+                    motionManager.updateMotion(model, deltaSeconds)
                 }
             }
             model.saveParameters()
         }
+
+        // eye blink
+        if (!isMotionUpdated) {
+            eyeBlink?.updateParameters(model, deltaSeconds)
+        }
+
+
+        // expression
+        expressionManager.updateMotion(model, deltaSeconds)
+
+
+        /*
+            drag
+            TODO:: move to dragManager?
+         */
+        run {
+            // ドラッグ追従機能
+            // ドラッグによる顔の向きの調整
+            model.addParameterValue(
+                CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_X.id),
+                dragManager.x * 30
+            ) // -30から30の値を加える
+            model.addParameterValue(
+                CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_Y.id),
+                dragManager.y * 30
+            )
+            model.addParameterValue(
+                CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_Z.id),
+                dragManager.x * dragManager.y * (-30)
+            )
+
+            // ドラッグによる体の向きの調整
+            model.addParameterValue(
+                CubismIdManager.id(CubismDefaultParameterId.ParameterId.BODY_ANGLE_X.id),
+                dragManager.x * 10
+            ) // -10から10の値を加える
+
+            // ドラッグによる目の向きの調整
+            model.addParameterValue(
+                CubismIdManager.id(CubismDefaultParameterId.ParameterId.EYE_BALL_X.id),
+                dragManager.x
+            ) // -1から1の値を加える
+            model.addParameterValue(
+                CubismIdManager.id(CubismDefaultParameterId.ParameterId.EYE_BALL_Y.id),
+                dragManager.y
+            )
+        }
+
+        // Breath Function
+        breath?.updateParameters(model, deltaSeconds)
+
+        // Physics Setting
+        physics?.evaluate(model, deltaSeconds)
+
+
+        // Lip Sync Setting
+        // TODO:: move to where
+        if (true) {
+            // リアルタイムでリップシンクを行う場合、システムから音量を取得して0~1の範囲で値を入力します
+            val value = 0.0f
+
+            for (i in lipSyncIds.indices) {
+                val lipSyncId: CubismId = lipSyncIds.get(i)
+                model.addParameterValue(lipSyncId, value, 0.8f)
+            }
+        }
+
+
+        // Pose Setting
+        pose?.updateParameters(model, deltaTimeSeconds)
+
     }
 
     fun startRandomMotion(
         motionGroupName: String,
         priority: MotionPriority,
-        onFinishedMotionHandler: IFinishedMotionCallback = IFinishedMotionCallback { },
         onBeganMotionHandler: IBeganMotionCallback = IBeganMotionCallback { },
+        onFinishedMotionHandler: IFinishedMotionCallback = IFinishedMotionCallback { },
     ) {
         name_2_motionList[motionGroupName]?.let {
             startMotion(
                 it.random(),
-
-
+                priority,
+                onBeganMotionHandler,
+                onFinishedMotionHandler
             )
         } ?: error("Failed to start motion: Unknown motion group name($motionGroupName)")
     }
 
     fun startMotion(
         motion: CubismMotion,
-        motionGroupName: String,
-        index: Int,
         priority: MotionPriority,
-        onFinishedMotionHandler: IFinishedMotionCallback = IFinishedMotionCallback { },
         onBeganMotionHandler: IBeganMotionCallback = IBeganMotionCallback { },
+        onFinishedMotionHandler: IFinishedMotionCallback = IFinishedMotionCallback { },
     ) {
         if (priority == MotionPriority.FORCE) {
-            motionManager.reservationPriority = priority.value
+            motionManager.reservePriority = priority.value
         } else if (!motionManager.reserveMotion(priority.value)) {
             // TODO:: log
             return
         }
 
-        motion
+        motion.apply {
+            beganMotionCallback = onBeganMotionHandler
+            finishedMotionCallback = onFinishedMotionHandler
 
 
+            //TODO:: sound
+        }
     }
 
     object MotionGroup {
@@ -165,7 +295,7 @@ class AppModel : CubismUserModel() {
     }
 
     enum class MotionPriority(
-        val value: Int
+        val value: Int,
     ) {
         NONE(0),
         IDLE(1),

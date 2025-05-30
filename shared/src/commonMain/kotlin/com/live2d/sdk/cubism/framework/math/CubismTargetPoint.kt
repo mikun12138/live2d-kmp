@@ -9,6 +9,7 @@ package com.live2d.sdk.cubism.framework.math
 /**
  * This class provides face orientation control functionality.
  */
+// TODO:: move to app layer ?
 class CubismTargetPoint {
     /**
      * Update face orientation control.

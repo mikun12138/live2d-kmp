@@ -6,11 +6,10 @@
  */
 package com.live2d.sdk.cubism.framework.model
 
-import com.live2d.sdk.cubism.framework.CubismFramework.idManager
 import com.live2d.sdk.cubism.framework.id.CubismId
-import com.live2d.sdk.cubism.framework.utils.json.UserDataJson
+import com.live2d.sdk.cubism.framework.data.UserDataJson
+import com.live2d.sdk.cubism.framework.id.CubismIdManager
 import kotlinx.serialization.json.Json
-import java.util.Collections
 
 /**
  * This class is a manager of user data. It can load, manage user data.
@@ -28,12 +27,12 @@ class CubismModelUserData {
 
     private fun parse(buffer: ByteArray) {
         Json.decodeFromString<UserDataJson>(String(buffer)).let { json ->
-            val artMeshType = idManager.id(ART_MESH)
+            val artMeshType = CubismIdManager.id(ART_MESH)
 
             repeat(json.meta.userDataCount) {
                 val addedNode = CubismModelUserDataNode(
-                    idManager.id(json.userData[it].target),
-                    idManager.id(json.userData[it].id),
+                    CubismIdManager.id(json.userData[it].target),
+                    CubismIdManager.id(json.userData[it].id),
                     json.userData[it].value
                 )
                 userDataNodes.add(addedNode)

@@ -8,9 +8,7 @@ package com.live2d.sdk.cubism.framework.utils
 
 import com.live2d.sdk.cubism.framework.CubismFramework
 import com.live2d.sdk.cubism.framework.CubismFramework.coreLogFunction
-import com.live2d.sdk.cubism.framework.CubismFramework.loggingLevel
 import com.live2d.sdk.cubism.framework.CubismFrameworkConfig
-import com.live2d.sdk.cubism.framework.CubismFrameworkConfig.CSM_LOG_LEVEL
 
 /**
  * A utility class for debugging.
@@ -21,18 +19,17 @@ import com.live2d.sdk.cubism.framework.CubismFrameworkConfig.CSM_LOG_LEVEL
 object CubismDebug {
     /**
      * Output log. Set log level to 1st argument.
-     * At using [CubismFramework.initialize] function, if the log level is lower than set log output level, log output is not executed.
+     * At using [CubismFramework.init] function, if the log level is lower than set log output level, log output is not executed.
      *
      * @param logLevel log level setting
      * @param message format string
-     * @param args variadic arguments
      */
-    fun print(
+    private fun print(
         logLevel: CubismFrameworkConfig.LogLevel,
-        message: String?
+        message: String,
     ) {
         // If the log level is lower than set log output level in Option class, log outputting is not executed.
-        if (logLevel.id < loggingLevel.id) {
+        if (logLevel.id < CubismFramework.config.logLevel.id) {
             return
         }
 
@@ -43,7 +40,7 @@ object CubismDebug {
      * Dump out a specified length of data.
      *
      *
-     * If the log output level is below the level set in the option at [CubismFramework.initialize], it will not be logged.
+     * If the log output level is below the level set in the option at [CubismFramework.init], it will not be logged.
      *
      * @param logLevel setting of log level
      * @param data data to dump
@@ -96,7 +93,7 @@ object CubismDebug {
      * @param message message
      */
     fun cubismLogVerbose(message: String?) {
-        if (CSM_LOG_LEVEL.id <= CubismFrameworkConfig.LogLevel.VERBOSE.id) {
+        if (CubismFramework.config.logLevel.id <= CubismFrameworkConfig.LogLevel.VERBOSE.id) {
             cubismLogPrintln(
                 CubismFrameworkConfig.LogLevel.VERBOSE,
                 "[V]$message",
@@ -110,7 +107,7 @@ object CubismDebug {
      * @param message message
      */
     fun cubismLogDebug(message: String?) {
-        if (CSM_LOG_LEVEL.id <= CubismFrameworkConfig.LogLevel.DEBUG.id) {
+        if (CubismFramework.config.logLevel.id <= CubismFrameworkConfig.LogLevel.DEBUG.id) {
             cubismLogPrintln(
                 CubismFrameworkConfig.LogLevel.DEBUG,
                 "[D]$message"
@@ -124,7 +121,7 @@ object CubismDebug {
      * @param message message
      */
     fun cubismLogInfo(message: String?) {
-        if (CSM_LOG_LEVEL.id <= CubismFrameworkConfig.LogLevel.INFO.id) {
+        if (CubismFramework.config.logLevel.id <= CubismFrameworkConfig.LogLevel.INFO.id) {
             cubismLogPrintln(
                 CubismFrameworkConfig.LogLevel.INFO,
                 "[I]$message",
@@ -138,7 +135,7 @@ object CubismDebug {
      * @param message message
      */
     fun cubismLogWarning(message: String?) {
-        if (CSM_LOG_LEVEL.id <= CubismFrameworkConfig.LogLevel.WARNING.id) {
+        if (CubismFramework.config.logLevel.id <= CubismFrameworkConfig.LogLevel.WARNING.id) {
             cubismLogPrintln(
                 CubismFrameworkConfig.LogLevel.WARNING,
                 "[W]$message",
@@ -152,7 +149,7 @@ object CubismDebug {
      * @param message message.
      */
     fun cubismLogError(message: String?) {
-        if (CSM_LOG_LEVEL.id <= CubismFrameworkConfig.LogLevel.ERROR.id) {
+        if (CubismFramework.config.logLevel.id <= CubismFrameworkConfig.LogLevel.ERROR.id) {
             cubismLogPrintln(
                 CubismFrameworkConfig.LogLevel.ERROR,
                 "[E]$message",

@@ -7,6 +7,7 @@
 package com.live2d.sdk.cubism.framework.motion
 
 import com.live2d.sdk.cubism.framework.id.CubismId
+import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion
 
 /**
  * Internal data used by the CubismMotion class.
@@ -72,7 +73,7 @@ class CubismMotionInternal {
         /**
          * used evaluation function
          */
-        var evaluator: CsmMotionSegmentEvaluationFunction = null
+        var evaluator: CsmMotionSegmentEvaluationFunction = CubismMotion.LinearEvaluator
 
         /**
          * index to the first segment
@@ -90,7 +91,7 @@ class CubismMotionInternal {
      */
     class CubismMotionCurve {
         var type: CubismMotionCurveTarget = CubismMotionCurveTarget.MODEL
-        var id: CubismId
+        lateinit var id: CubismId
 
         /**
          * number of segments
@@ -118,20 +119,12 @@ class CubismMotionInternal {
         /**
          * value
          */
-        var value: String? = null
+        lateinit var value: String
     }
 
     data class CubismMotionData(
 
-        val duration: Float = 0f
-                get () = run {
-
-            if (loop)
-                -1.0f
-            else
-                field
-        },
-
+        val duration: Float = 0f,
 
         val loop: Boolean = false,
 

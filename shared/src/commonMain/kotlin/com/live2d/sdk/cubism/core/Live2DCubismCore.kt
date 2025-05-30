@@ -1,7 +1,7 @@
 package com.live2d.sdk.cubism.core
 
 object Live2DCubismCore {
-    var logger: ICubismLogger? = null
+    var logger: ICubismLogger = ICubismLogger { }
     val version: CubismCoreVersion by lazy {
         CubismCoreVersion(Live2DCubismCoreImpl.getVersion())
     }

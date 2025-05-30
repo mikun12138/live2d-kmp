@@ -6,10 +6,10 @@
  */
 package com.live2d.sdk.cubism.framework.motion
 
-fun  interface ICubismMotionEventFunction {
+fun interface ICubismMotionEventFunction {
     fun apply(
-        caller: AMotionManager?,
-        eventValue: String?,
-        customData: Any?
+        caller: AMotionManager,
+        eventValue: String,
+        customData: Any?,
     )
 }

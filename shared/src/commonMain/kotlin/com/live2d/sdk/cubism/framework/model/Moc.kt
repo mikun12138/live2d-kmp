@@ -6,6 +6,7 @@
  */
 package com.live2d.sdk.cubism.framework.model
 
+import com.live2d.sdk.cubism.core.CubismMoc
 import com.live2d.sdk.cubism.core.Live2DCubismCore
 import com.live2d.sdk.cubism.framework.utils.CubismDebug.cubismLogError
 import java.text.ParseException
@@ -13,11 +14,11 @@ import java.text.ParseException
 /**
  * Moc data manager class
  */
-class CubismMoc {
-    lateinit var moc: com.live2d.sdk.cubism.core.CubismMoc
-    fun initModel(): CubismModel? {
+class Moc {
+    lateinit var moc: CubismMoc
+    fun initModel(): Model? {
         return moc.initModel()?.let {
-            CubismModel().init(it)
+            Model().init(it)
         } ?: run {
             // TODO:: fix log
             cubismLogError("failed to init model: $this")
@@ -25,7 +26,7 @@ class CubismMoc {
         }
     }
 
-    fun init(mocBytes: ByteArray, shouldCheckMocConsistency: Boolean = false): CubismMoc? {
+    fun init(mocBytes: ByteArray, shouldCheckMocConsistency: Boolean = false): Moc? {
         if (shouldCheckMocConsistency) {
             // .moc3の整合性を確認する。
             val consistency = Live2DCubismCore.hasMocConsistency(mocBytes)
@@ -37,7 +38,7 @@ class CubismMoc {
         }
 
         try {
-            moc = com.live2d.sdk.cubism.core.CubismMoc().init(mocBytes)
+            moc = CubismMoc().init(mocBytes)
         } catch (e: ParseException) {
             e.printStackTrace()
             return null

@@ -8,10 +8,15 @@ class CubismModel {
     lateinit var drawableViews: Array<CubismDrawableView>
         private set
 
-    val canvasInfo: CubismCanvasInfo = null!!
-    val parameters: CubismParameters = null!!
-    val parts: CubismParts = null!!
-    val drawables: CubismDrawables = null!!
+    lateinit var canvasInfo: CubismCanvasInfo
+        private set
+    lateinit var parameters: CubismParameters
+        private set
+    lateinit var parts: CubismParts
+        private set
+    lateinit var drawables: CubismDrawables
+        private set
+
     private lateinit var moc: CubismMoc
     var nativeHandle: Long = 0
         private set

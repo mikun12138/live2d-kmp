@@ -14,20 +14,17 @@ import com.live2d.sdk.cubism.core.CubismPartView
 import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.rendering.CubismRenderer
 
-class CubismModel {
+class Model {
     lateinit var model: CubismModel
-    fun init(model: CubismModel): com.live2d.sdk.cubism.framework.model.CubismModel {
+    fun init(model: CubismModel): Model {
         this.model = model
 
-        // MultiplyColors
-        val mutiplyColor: CubismRenderer.CubismTextureColor = CubismRenderer.CubismTextureColor(
+        val multiplyColor: CubismRenderer.CubismTextureColor = CubismRenderer.CubismTextureColor(
             1.0f,
             1.0f,
             1.0f,
             1.0f
         )
-
-        // ScreenColors
         val screenColor: CubismRenderer.CubismTextureColor = CubismRenderer.CubismTextureColor(
             0.0f,
             0.0f,
@@ -37,7 +34,7 @@ class CubismModel {
 
         model.drawableViews.let { drawableViews ->
             userDrawableMultiplyColors = List(drawableViews.size) {
-                DrawableColorData(mutiplyColor)
+                DrawableColorData(multiplyColor)
             }
             userDrawableScreenColors = List(drawableViews.size) {
                 DrawableColorData(screenColor)
@@ -57,21 +54,16 @@ class CubismModel {
             }
         }
 
-        model.partViews.let { partViews ->
-            userPartMultiplyColors = List(partViews.size) {
-                PartColorData(mutiplyColor)
-            }
-            userPartScreenColors = List(partViews.size) {
-                PartColorData(screenColor)
-            }
-        }
+//        model.partViews.let { partViews ->
+//            userPartMultiplyColors = List(partViews.size) {
+//                PartColorData(mutiplyColor)
+//            }
+//            userPartScreenColors = List(partViews.size) {
+//                PartColorData(screenColor)
+//            }
+//        }
 
         return this
-    }
-
-    fun close() {
-        model.close()
-        model.moc.close()
     }
 
     /**
@@ -79,17 +71,17 @@ class CubismModel {
      */
     data class DrawableColorData(
         var color: CubismRenderer.CubismTextureColor,
-        var isOverwritten: Boolean = false
+        var isOverwritten: Boolean = false,
     )
 
     data class PartColorData(
         var color: CubismRenderer.CubismTextureColor,
-        var isOverwritten: Boolean = false
+        var isOverwritten: Boolean = false,
     )
 
     data class DrawableCullingData(
         var isCulling: Boolean = false,
-        var isOverWritten: Boolean = false
+        var isOverWritten: Boolean = false,
     )
 
     /**
@@ -126,7 +118,7 @@ class CubismModel {
         }
 
     fun getPartIndex(partId: CubismId): Int {
-        val partView: CubismPartView? = model.findPartView(partId.string)
+        val partView: CubismPartView? = model.findPartView(partId.value)
         if (partView != null) {
             return partView.index
         }
@@ -137,7 +129,7 @@ class CubismModel {
         }
 
         // If the part does not exist in the non-existent part ID list, add newly the element.
-        val partIndex = partViews.size + notExistPartIds.size
+        val partIndex = model.partViews.size + notExistPartIds.size
         notExistPartIds.put(partId, partIndex)
         notExistPartIndices.add(partIndex)
 
@@ -338,7 +330,7 @@ class CubismModel {
 
     fun getDrawableConstantFlag(
         drawableIndex: Int,
-        flag: CubismDrawableFlag.ConstantFlag
+        flag: CubismDrawableFlag.ConstantFlag,
     ): Boolean {
         val constantFlag: Byte = model.drawableViews[drawableIndex].constantFlag
         return isBitSet(constantFlag, flag.value)
@@ -406,7 +398,7 @@ class CubismModel {
         }
 
         for (i in 0..<parameterCount) {
-            parameterViews[i].value = savedParameters[i]
+            model.parameterViews[i].value = savedParameters[i]
         }
     }
 
@@ -417,7 +409,7 @@ class CubismModel {
             savedParameters = FloatArray(parameterCount)
         }
         for (i in 0..<parameterCount) {
-            savedParameters[i] = parameterViews[i].value
+            savedParameters[i] = model.parameterViews[i].value
         }
     }
 
@@ -431,36 +423,25 @@ class CubismModel {
     }
 
 
-    /**
-     * List of opacities for non-existent parts
-     */
-    private var notExistPartOpacities = FloatArray(1)
 
-    private val notExistPartIndices: MutableList<Int?> = ArrayList<Int?>()
-
-    /**
-     * List of IDs for non-existent parts
-     */
-    private val notExistPartIds: MutableMap<CubismId?, Int?> = HashMap<CubismId?, Int?>()
-
-    /**
-     * List of values for non-existent parameters
-     */
-    private var notExistParameterValues = FloatArray(1)
-
-    private val notExistParameterIndices: MutableList<Int?> = ArrayList<Int?>()
 
     /**
      * List of IDs for non-existent parameters
      */
     private val notExistParameterIds: MutableMap<CubismId?, Int> = HashMap<CubismId?, Int>()
+    private val notExistParameterIndices: MutableList<Int?> = ArrayList<Int?>()
+    private var notExistParameterValues = FloatArray(1)
+    private val notExistPartIds: MutableMap<CubismId?, Int?> = HashMap<CubismId?, Int?>()
+
+    private val notExistPartIndices: MutableList<Int?> = ArrayList<Int?>()
+    private var notExistPartOpacities = FloatArray(1)
 
     /**
      * Saved parameters
      */
     private var savedParameters = FloatArray(1)
 
-    var modelOpacity: Float = 1.0f
+//    var modelOpacity: Float = 1.0f
 
     private lateinit var userDrawableMultiplyColors: List<DrawableColorData>
     private lateinit var userDrawableScreenColors: List<DrawableColorData>
@@ -471,6 +452,6 @@ class CubismModel {
      */
     private lateinit var partChildDrawablesMap: MutableMap<Int, MutableList<Int>>
 
-    private lateinit var userPartMultiplyColors: List<PartColorData?>
-    private lateinit var userPartScreenColors: List<PartColorData?>
+//    private lateinit var userPartMultiplyColors: List<PartColorData>
+//    private lateinit var userPartScreenColors: List<PartColorData>
 }

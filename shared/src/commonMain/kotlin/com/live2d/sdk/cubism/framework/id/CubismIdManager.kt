@@ -9,7 +9,7 @@ package com.live2d.sdk.cubism.framework.id
 /**
  * Manager class of ID names
  */
-class CubismIdManager {
+object CubismIdManager {
 
     fun registerId(id: String): CubismId {
         return CubismId(id).also { ids.add(it) }
@@ -41,6 +41,10 @@ class CubismIdManager {
 
     private fun findId(foundId: CubismId?): CubismId? {
         return ids.find { it == foundId }
+    }
+
+    fun clear() {
+        ids.clear()
     }
 
     private val ids: MutableSet<CubismId> = mutableSetOf()

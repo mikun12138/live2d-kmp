@@ -7,11 +7,10 @@
 package com.live2d.sdk.cubism.framework.effect
 
 import com.live2d.sdk.cubism.framework.CubismFramework.idManager
-import com.live2d.sdk.cubism.framework.ICubismModelSetting
 import com.live2d.sdk.cubism.framework.id.CubismId
-import com.live2d.sdk.cubism.framework.model.CubismModel
-import com.live2d.sdk.cubism.framework.utils.json.ModelJson
-import java.util.Collections
+import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.data.ModelJson
+import com.live2d.sdk.cubism.framework.id.CubismIdManager
 
 /**
  * This class offers auto eyeblink function.
@@ -19,7 +18,7 @@ import java.util.Collections
 class CubismEyeBlink {
     constructor(modelJson: ModelJson) {
         modelJson.groups.find { it.name == "EyeBlink" }?.let { group ->
-            parameterIds.addAll(group.ids.map { idManager.id(it) })
+            parameterIds.addAll(group.ids.map { CubismIdManager.id(it) })
         }
     }
 
@@ -59,7 +58,7 @@ class CubismEyeBlink {
      * @param model the target model
      * @param deltaTimeSeconds delta time[s]
      */
-    fun updateParameters(model: CubismModel, deltaTimeSeconds: Float) {
+    fun updateParameters(model: Model, deltaTimeSeconds: Float) {
         userTimeSeconds += deltaTimeSeconds
 
         when (blinkingState) {
@@ -71,7 +70,7 @@ class CubismEyeBlink {
         }
     }
 
-    private fun updateParametersClosing(model: CubismModel) {
+    private fun updateParametersClosing(model: Model) {
         var time = (userTimeSeconds - stateStartTimeSeconds) / closingSeconds
 
         if (time >= 1.0f) {
@@ -84,7 +83,7 @@ class CubismEyeBlink {
         setParameterValueToAllIds(model, parameterValue)
     }
 
-    private fun updateParametersClosed(model: CubismModel) {
+    private fun updateParametersClosed(model: Model) {
         val time = (userTimeSeconds - stateStartTimeSeconds) / closedSeconds
 
         if (time >= 1.0f) {
@@ -96,7 +95,7 @@ class CubismEyeBlink {
         setParameterValueToAllIds(model, parameterValue)
     }
 
-    private fun updateParametersOpening(model: CubismModel) {
+    private fun updateParametersOpening(model: Model) {
         var time = (userTimeSeconds - stateStartTimeSeconds) / openingSeconds
 
         if (time >= 1.0f) {
@@ -109,7 +108,7 @@ class CubismEyeBlink {
         setParameterValueToAllIds(model, parameterValue)
     }
 
-    private fun updateParametersInterval(model: CubismModel) {
+    private fun updateParametersInterval(model: Model) {
         if (nextBlinkingTime < userTimeSeconds) {
             blinkingState = EyeState.CLOSING
             stateStartTimeSeconds = userTimeSeconds
@@ -119,7 +118,7 @@ class CubismEyeBlink {
         setParameterValueToAllIds(model, parameterValue)
     }
 
-    private fun updateParametersFirst(model: CubismModel) {
+    private fun updateParametersFirst(model: Model) {
         blinkingState = EyeState.INTERVAL
         nextBlinkingTime = determineNextBlinkingTiming()
 
@@ -127,7 +126,7 @@ class CubismEyeBlink {
         setParameterValueToAllIds(model, parameterValue)
     }
 
-    private fun setParameterValueToAllIds(model: CubismModel, value: Float) {
+    private fun setParameterValueToAllIds(model: Model, value: Float) {
         for (id in parameterIds) {
             model.setParameterValue(id!!, value)
         }

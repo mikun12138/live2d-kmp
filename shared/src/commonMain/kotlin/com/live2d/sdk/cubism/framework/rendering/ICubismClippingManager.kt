@@ -6,12 +6,11 @@
  */
 package com.live2d.sdk.cubism.framework.rendering
 
-import com.live2d.sdk.cubism.framework.math.CubismVector2
-import com.live2d.sdk.cubism.framework.model.CubismModel
+import com.live2d.sdk.cubism.framework.model.Model
 
 interface ICubismClippingManager {
     fun initialize(
-        model: CubismModel,
+        model: Model,
         maskBufferCount: Int
     )
 
@@ -20,7 +19,7 @@ interface ICubismClippingManager {
      *
      * @param model         モデルのインスタンス
      */
-    fun setupMatrixForHighPrecision(model: CubismModel)
+    fun setupMatrixForHighPrecision(model: Model)
 
     companion object {
         /**

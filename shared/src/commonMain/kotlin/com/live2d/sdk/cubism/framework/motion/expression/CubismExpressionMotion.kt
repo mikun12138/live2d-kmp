@@ -4,12 +4,12 @@
  * Use of this source code is governed by the Live2D Open Software license
  * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
  */
-package com.live2d.sdk.cubism.framework.motion
+package com.live2d.sdk.cubism.framework.motion.expression
 
 import com.live2d.sdk.cubism.framework.CubismFramework.idManager
 import com.live2d.sdk.cubism.framework.id.CubismId
-import com.live2d.sdk.cubism.framework.model.CubismModel
-import com.live2d.sdk.cubism.framework.utils.json.ExpressionJson
+import com.live2d.sdk.cubism.framework.motion.ACubismMotion
+import com.live2d.sdk.cubism.framework.data.ExpressionJson
 import kotlinx.serialization.json.Json
 
 /**

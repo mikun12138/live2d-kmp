@@ -1,58 +1,24 @@
-/*
- * Copyright(c) Live2D Inc. All rights reserved.
- *
- * Use of this source code is governed by the Live2D Open Software license
- * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
- */
-package com.live2d.sdk.cubism.framework.motion
+package com.live2d.sdk.cubism.framework.motion.motion
 
+import com.live2d.sdk.cubism.framework.id.CubismIdManager
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
-import com.live2d.sdk.cubism.framework.model.CubismModel
-import com.live2d.sdk.cubism.framework.motion.CubismExpressionMotion.Companion.DEFAULT_ADDITIVE_VALUE
-import com.live2d.sdk.cubism.framework.motion.CubismExpressionMotion.Companion.DEFAULT_MULTIPLY_VALUE
-import com.live2d.sdk.cubism.framework.motion.CubismExpressionMotion.ExpressionBlendType
-import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.MotionBehavior
-import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveIdEyeBlink
-import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveIdLipSync
-import com.live2d.sdk.cubism.framework.motion.CubismMotion.Companion.modelCurveIdOpacity
+import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.motion.AMotionQueueEntry
 import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal.CubismMotionCurveTarget
-import com.live2d.sdk.cubism.util.IState
-import com.live2d.sdk.cubism.util.Stateful
+import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion.Companion.EffectID
+import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion.Companion.MotionBehavior
+import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion.Companion.OpacityID
 import com.live2d.sdk.cubism.util.switchStateTo
 
-/**
- * Manager class for each motion being played by CubismMotionQueueManager.
- */
-
-// TODO:: level 0, make children for expression and motion
 class MotionQueueEntry(
-    val manager: AMotionManager,
-    val motion: CubismMotion,
-) : Stateful<MotionQueueEntry, MotionQueueEntry.State> {
-
-    fun setFadeOut() {
-        this switchStateTo State.FadeOut
-//        isTriggeredFadeOut = true
-    }
-
-    fun startFadeOut(fadeOutSeconds: Float, totalSeconds: Float) {
-        val newEndTimeSeconds = totalSeconds + fadeOutSeconds
-        if (this.endTimePoint !in 0.0f..newEndTimeSeconds) {
-            this.endTimePoint = newEndTimeSeconds
-        }
-
-        isTriggeredFadeOut = true
-    }
-
-
-    fun init(
-        totalSeconds: Float,
-    ) {
-        this switchStateTo State.FadeIn
-
-        // Record the start time of the motion.
-        startTimePoint = totalSeconds
-
+    override val manager: CubismMotionManager,
+    override val motion: CubismMotion,
+) : AMotionQueueEntry(
+    manager,
+    motion
+) {
+    override fun doInit() {
+        motion.beganMotionCallback(motion)
         adjustEndTime()
     }
 
@@ -65,9 +31,8 @@ class MotionQueueEntry(
         endTimePoint = endTime
     }
 
-
     fun doUpdateParameters(
-        model: CubismModel,
+        model: Model,
         totalSeconds: Float,
     ) {
 //        if (previousLoopState != loop) {
@@ -125,17 +90,17 @@ class MotionQueueEntry(
                     )
 
                     when (curve.id) {
-                        modelCurveIdEyeBlink -> {
+                        CubismIdManager.id(EffectID.EYE_BLINK.value) -> {
                             eyeBlinkValue = value
                             isUpdatedEyeBlink = true
                         }
 
-                        modelCurveIdLipSync -> {
+                        CubismIdManager.id(EffectID.LIP_SYNC.value) -> {
                             lipSyncValue = value
                             isUpdatedLipSync = true
                         }
 
-                        modelCurveIdOpacity -> {
+                        CubismIdManager.id(OpacityID.OPACITY.value) -> {
                             // 不透明度の値が存在すれば反映する。
                             model.modelOpacity = value
                         }
@@ -280,22 +245,6 @@ class MotionQueueEntry(
         }
     }
 
-    private fun calFadeWeight(totalSeconds: Float): Float {
-        val fadeIn = if (motion.fadeInSeconds < 0.0f)
-            1.0f
-        else
-            getEasingSine(
-                (totalSeconds - startTimePoint) / motion.fadeInSeconds
-            )
-        val fadeOut = if (motion.fadeOutSeconds < 0.0f || endTimePoint < 0.0f)
-            1.0f
-        else
-            getEasingSine((endTimePoint - totalSeconds) / motion.fadeOutSeconds)
-
-        check(fadeIn * fadeOut in 0.0f..1.0f)
-
-        return fadeIn * fadeOut
-    }
 
     private fun updateForNextLoop(
         totalSeconds: Float,
@@ -324,140 +273,17 @@ class MotionQueueEntry(
         }
     }
 
-    // TODO:: move below to another class
 
-    fun updateParameter(
-        model: CubismModel,
-        parameterValueList: List<CubismExpressionMotionManager.ExpressionParameterValue>,
-        isFirstExpression: Boolean,
-        totalSeconds: Float,
-    ) {
-        val fadeWeight = calFadeWeight(totalSeconds)
-        parameterValueList.forEach { parameterValue ->
-
-            parameterValue.overwriteValue = model.getParameterValue(parameterValue.parameterId)
-
-            (motion as CubismExpressionMotion).parameters.find { it.parameterId == parameterValue.parameterId }
-                ?.let {
-
-                    // 値を計算
-                    val newAdditiveValue: Float
-                    val newMultiplyValue: Float
-                    val newOverwriteValue: Float
-
-                    when (it.blendType) {
-                        ExpressionBlendType.ADD -> {
-                            newAdditiveValue = it.value
-                            newMultiplyValue = DEFAULT_MULTIPLY_VALUE
-                            newOverwriteValue = parameterValue.overwriteValue
-                        }
-
-                        ExpressionBlendType.MULTIPLY -> {
-                            newAdditiveValue = DEFAULT_ADDITIVE_VALUE
-                            newMultiplyValue = it.value
-                            newOverwriteValue = parameterValue.overwriteValue
-                        }
-
-                        ExpressionBlendType.OVERWRITE -> {
-                            newAdditiveValue = DEFAULT_ADDITIVE_VALUE
-                            newMultiplyValue = DEFAULT_MULTIPLY_VALUE
-                            newOverwriteValue = it.value
-                        }
-                    }
-
-                    if (isFirstExpression) {
-                        parameterValue.additiveValue = newAdditiveValue
-                        parameterValue.multiplyValue = newMultiplyValue
-                        parameterValue.overwriteValue = newOverwriteValue
-                    } else {
-                        parameterValue.additiveValue =
-                            (parameterValue.additiveValue * (1.0f - fadeWeight)) + newAdditiveValue * fadeWeight
-                        parameterValue.multiplyValue =
-                            (parameterValue.multiplyValue * (1.0f - fadeWeight)) + newMultiplyValue * fadeWeight
-                        parameterValue.overwriteValue =
-                            (parameterValue.overwriteValue * (1.0f - fadeWeight)) + newOverwriteValue * fadeWeight
-                    }
-                } ?: run {
-                // 再生中のExpressionが参照していないパラメータは初期値を適用
-                if (isFirstExpression) {
-                    parameterValue.additiveValue = DEFAULT_ADDITIVE_VALUE
-                    parameterValue.multiplyValue = DEFAULT_MULTIPLY_VALUE
-                } else {
-                    parameterValue.additiveValue = calculateValue(
-                        parameterValue.additiveValue,
-                        DEFAULT_ADDITIVE_VALUE,
-                        fadeWeight
-                    )
-                    parameterValue.multiplyValue = calculateValue(
-                        parameterValue.multiplyValue,
-                        DEFAULT_MULTIPLY_VALUE,
-                        fadeWeight
-                    )
-                    parameterValue.overwriteValue = calculateValue(
-                        parameterValue.overwriteValue,
-                        parameterValue.overwriteValue,
-                        fadeWeight
-                    )
-                }
-            }
-        }
-    }
-
-    private fun calculateValue(source: Float, destination: Float, fadeWeight: Float): Float {
-        return (source * (1.0f - fadeWeight)) + (destination * fadeWeight)
-    }
-
-
-    val firedEvents: List<String?>
-        get() = run {
-//            if ((event.fireTime > beforeCheckTimeSeconds) && (event.fireTime <= motionTimeSeconds)) {
-            val beforeCheckTimeSeconds: Float = lastTotalSeconds - startTimePoint
-            val motionTimeSeconds: Float = totalSeconds - startTimePoint
-
-            motion.motionData.events
-                .filter { it.fireTime in beforeCheckTimeSeconds..motionTimeSeconds }
-                .map { it.value }
-        }
-
-    var startTimePoint: Float = -1.0f
-
-    // TODO:: 你知道我要todo什么
-//    /**
-//     * Fade-in start time[s] (When in a loop, only the first time.)
-//     */
-//    var fadeInStartTime: Float = -1.0f
-    var endTimePoint: Float = -1.0f
-
-    /**
-     * flag whether fade-in is enabled at looping. Default value is true.
-     */
-    var loopFadeIn: Boolean = true
-
-    //    /**
-//     * 再生中の表情モーションのウェイトのリスト
-//     * 0为开始 fade, >=1为完成fade
-//     */
-//    var fadeWeight: Float = 0.0f
+    // TODO:: level: 114514
+//    val firedEvents: List<String>
+//        get() = run {
+////            if ((event.fireTime > beforeCheckTimeSeconds) && (event.fireTime <= motionTimeSeconds)) {
+//            val beforeCheckTimeSeconds: Float = manager.lastTotalSeconds - startTimePoint
+//            val motionTimeSeconds: Float = manager.totalSeconds - startTimePoint
 //
-
-
-    enum class State(
-        override val onEnter: (MotionQueueEntry, State) -> Unit = { _, _ -> },
-        override val onExit: (MotionQueueEntry, State) -> Unit = { _, _ -> },
-    ) : IState<MotionQueueEntry, State> {
-        Init,
-        FadeIn,
-        Playing,
-        FadeOut(),
-        End
-        ;
-
-        fun inInit() = this == Init
-        fun inActive() = this == FadeIn || this == Playing || this == FadeOut
-        fun inEnd() = this == End
-
-
-    }
-
+//            motion.motionData.events
+//                .filter { it.fireTime in beforeCheckTimeSeconds..motionTimeSeconds }
+//                .map { it.value }
+//        }
 
 }
