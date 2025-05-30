@@ -7,25 +7,27 @@
 package com.live2d.sdk.cubism.framework.model
 
 import com.live2d.sdk.cubism.core.CubismDrawableFlag
+import com.live2d.sdk.cubism.core.CubismDrawableFlag.ConstantFlag
 import com.live2d.sdk.cubism.core.CubismDrawableView
 import com.live2d.sdk.cubism.core.CubismModel
 import com.live2d.sdk.cubism.core.CubismParameterView
 import com.live2d.sdk.cubism.core.CubismPartView
 import com.live2d.sdk.cubism.framework.id.CubismId
-import com.live2d.sdk.cubism.framework.rendering.CubismRenderer
+import com.live2d.sdk.cubism.framework.rendering.CubismBlendMode
+import com.live2d.sdk.cubism.framework.rendering.CubismTextureColor
 
 class Model {
     lateinit var model: CubismModel
     fun init(model: CubismModel): Model {
         this.model = model
 
-        val multiplyColor: CubismRenderer.CubismTextureColor = CubismRenderer.CubismTextureColor(
+        val multiplyColor = CubismTextureColor(
             1.0f,
             1.0f,
             1.0f,
             1.0f
         )
-        val screenColor: CubismRenderer.CubismTextureColor = CubismRenderer.CubismTextureColor(
+        val screenColor = CubismTextureColor(
             0.0f,
             0.0f,
             0.0f,
@@ -70,12 +72,12 @@ class Model {
      * Inner class for handling texture colors in RGBA
      */
     data class DrawableColorData(
-        var color: CubismRenderer.CubismTextureColor,
+        var color: CubismTextureColor,
         var isOverwritten: Boolean = false,
     )
 
     data class PartColorData(
-        var color: CubismRenderer.CubismTextureColor,
+        var color: CubismTextureColor,
         var isOverwritten: Boolean = false,
     )
 
@@ -116,6 +118,24 @@ class Model {
         get() {
             return model.canvasInfo.sizeInPixels[1] / model.canvasInfo.pixelsPerUnit
         }
+
+
+    fun getModelColorWithOpacity(opacity: Float): CubismTextureColor {
+        return CubismTextureColor().apply {
+            this.r = modelColor.r
+            this.g = modelColor.g
+            this.b = modelColor.b
+            this.a = modelColor.a
+
+            this.a *= opacity
+
+            if (this@CubismRenderer.isPremultipliedAlpha) {
+                this.r *= this.a
+                this.g *= this.a
+                this.b *= this.a
+            }
+        }
+    }
 
     fun getPartIndex(partId: CubismId): Int {
         val partView: CubismPartView? = model.findPartView(partId.value)
@@ -336,6 +356,17 @@ class Model {
         return isBitSet(constantFlag, flag.value)
     }
 
+    fun getDrawableBlendMode(drawableIndex: Int): CubismBlendMode {
+        val constantFlag = model.drawableViews[drawableIndex].constantFlag
+        return if (isBitSet(constantFlag, ConstantFlag.BLEND_ADDITIVE))
+            CubismBlendMode.ADDITIVE
+        else
+            if (isBitSet(constantFlag, ConstantFlag.BLEND_MULTIPLICATIVE))
+                CubismBlendMode.MULTIPLICATIVE
+            else
+                CubismBlendMode.NORMAL
+    }
+
     fun getDrawableDynamicFlag(drawableIndex: Int, flag: CubismDrawableFlag.DynamicFlag): Boolean {
         val dynamicFlag: Byte = model.drawableViews[drawableIndex].dynamicFlag
         return isBitSet(dynamicFlag, flag.value)
@@ -455,3 +486,4 @@ class Model {
 //    private lateinit var userPartMultiplyColors: List<PartColorData>
 //    private lateinit var userPartScreenColors: List<PartColorData>
 }
+

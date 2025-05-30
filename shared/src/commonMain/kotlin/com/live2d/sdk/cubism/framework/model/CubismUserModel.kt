@@ -6,22 +6,19 @@
  */
 package com.live2d.sdk.cubism.framework.model
 
-import com.live2d.sdk.cubism.framework.CubismFramework.VERTEX_OFFSET
-import com.live2d.sdk.cubism.framework.CubismFramework.VERTEX_STEP
 import com.live2d.sdk.cubism.framework.effect.CubismBreath
 import com.live2d.sdk.cubism.framework.effect.CubismEyeBlink
 import com.live2d.sdk.cubism.framework.effect.CubismPose
-import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.math.CubismModelMatrix
 import com.live2d.sdk.cubism.framework.math.CubismTargetPoint
+import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
+import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
 import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotion
 import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotionManager
 import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion
 import com.live2d.sdk.cubism.framework.motion.motion.CubismMotionManager
-import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
-import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
 import com.live2d.sdk.cubism.framework.physics.CubismPhysics
-import com.live2d.sdk.cubism.framework.rendering.CubismRenderer
+import com.live2d.sdk.cubism.framework.userdata.CubismModelUserData
 import com.live2d.sdk.cubism.framework.utils.CubismDebug.cubismLogError
 
 /**

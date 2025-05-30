@@ -1,13 +1,7 @@
-/*
- * Copyright(c) Live2D Inc. All rights reserved.
- *
- * Use of this source code is governed by the Live2D Open Software license
- * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
- */
-package com.live2d.sdk.cubism.framework.model
+package com.live2d.sdk.cubism.framework.userdata
 
-import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.data.UserDataJson
+import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.id.CubismIdManager
 import kotlinx.serialization.json.Json
 
@@ -26,7 +20,7 @@ class CubismModelUserData {
     )
 
     private fun parse(buffer: ByteArray) {
-        Json.decodeFromString<UserDataJson>(String(buffer)).let { json ->
+        Json.Default.decodeFromString<UserDataJson>(String(buffer)).let { json ->
             val artMeshType = CubismIdManager.id(ART_MESH)
 
             repeat(json.meta.userDataCount) {

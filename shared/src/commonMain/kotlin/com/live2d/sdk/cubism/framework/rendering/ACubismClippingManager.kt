@@ -10,7 +10,6 @@ import com.live2d.sdk.cubism.framework.CubismFramework.VERTEX_OFFSET
 import com.live2d.sdk.cubism.framework.CubismFramework.VERTEX_STEP
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.Model
-import com.live2d.sdk.cubism.framework.rendering.CubismRenderer.CubismTextureColor
 import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.CLIPPING_MASK_BUFFER_SIZE_X
 import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.CLIPPING_MASK_BUFFER_SIZE_Y
 import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.CLIPPING_MASK_MAX_COUNT_ON_DEFAULT

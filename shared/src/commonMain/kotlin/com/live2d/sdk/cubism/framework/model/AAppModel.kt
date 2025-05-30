@@ -7,19 +7,19 @@ import com.live2d.sdk.cubism.framework.effect.CubismBreath.BreathParameterData
 import com.live2d.sdk.cubism.framework.effect.CubismEyeBlink
 import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.id.CubismIdManager
-import com.live2d.sdk.cubism.framework.model.AppModel.MotionGroup.IDLE
+import com.live2d.sdk.cubism.framework.model.AAppModel.MotionGroup.IDLE
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
 import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
 import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotion
 import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion
-import com.live2d.sdk.cubism.framework.rendering.CubismRenderer
+import com.live2d.sdk.cubism.framework.rendering.Live2DRenderer
 import kotlinx.serialization.json.Json
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
-class AppModel : CubismUserModel() {
+abstract class AAppModel : CubismUserModel() {
+    var isUsingHighPrecisionMask: Boolean = false
 
-    lateinit var renderer: CubismRenderer
 
 //    private val eyeBlinkIds: MutableList<CubismId> = mutableListOf()
 //    private val lipSyncIds: MutableList<CubismId> = mutableListOf()
@@ -35,6 +35,8 @@ class AppModel : CubismUserModel() {
 
         setupRenderer()
         setupTextures()
+
+        initClip / mask()
     }
 
     /**
@@ -46,11 +48,19 @@ class AppModel : CubismUserModel() {
      * @param renderer CubismRendererを継承したレンダラークラスのインスタンス
      * @param maskBufferCount 生成したいマスクバッファの枚数
      */
-    private fun setupRenderer(renderer: CubismRenderer, maskBufferCount: Int = 1) {
+    private fun setupRenderer(renderer: Live2DRenderer, maskBufferCount: Int = 1) {
         this.renderer = renderer
 
         // Bind a renderer with a model instance
         this.renderer.initialize(model, maskBufferCount)
+    }
+
+    private fun setupTextures(dir: String, modelJson: ModelJson) {
+        modelJson.fileReferences.textures.forEach { texturePath ->
+            Path(dir, texturePath).readBytes().let { buffer ->
+                // TODO::
+            }
+        }
     }
 
 
@@ -247,7 +257,7 @@ class AppModel : CubismUserModel() {
 
 
         // Pose Setting
-        pose?.updateParameters(model, deltaTimeSeconds)
+        pose?.updateParameters(model, deltaSeconds)
 
     }
 
