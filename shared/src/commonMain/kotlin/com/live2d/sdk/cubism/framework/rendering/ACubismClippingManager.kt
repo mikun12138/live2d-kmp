@@ -73,11 +73,12 @@ abstract class ACubismClippingManager : ICubismClippingManager {
                             this,
                             drawableMasks[drawableIndex]!!,
                             drawableMaskCounts[drawableIndex]
-                        )
+                        ).also {
+                            clippingContextListForMask.add(it)
+                        }
                     }
 
             clippingContextListForDraw.add(cc)
-            clippingContextListForMask.add(cc)
             clippingContextForMask_2_ClippedDrawableIndexList.getOrPut(cc) {
                 mutableListOf()
             }.add(drawableIndex)

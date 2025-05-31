@@ -168,8 +168,8 @@ class Live2DRendererImpl : Live2DRenderer() {
 //            }
 
 //            if (isUsingHighPrecisionMask()) {
-            if (false) {
-//                clippingManager.setupMatrixForHighPrecision(getModel(), false)
+            if (true) {
+                clippingManager.setupMatrixForHighPrecision(model)
             } else {
                 clippingManager.setupClippingContext(
                     model,
