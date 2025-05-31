@@ -23,7 +23,7 @@ abstract class AMotionQueueEntry(
     override var state: State = State.Init,
 ) : StateContext<AMotionQueueEntry, AMotionQueueEntry.State> {
 
-    open fun init(
+    fun init(
         totalSeconds: Float,
     ) {
         // Record the start time of the motion.

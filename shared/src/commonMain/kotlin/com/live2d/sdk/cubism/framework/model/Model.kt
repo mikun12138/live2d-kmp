@@ -358,10 +358,10 @@ class Model {
 
     fun getDrawableBlendMode(drawableIndex: Int): CubismBlendMode {
         val constantFlag = model.drawableViews[drawableIndex].constantFlag
-        return if (isBitSet(constantFlag, ConstantFlag.BLEND_ADDITIVE))
+        return if (isBitSet(constantFlag, ConstantFlag.BLEND_ADDITIVE.value))
             CubismBlendMode.ADDITIVE
         else
-            if (isBitSet(constantFlag, ConstantFlag.BLEND_MULTIPLICATIVE))
+            if (isBitSet(constantFlag, ConstantFlag.BLEND_MULTIPLICATIVE.value))
                 CubismBlendMode.MULTIPLICATIVE
             else
                 CubismBlendMode.NORMAL

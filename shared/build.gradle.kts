@@ -45,6 +45,16 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+
+        val lwjglVersion = "3.3.6"
+        jvmMain.dependencies {
+            implementation(project.dependencies.platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
+
+            implementation("org.lwjgl:lwjgl:${lwjglVersion}")
+            implementation("org.lwjgl:lwjgl-glfw:${lwjglVersion}")
+            implementation("org.lwjgl:lwjgl-opengl:${lwjglVersion}")
+            implementation("org.lwjgl:lwjgl-stb:${lwjglVersion}")
+        }
     }
 
     compilerOptions.freeCompilerArgs.add("-Xexpect-actual-classes")

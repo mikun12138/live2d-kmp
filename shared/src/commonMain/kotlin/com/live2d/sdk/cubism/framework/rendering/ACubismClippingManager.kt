@@ -16,7 +16,6 @@ import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companio
 import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.CLIPPING_MASK_MAX_COUNT_ON_MULTI_RENDER_TEXTURE
 import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.COLOR_CHANNEL_COUNT
 import com.live2d.sdk.cubism.framework.type.csmRectF
-import com.live2d.sdk.cubism.framework.type.expand
 import com.live2d.sdk.cubism.framework.utils.CubismDebug.cubismLogError
 import kotlin.math.max
 import kotlin.math.min
@@ -28,50 +27,63 @@ import kotlin.math.min
  */
 abstract class ACubismClippingManager : ICubismClippingManager {
 
-    override fun initialize(
+    val framebufferCount: Int
+    val clippingContextListForDraw: MutableList<CubismClippingContext?> = mutableListOf()
+    val clippingContextForMask_2_ClippedDrawableIndexList: MutableMap<CubismClippingContext, MutableList<Int>> = mutableMapOf()
+
+    val offscreenSurfaces_2_clippingContextForMaskList
+            : Array<Pair<ACubismOffscreenSurface, List<CubismClippingContext>>> by lazy {
+        Array<Pair<ACubismOffscreenSurface, List<CubismClippingContext>>>(framebufferCount) { index ->
+            ACubismOffscreenSurface.create().apply {
+                createOffscreenSurface(
+                    CLIPPING_MASK_BUFFER_SIZE_X,
+                    CLIPPING_MASK_BUFFER_SIZE_Y,
+                )
+            } to clippingContextForMask_2_ClippedDrawableIndexList.keys.filter { it.bufferIndex == index }
+        }
+    }
+
+    constructor(
         model: Model,
-        maskBufferCount: Int
+        maskBufferCount: Int,
     ) {
         framebufferCount = maskBufferCount
 
         val drawableCount = model.drawableCount // 描画オブジェクトの数
-        val drawableMasks = model.drawableMasks // 描画オブジェクトをマスクする描画オブジェクトのインデックスのリスト
-        val drawableMaskCounts = model.drawableMaskCounts // 描画オブジェクトをマスクする描画オブジェクトの数
+        val drawableMasks = model.model.drawables.masks // 描画オブジェクトをマスクする描画オブジェクトのインデックスのリスト
+        val drawableMaskCounts = model.model.drawables.maskCounts // 描画オブジェクトをマスクする描画オブジェクトの数
 
         // クリッピングマスクを使う描画オブジェクトを全て登録する。
         // クリッピングマスクは、通常数個程度に限定して使うものとする。
-        repeat(drawableCount) {
-            // 若无mask
-            if (drawableMaskCounts!![it] <= 0) {
+        repeat(drawableCount) { drawableIndex ->
+            // 若无mask, 则添加null
+            if (drawableMaskCounts[drawableIndex] <= 0) {
+                // クリッピングマスクが使用されていないアートメッシュ（多くの場合使用しない）
                 clippingContextListForDraw.add(null)
                 return@repeat
             }
 
-        }
-        for (i in 0..<drawableCount) {
-            if (drawableMaskCounts!![i] <= 0) {
-                // クリッピングマスクが使用されていないアートメッシュ（多くの場合使用しない）
-                clippingContextListForDraw.add(null)
-                continue
-            }
-
             // 既にあるClipContextと同じかチェックする。
-            val cc = findSameClip(drawableMasks!![i]!!, drawableMaskCounts[i])
-                ?: run {
-                    ACubismClippingContext.createClippingContext(
-                        type,
-                        this,
-                        drawableMasks[i],
-                        drawableMaskCounts[i]
-                    )
-                }
+            val cc =
+                findSameClip(drawableMasks[drawableIndex]!!, drawableMaskCounts[drawableIndex])
+                    ?: run {
+                        CubismClippingContext(
+                            this,
+                            drawableMasks[drawableIndex]!!,
+                            drawableMaskCounts[drawableIndex]
+                        )
+                    }
+
+            clippingContextListForDraw.add(cc)
             clippingContextForMask_2_ClippedDrawableIndexList.getOrPut(cc) {
                 mutableListOf()
-            }.add(i)
-            clippingContextListForDraw.add(cc)
+            }.add(drawableIndex)
         }
     }
 
+    /*
+        TODO::High版本好像有点问题
+     */
     override fun setupMatrixForHighPrecision(model: Model) {
         // 全てのクリッピングを用意する。
         // 同じクリップ（複数の場合はまとめて1つのクリップ）を使う場合は1度だけ設定する。
@@ -95,7 +107,11 @@ abstract class ACubismClippingManager : ICubismClippingManager {
                         clipContext.layoutBounds.width * CLIPPING_MASK_BUFFER_SIZE_X
                     // 绘制区域大于mask的大小的时候 添加边距 ???
                     if (clipContext.allClippedDrawRect.width * model.pixelPerUnit > physicalMaskWidth) {
-                        allClippedDrawRectActually.expand(clipContext.allClippedDrawRect.width * margin, 0.0f)
+                        // 拓展自身的0.05
+                        allClippedDrawRectActually.expand(
+                            clipContext.allClippedDrawRect.width * margin,
+                            0.0f
+                        )
                         scaleX = clipContext.layoutBounds.width / allClippedDrawRectActually.width
                     } else {
                         scaleX = model.pixelPerUnit / physicalMaskWidth
@@ -141,7 +157,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
         layoutBoundsOnTex01: csmRectF,
         scaleX: Float,
         scaleY: Float,
-        allClippedDrawRectActually: csmRectF
+        allClippedDrawRectActually: csmRectF,
     ): CubismMatrix44 {
         // マスク作成用の行列の計算
         return CubismMatrix44.create().apply {
@@ -171,7 +187,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
         layoutBoundsOnTex01: csmRectF,
         scaleX: Float,
         scaleY: Float,
-        allClippedDrawRectActually: csmRectF
+        allClippedDrawRectActually: csmRectF,
     ): CubismMatrix44 {
         return CubismMatrix44.create().apply {
             // 描画用の行列の計算
@@ -188,25 +204,27 @@ abstract class ACubismClippingManager : ICubismClippingManager {
         }
     }
 
+
+    // TODO:: 这玩意似乎只需要执行一次
     fun setupLayoutBounds(usingClipCount: Int) {
         val useClippingMaskMaxCount = if (framebufferCount <= 1)
             CLIPPING_MASK_MAX_COUNT_ON_DEFAULT
         else
             CLIPPING_MASK_MAX_COUNT_ON_MULTI_RENDER_TEXTURE * framebufferCount
 
-        if (usingClipCount <= 0 || usingClipCount > useClippingMaskMaxCount) {
-            if (usingClipCount > useClippingMaskMaxCount) {
-                // マスクの制限数の警告を出す
-                val count = usingClipCount - useClippingMaskMaxCount
-                cubismLogError(
-                    "not supported mask count :$count\n[Details] render texture count: $framebufferCount\n, mask count : $usingClipCount",
-                )
-            }
+        if (usingClipCount !in 0 until useClippingMaskMaxCount) {
+//            if (usingClipCount > useClippingMaskMaxCount) {
+//                // マスクの制限数の警告を出す
+//                val count = usingClipCount - useClippingMaskMaxCount
+//                cubismLogError(
+//                    "not supported mask count :$count\n[Details] render texture count: $framebufferCount\n, mask count : $usingClipCount",
+//                )
+//            }
             // この場合は一つのマスクターゲットを毎回クリアして使用する
-            for (cc in clippingContextForMask_2_ClippedDrawableIndexList.keys) {
+            clippingContextForMask_2_ClippedDrawableIndexList.keys.forEach { cc ->
                 cc.layoutChannelIndex = 0 // どうせ毎回消すので固定で良い
                 cc.layoutBounds = csmRectF()
-                cc.bufferIndex = 0
+//                cc.bufferIndex = 0
             }
             return
         }
@@ -373,7 +391,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
      * @param drawableMaskCounts 描画オブジェクトをマスクする描画オブジェクトの数
      * @return 該当するクリッピングマスクが存在すればインスタンスを返し、なければnullを返す。
      */
-    fun findSameClip(drawableMasks: IntArray, drawableMaskCounts: Int): ACubismClippingContext? {
+    fun findSameClip(drawableMasks: IntArray, drawableMaskCounts: Int): CubismClippingContext? {
         return clippingContextForMask_2_ClippedDrawableIndexList.keys.firstOrNull { clipContext ->
             clipContext.clippingIdCount == drawableMaskCounts
                     && clipContext.clippingIdList.all { clipId ->
@@ -388,7 +406,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
      * @param model           モデルのインスタンス
      * @param clippingContext クリッピングマスクのコンテキスト
      */
-    fun calcClippedDrawTotalBounds(model: Model, clippingContext: ACubismClippingContext) {
+    fun calcClippedDrawTotalBounds(model: Model, clippingContext: CubismClippingContext) {
         // 被クリッピングマスク（マスクされる描画オブジェクト）の全体の矩形
         var clippedDrawTotalMinX = Float.Companion.MAX_VALUE
         var clippedDrawTotalMinY = Float.Companion.MAX_VALUE
@@ -397,7 +415,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
 
         // このマスクが実際に必要か判定する。
         // このクリッピングを利用する「描画オブジェクト」がひとつでも使用可能であればマスクを生成する必要がある。
-        for (drawableIndex in clippingContextForMask_2_ClippedDrawableIndexList[clippingContext]!!) {
+        for (drawableIndex in clippingContext.clippingIdList[clippingContext]!!) {
             // マスクを使用する描画オブジェクトの描画される矩形を求める。
 
             val drawableVertexCount = model.getDrawableVertexCount(drawableIndex)
@@ -462,18 +480,5 @@ abstract class ACubismClippingManager : ICubismClippingManager {
         ),
     )
 
-    val clippingContextForMask_2_ClippedDrawableIndexList = mutableMapOf<ACubismClippingContext, MutableList<Int>>()
 
-    /**
-     * 描画用クリッピングコンテキストのリスト
-     */
-    val clippingContextListForDraw: MutableList<ACubismClippingContext?> =
-        ArrayList<ACubismClippingContext?>()
-
-
-    /**
-     * 生成するレンダーテクスチャの枚数
-     */
-    var framebufferCount: Int = 0
-        protected set
 }

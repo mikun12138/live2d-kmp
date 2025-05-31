@@ -38,8 +38,14 @@ abstract class Live2DRenderer {
     abstract fun saveProfile()
     abstract fun doDrawModel(model: Model)
     abstract fun restoreProfile()
+    abstract fun preDraw()
+    abstract fun drawMesh(model: Model, index: Int)
+
+
 
     abstract var isPremultipliedAlpha: Boolean
+
+
 }
 
 class RendererConfig {

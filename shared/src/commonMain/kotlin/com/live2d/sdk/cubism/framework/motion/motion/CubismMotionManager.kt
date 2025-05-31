@@ -11,7 +11,7 @@ import com.live2d.sdk.cubism.framework.motion.ICubismMotionEventFunction
  * * If another motion do startMotion() during playback, it will smoothly change to the new motion and the old motion will be suspended.
  * * Use multiple CubismMotionManager instances to play multiple motions at the same time, such as when motions for facial expressions and body motions are made separately.
  */
-class CubismMotionManager(
+class CubismMotionManager (
     override val motionEntries: MutableList<MotionQueueEntry> = mutableListOf()
 ) : AMotionManager() {
 

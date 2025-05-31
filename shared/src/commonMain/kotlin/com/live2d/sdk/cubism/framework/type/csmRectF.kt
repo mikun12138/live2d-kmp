@@ -66,10 +66,11 @@ val csmRectF.bottom: Float
  * @param w the amount of scaling into width
  * @param h the amount of scaling into height
  */
-fun csmRectF.expand(w: Float, h: Float) {
+fun csmRectF.expand(w: Float, h: Float): csmRectF {
     x -= w
     y -= h
     width += w * 2.0f
     height += h * 2.0f
+    return this
 }
 

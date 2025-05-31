@@ -47,7 +47,4 @@ class Moc {
         return this
     }
 
-    fun close() {
-        moc.close()
-    }
 }

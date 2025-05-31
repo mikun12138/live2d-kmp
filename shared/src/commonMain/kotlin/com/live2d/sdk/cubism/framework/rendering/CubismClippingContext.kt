@@ -7,14 +7,14 @@
 package com.live2d.sdk.cubism.framework.rendering
 
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import com.live2d.sdk.cubism.framework.rendering.android.CubismClippingContextAndroid
 import com.live2d.sdk.cubism.framework.type.csmRectF
 
 /**
  * クリッピングについての設定を保持するクラス
  * サブクラスに環境依存のフィールドを保持する。
  */
-abstract class ACubismClippingContext(
+
+class CubismClippingContext(
     /**
      * このマスクを管理しているマネージャーのインスタンス
      */
@@ -29,6 +29,8 @@ abstract class ACubismClippingContext(
      */
     val clippingIdCount: Int
 ) {
+    companion object
+
     /**
      * 現在の描画状態でマスクの準備が必要ならtrue
      */
@@ -44,12 +46,12 @@ abstract class ACubismClippingContext(
     /**
      * マスク用チャンネルのどの領域にマスクを入れるか(View座標-1..1, UVは0..1に直す)
      */
-    lateinit var layoutBounds: csmRectF
+    var layoutBounds: csmRectF = csmRectF()
 
     /**
      * このクリッピングで、クリッピングされる全ての描画オブジェクトの囲み矩形（毎回更新）
      */
-    lateinit var allClippedDrawRect: csmRectF
+    var allClippedDrawRect: csmRectF = csmRectF()
 
     /**
      * マスクの位置計算結果を保持する行列
@@ -65,33 +67,4 @@ abstract class ACubismClippingContext(
      */
     var bufferIndex: Int = 0
 
-    companion object {
-        /**
-         * 渡されたレンダラーの種類に基づき、適切なクリッピングコンテキストを生成する。
-         *
-         * @param type                    生成するレンダラーの種類
-         * @param manager                 このクリッピングコンテキストを保持するマネージャーのインスタンス
-         * @param clippingDrawableIndices クリッピングマスクのIDの配列
-         * @param clipCount               クリッピングマスクの数
-         *
-         * @return 生成したクリッピングコンテキストのインスタンス
-         */
-        fun createClippingContext(
-            type: RendererType,
-            manager: ICubismClippingManager?,
-            clippingDrawableIndices: IntArray?,
-            clipCount: Int
-        ): ACubismClippingContext {
-            when (type) {
-                RendererType.ANDROID -> return CubismClippingContextAndroid(
-                    manager,
-                    clippingDrawableIndices,
-                    clipCount
-                )
-
-                RendererType.UNKNOWN -> throw IllegalArgumentException("Failed to create a clipping context. The specified renderer type may be incorrect.")
-                else -> throw IllegalArgumentException("Failed to create a clipping context. The specified renderer type may be incorrect.")
-            }
-        }
-    }
 }

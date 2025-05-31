@@ -9,10 +9,6 @@ package com.live2d.sdk.cubism.framework.rendering
 import com.live2d.sdk.cubism.framework.model.Model
 
 interface ICubismClippingManager {
-    fun initialize(
-        model: Model,
-        maskBufferCount: Int
-    )
 
     /**
      * 高精細マスク処理用の行列を計算する。
