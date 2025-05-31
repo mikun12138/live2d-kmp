@@ -9,7 +9,7 @@ package com.live2d.sdk.cubism.framework.exception
 /**
  * CubismJsonに関連する例外
  */
-class CubismJsonParseException : CubismRuntimeException {
+open class CubismJsonParseException : CubismRuntimeException {
     /**
      * エラーメッセージを持たない例外を構築する
      */

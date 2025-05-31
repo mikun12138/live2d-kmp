@@ -65,7 +65,7 @@ class CubismPhysicsInternal {
         /**
          * Parameter ID
          */
-        var Id: CubismId
+        lateinit var Id: CubismId
 
         /**
          * Type of destination
@@ -305,22 +305,22 @@ class CubismPhysicsInternal {
         /**
          * List of physics point management for physics operation
          */
-        var settings: MutableList<CubismPhysicsSubRig?> = ArrayList<CubismPhysicsSubRig?>()
+        var settings = ArrayList<CubismPhysicsSubRig>()
 
         /**
          * List of inputs for physics operation
          */
-        var inputs: MutableList<CubismPhysicsInput?> = ArrayList<CubismPhysicsInput?>()
+        var inputs: MutableList<CubismPhysicsInput> = ArrayList()
 
         /**
          * List of outputs for physics operation
          */
-        var outputs: MutableList<CubismPhysicsOutput?> = ArrayList<CubismPhysicsOutput?>()
+        var outputs: MutableList<CubismPhysicsOutput> = ArrayList()
 
         /**
          * List of particles for physics operation
          */
-        var particles: MutableList<CubismPhysicsParticle> = ArrayList<CubismPhysicsParticle?>()
+        var particles: MutableList<CubismPhysicsParticle> = ArrayList()
 
         /**
          * Gravity
@@ -366,7 +366,7 @@ class CubismPhysicsInternal {
             normalizationPosition: CubismPhysicsNormalization,
             normalizationAngle: CubismPhysicsNormalization,
             isInverted: Boolean,
-            weight: Float
+            weight: Float,
         )
     }
 
@@ -390,7 +390,7 @@ class CubismPhysicsInternal {
             baseParticleIndex: Int,
             particleIndex: Int,
             isInverted: Boolean,
-            parentGravity: CubismVector2
+            parentGravity: CubismVector2,
         ): Float
     }
 

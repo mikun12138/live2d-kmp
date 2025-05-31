@@ -16,6 +16,7 @@ import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companio
 import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.CLIPPING_MASK_MAX_COUNT_ON_MULTI_RENDER_TEXTURE
 import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.COLOR_CHANNEL_COUNT
 import com.live2d.sdk.cubism.framework.type.csmRectF
+import com.live2d.sdk.cubism.framework.type.expand
 import com.live2d.sdk.cubism.framework.utils.CubismDebug.cubismLogError
 import kotlin.math.max
 import kotlin.math.min
@@ -29,11 +30,12 @@ abstract class ACubismClippingManager : ICubismClippingManager {
 
     val framebufferCount: Int
     val clippingContextListForDraw: MutableList<CubismClippingContext?> = mutableListOf()
+    val clippingContextListForMask: MutableList<CubismClippingContext> = mutableListOf()
     val clippingContextForMask_2_ClippedDrawableIndexList: MutableMap<CubismClippingContext, MutableList<Int>> = mutableMapOf()
 
     val offscreenSurfaces_2_clippingContextForMaskList
             : Array<Pair<ACubismOffscreenSurface, List<CubismClippingContext>>> by lazy {
-        Array<Pair<ACubismOffscreenSurface, List<CubismClippingContext>>>(framebufferCount) { index ->
+        Array(framebufferCount) { index ->
             ACubismOffscreenSurface.create().apply {
                 createOffscreenSurface(
                     CLIPPING_MASK_BUFFER_SIZE_X,
@@ -75,6 +77,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
                     }
 
             clippingContextListForDraw.add(cc)
+            clippingContextListForMask.add(cc)
             clippingContextForMask_2_ClippedDrawableIndexList.getOrPut(cc) {
                 mutableListOf()
             }.add(drawableIndex)
@@ -415,11 +418,11 @@ abstract class ACubismClippingManager : ICubismClippingManager {
 
         // このマスクが実際に必要か判定する。
         // このクリッピングを利用する「描画オブジェクト」がひとつでも使用可能であればマスクを生成する必要がある。
-        for (drawableIndex in clippingContext.clippingIdList[clippingContext]!!) {
+        for (drawableIndex in clippingContextForMask_2_ClippedDrawableIndexList.get(clippingContext)!!) {
             // マスクを使用する描画オブジェクトの描画される矩形を求める。
 
             val drawableVertexCount = model.getDrawableVertexCount(drawableIndex)
-            val drawableVertices = model.getDrawableVertices(drawableIndex)
+            val drawableVertices = model.getDrawableVertexPositions(drawableIndex)
 
             var minX = Float.Companion.MAX_VALUE
             var minY = Float.Companion.MAX_VALUE
@@ -465,7 +468,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
     /**
      * カラーチャンネル(RGBA)のフラグのリスト(0:R, 1:G, 2:B, 3:A)
      */
-    protected val channelColors: List<CubismTextureColor?> = listOf(
+    val channelColors: List<CubismTextureColor> = listOf(
         CubismTextureColor(
             1.0f, 0.0f, 0.0f, 0.0f
         ),

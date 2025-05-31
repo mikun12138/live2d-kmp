@@ -2,7 +2,6 @@ package com.live2d.sdk.cubism.framework.rendering
 
 import org.lwjgl.opengl.GL46.*
 import java.nio.ByteBuffer
-import java.nio.IntBuffer
 
 actual fun ACubismOffscreenSurface.Companion.create(): ACubismOffscreenSurface {
     return CubismOffscreenSurface()
@@ -18,7 +17,7 @@ class CubismOffscreenSurface : ACubismOffscreenSurface() {
         // 存储旧的 fbo
         glGetIntegerv(
             GL_FRAMEBUFFER_BINDING,
-            IntBuffer.wrap(oldFBO)
+            oldFBO
         )
 
         glBindFramebuffer(GL_FRAMEBUFFER, renderTexture!![0])
@@ -108,7 +107,6 @@ class CubismOffscreenSurface : ACubismOffscreenSurface() {
 
     var renderTexture: IntArray? = null
 
-    var colorBuffer: IntArray = IntArray(1)
 
     private var oldFBO: IntArray = IntArray(1)
 

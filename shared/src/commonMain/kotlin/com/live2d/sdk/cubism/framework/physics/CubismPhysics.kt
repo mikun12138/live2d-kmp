@@ -6,12 +6,13 @@
  */
 package com.live2d.sdk.cubism.framework.physics
 
-import com.live2d.sdk.cubism.framework.CubismFramework.idManager
 import com.live2d.sdk.cubism.framework.math.CubismMath
 import com.live2d.sdk.cubism.framework.math.CubismVector2
 import com.live2d.sdk.cubism.framework.model.Model
 import com.live2d.sdk.cubism.framework.data.PhysicsJson
+import com.live2d.sdk.cubism.framework.id.CubismIdManager
 import kotlinx.serialization.json.Json
+import kotlin.math.pow
 
 /**
  * Physics operation class.
@@ -100,7 +101,7 @@ class CubismPhysics {
             // Load input parameters.
             i = 0
             while (i < currentSetting.inputCount) {
-                val currentInput: CubismPhysicsInput = physicsRig.inputs.get(baseInputIndex + i)
+                val currentInput: CubismPhysicsInternal.CubismPhysicsInput = physicsRig.inputs.get(baseInputIndex + i)
 
                 weight = currentInput.weight / MAXIMUM_WEIGHT
 
@@ -109,7 +110,7 @@ class CubismPhysics {
                         model.getParameterIndex(currentInput.source.Id)
                 }
 
-                currentInput.getNormalizedParameterValue.getNormalizedParameterValue(
+                currentInput.getNormalizedParameterValue!!.getNormalizedParameterValue(
                     totalTranslation,
                     totalAngle,
                     parameterValues[currentInput.sourceParameterIndex],
@@ -152,7 +153,7 @@ class CubismPhysics {
             // Update output parameters.
             i = 0
             while (i < currentSetting.outputCount) {
-                val currentOutput: CubismPhysicsOutput = physicsRig.outputs.get(baseOutputIndex + i)
+                val currentOutput: CubismPhysicsInternal.CubismPhysicsOutput = physicsRig.outputs.get(baseOutputIndex + i)
 
                 particleIndex = currentOutput.vertexIndex
 
@@ -173,7 +174,7 @@ class CubismPhysics {
                     translation
                 )
 
-                outputValue = currentOutput.getValue.getValue(
+                outputValue = currentOutput.getValue!!.getValue(
                     translation,
                     physicsRig.particles,
                     physicsRig.settings.get(i).baseParticleIndex,
@@ -349,7 +350,7 @@ class CubismPhysics {
                             model.getParameterIndex(currentInput.source.Id)
                     }
 
-                    currentInput.getNormalizedParameterValue.getNormalizedParameterValue(
+                    currentInput.getNormalizedParameterValue!!.getNormalizedParameterValue(
                         totalTranslation,
                         totalAngle,
                         parameterCaches[currentInput.sourceParameterIndex],
@@ -411,7 +412,7 @@ class CubismPhysics {
                         translation
                     )
 
-                    outputValue = currentOutput.getValue.getValue(
+                    outputValue = currentOutput.getValue!!.getValue(
                         translation,
                         particles,
                         baseParticleIndex,
@@ -585,21 +586,21 @@ class CubismPhysics {
             if (tag == PhysicsTypeTag.X.tag) {
                 input.type = CubismPhysicsInternal.CubismPhysicsSource.X
                 input.getNormalizedParameterValue =
-                    GetInputTranslationXFromNormalizedParameterValue()
+                    CubismPhysicsFunctions.GetInputTranslationXFromNormalizedParameterValue()
             } else if (tag == PhysicsTypeTag.Y.tag) {
                 input.type = CubismPhysicsInternal.CubismPhysicsSource.Y
                 input.getNormalizedParameterValue =
-                    GetInputTranslationYFromNormalizedParameterValue()
+                    CubismPhysicsFunctions.GetInputTranslationYFromNormalizedParameterValue()
             } else if (tag == PhysicsTypeTag.ANGLE.tag) {
                 input.type = CubismPhysicsInternal.CubismPhysicsSource.ANGLE
                 input.getNormalizedParameterValue =
-                    GetInputAngleFromNormalizedParameterValue()
+                    CubismPhysicsFunctions.GetInputAngleFromNormalizedParameterValue()
             }
 
             input.source.targetType = CubismPhysicsInternal.CubismPhysicsTargetType.PARAMETER
 
             input.source.Id =
-                idManager.id(json.physicsSettings[settingIndex].input[inputIndex].source.id)
+                CubismIdManager.id(json.physicsSettings[settingIndex].input[inputIndex].source.id)
 
             physicsRig.inputs.add(input)
         }
@@ -620,23 +621,23 @@ class CubismPhysics {
             output.weight = json.physicsSettings[settingIndex].output[outputIndex].weight
             output.destination.targetType = CubismPhysicsInternal.CubismPhysicsTargetType.PARAMETER
 
-            output.destination.Id = idManager.id(
+            output.destination.Id = CubismIdManager.id(
                 json.physicsSettings[settingIndex].output[outputIndex].destination.id
             )
 
             val tag: String = json.physicsSettings[settingIndex].output[outputIndex].type
             if (tag == PhysicsTypeTag.X.tag) {
                 output.type = CubismPhysicsInternal.CubismPhysicsSource.X
-                output.getValue = GetOutputTranslationX()
-                output.getScale = GetOutputScaleTranslationX()
+                output.getValue = CubismPhysicsFunctions.GetOutputTranslationX()
+                output.getScale = CubismPhysicsFunctions.GetOutputScaleTranslationX()
             } else if (tag == PhysicsTypeTag.Y.tag) {
                 output.type = CubismPhysicsInternal.CubismPhysicsSource.Y
-                output.getValue = GetOutputTranslationY()
-                output.getScale = GetOutputScaleTranslationY()
+                output.getValue = CubismPhysicsFunctions.GetOutputTranslationY()
+                output.getScale = CubismPhysicsFunctions.GetOutputScaleTranslationY()
             } else if (tag == PhysicsTypeTag.ANGLE.tag) {
                 output.type = CubismPhysicsInternal.CubismPhysicsSource.ANGLE
-                output.getValue = GetOutputAngle()
-                output.getScale = GetOutputScaleAngle()
+                output.getValue = CubismPhysicsFunctions.GetOutputAngle()
+                output.getScale = CubismPhysicsFunctions.GetOutputScaleAngle()
             }
 
             output.reflect = json.physicsSettings[settingIndex].output[outputIndex].reflect
@@ -668,10 +669,10 @@ class CubismPhysics {
      */
     private fun initialize() {
         for (settingIndex in 0..<physicsRig.subRigCount) {
-            val currentSetting: CubismPhysicsSubRig = physicsRig.settings.get(settingIndex)
+            val currentSetting: CubismPhysicsInternal.CubismPhysicsSubRig = physicsRig.settings.get(settingIndex)
 
             val baseIndex: Int = currentSetting.baseParticleIndex
-            val baseParticle: CubismPhysicsParticle = physicsRig.particles.get(baseIndex)
+            val baseParticle: CubismPhysicsInternal.CubismPhysicsParticle = physicsRig.particles.get(baseIndex)
 
             // Initialize the top of particle
             baseParticle.initialPosition = CubismVector2()
@@ -682,7 +683,7 @@ class CubismPhysics {
 
             // Initialize particles
             for (i in 1..<currentSetting.particleCount) {
-                val currentParticle: CubismPhysicsParticle = physicsRig.particles.get(baseIndex + i)
+                val currentParticle: CubismPhysicsInternal.CubismPhysicsParticle = physicsRig.particles.get(baseIndex + i)
 
                 val radius: CubismVector2 = CubismVector2(0.0f, currentParticle.radius)
 
@@ -708,8 +709,8 @@ class CubismPhysics {
      */
     private fun interpolate(model: Model, weight: Float) {
         for (settingIndex in 0..<physicsRig.subRigCount) {
-            val currentSetting: CubismPhysicsSubRig = physicsRig.settings.get(settingIndex)
-            val outputs: MutableList<CubismPhysicsOutput> = physicsRig.outputs
+            val currentSetting: CubismPhysicsInternal.CubismPhysicsSubRig = physicsRig.settings.get(settingIndex)
+            val outputs: MutableList<CubismPhysicsInternal.CubismPhysicsOutput> = physicsRig.outputs
             val baseOutputIndex: Int = currentSetting.baseOutputIndex
 
             val parameterValues = model.model.parameters.values
@@ -719,7 +720,7 @@ class CubismPhysics {
             tmpValue[0] = 0.0f
 
             for (i in 0..<currentSetting.outputCount) {
-                val currentOutput: CubismPhysicsOutput = outputs.get(baseOutputIndex + i)
+                val currentOutput: CubismPhysicsInternal.CubismPhysicsOutput = outputs.get(baseOutputIndex + i)
 
                 if (currentOutput.destinationParameterIndex === -1) {
                     continue
@@ -757,15 +758,15 @@ class CubismPhysics {
      */
     private fun loadInputParameters(
         model: Model,
-        transition: CubismVector2?,
+        transition: CubismVector2,
         settingIndex: Int
     ): Float {
-        val currentSetting: CubismPhysicsSubRig = physicsRig.settings.get(settingIndex)
+        val currentSetting: CubismPhysicsInternal.CubismPhysicsSubRig = physicsRig.settings.get(settingIndex)
 
         val totalAngle = FloatArray(1)
 
         for (i in 0..<currentSetting.inputCount) {
-            val currentInput: CubismPhysicsInput =
+            val currentInput: CubismPhysicsInternal.CubismPhysicsInput =
                 physicsRig.inputs.get(currentSetting.baseInputIndex + i)
             val weight: Float = currentInput.weight / MAXIMUM_WEIGHT
 
@@ -781,7 +782,7 @@ class CubismPhysics {
             val parameterDefaultValue: Float =
                 model.getParameterDefaultValue(currentInput.sourceParameterIndex)
 
-            currentInput.getNormalizedParameterValue.getNormalizedParameterValue(
+            currentInput.getNormalizedParameterValue!!.getNormalizedParameterValue(
                 transition,
                 totalAngle,
                 parameterValue,
@@ -801,7 +802,7 @@ class CubismPhysics {
     /**
      * Physics operation data
      */
-    private var physicsRig: CubismPhysicsInternal.CubismPhysicsRig? = null
+    private lateinit var physicsRig: CubismPhysicsInternal.CubismPhysicsRig
 
     /**
      * Options of physics operation
@@ -848,12 +849,12 @@ class CubismPhysics {
          * @param airResistance Air resistance
          */
         private fun updateParticles(
-            strand: MutableList<CubismPhysicsParticle>,
+            strand: MutableList<CubismPhysicsInternal.CubismPhysicsParticle>,
             baseParticleIndex: Int,
             strandCount: Int,
             totalTranslation: CubismVector2,
             totalAngle: Float,
-            windDirection: CubismVector2?,
+            windDirection: CubismVector2,
             thresholdValue: Float,
             deltaTimeSeconds: Float,
             airResistance: Float
@@ -868,8 +869,8 @@ class CubismPhysics {
             CubismMath.radianToDirection(totalRadian, currentGravity).normalize()
 
             for (i in 1..<strandCount) {
-                val currentParticle: CubismPhysicsParticle = strand.get(baseParticleIndex + i)
-                val previousParticle: CubismPhysicsParticle = strand.get(baseParticleIndex + i - 1)
+                val currentParticle: CubismPhysicsInternal.CubismPhysicsParticle = strand.get(baseParticleIndex + i)
+                val previousParticle: CubismPhysicsInternal.CubismPhysicsParticle = strand.get(baseParticleIndex + i - 1)
 
                 currentParticle.lastPosition.set(
                     currentParticle.position.x,
@@ -956,12 +957,12 @@ class CubismPhysics {
         private val currentGravity: CubismVector2 = CubismVector2()
 
         private fun updateParticlesForStabilization(
-            strand: MutableList<CubismPhysicsParticle>,
+            strand: MutableList<CubismPhysicsInternal.CubismPhysicsParticle>,
             baseParticleIndex: Int,
             strandCount: Int,
             totalTranslation: CubismVector2,
             totalAngle: Float,
-            windDirection: CubismVector2?,
+            windDirection: CubismVector2,
             thresholdValue: Float
         ) {
             var i: Int
@@ -974,7 +975,7 @@ class CubismPhysics {
 
             i = 1
             while (i < strandCount) {
-                val particle: CubismPhysicsParticle = strand.get(baseParticleIndex + i)
+                val particle: CubismPhysicsInternal.CubismPhysicsParticle = strand.get(baseParticleIndex + i)
                 CubismVector2.multiply(
                     currentGravityForStablization,
                     particle.acceleration,
@@ -1017,13 +1018,13 @@ class CubismPhysics {
             parameterValueMinimum: Float,
             parameterValueMaximum: Float,
             translation: Float,
-            output: CubismPhysicsOutput
+            output: CubismPhysicsInternal.CubismPhysicsOutput
         ) {
             val outputScale: Float
             var value: Float
             val weight: Float
 
-            outputScale = output.getScale.getScale(
+            outputScale = output.getScale!!.getScale(
                 output.transitionScale,
                 output.angleScale
             )

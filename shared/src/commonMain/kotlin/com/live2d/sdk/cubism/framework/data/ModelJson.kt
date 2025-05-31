@@ -27,7 +27,7 @@ data class ModelJson(
         @SerialName("DisplayInfo")
         val displayInfo: String,
         @SerialName("Expressions")
-        val expressions: List<Expression>,
+        val expressions: List<Expression> = emptyList(),
         @SerialName("Motions")
         val motionGroups: Map<String, List<MotionGroup.Motion>>,
         @SerialName("UserData")

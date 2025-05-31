@@ -178,7 +178,7 @@ abstract class CubismUserModel protected constructor() {
     /**
      * A model matrix
      */
-    protected var modelMatrix: CubismModelMatrix? = null
+    var modelMatrix: CubismModelMatrix? = null
 
     /*
         System

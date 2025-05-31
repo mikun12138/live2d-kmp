@@ -20,6 +20,8 @@ abstract class ACubismOffscreenSurface {
         clippingMaskBufferSizeY: Float,
     )
 
+    var colorBuffer: IntArray = IntArray(1)
+
     companion object
 
 }

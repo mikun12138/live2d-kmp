@@ -6,7 +6,6 @@
  */
 package com.live2d.sdk.cubism.framework.effect
 
-import com.live2d.sdk.cubism.framework.CubismFramework.idManager
 import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.model.Model
 import com.live2d.sdk.cubism.framework.data.ModelJson

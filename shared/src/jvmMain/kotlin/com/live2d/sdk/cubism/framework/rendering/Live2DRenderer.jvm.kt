@@ -8,12 +8,13 @@ import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 import kotlin.math.max
 
-actual fun <T : Live2DRenderer> Live2DRenderer.create(creation: () -> T): T {
 
+actual fun Live2DRenderer.Companion.create(): Live2DRenderer {
+    return Live2DRendererImpl()
 }
 
 class ModelMesh {
-    val vaoArray: IntArray
+//    val vaoArray: IntArray
     private val vertexArrayCaches: Array<FloatBuffer>
 
     private val uvArrayCaches: Array<FloatBuffer>
@@ -23,7 +24,7 @@ class ModelMesh {
     constructor(model: Model) {
         val drawableCount: Int = model.drawableCount
 
-        vaoArray = IntArray(drawableCount)
+//        vaoArray = IntArray(drawableCount)
         vertexArrayCaches = Array<FloatBuffer>(drawableCount) { drawableIndex ->
             val positions = model.model.drawableViews[drawableIndex].vertexPositions!!
 
@@ -52,8 +53,8 @@ class ModelMesh {
 
         var vbo: Int
         repeat(drawableCount) { drawableIndex ->
-            vaoArray[drawableIndex] = glGenVertexArrays()
-            glBindVertexArray(vaoArray[drawableIndex])
+//            vaoArray[drawableIndex] = glGenVertexArrays()
+//            glBindVertexArray(vaoArray[drawableIndex])
 
             run {
                 vbo = glGenBuffers()
@@ -65,7 +66,6 @@ class ModelMesh {
                     (positions.size * Float.SIZE_BYTES).toLong(),
                     GL_DYNAMIC_DRAW
                 )
-                glBindBuffer(GL_ARRAY_BUFFER, 0)
             }
 
             run {
@@ -78,7 +78,6 @@ class ModelMesh {
                     (uvs.size * Float.SIZE_BYTES).toLong(),
                     GL_DYNAMIC_DRAW
                 )
-                glBindBuffer(GL_ARRAY_BUFFER, 0)
             }
 
             run {
@@ -91,10 +90,9 @@ class ModelMesh {
                     (indices.size * Short.SIZE_BYTES).toLong(),
                     GL_STATIC_DRAW
                 )
-                glBindBuffer(GL_ARRAY_BUFFER, GL_ELEMENT_ARRAY_BUFFER)
             }
 
-            glBindVertexArray(0)
+//            glBindVertexArray(0)
         }
     }
 
@@ -124,6 +122,8 @@ class ModelMesh {
 class Live2DRendererImpl : Live2DRenderer() {
     lateinit var modelMesh: ModelMesh
 
+    lateinit var clippingManager: CubismClippingManager
+
     override fun initialize(
         model: Model,
         maskBufferCount: Int,
@@ -132,7 +132,8 @@ class Live2DRendererImpl : Live2DRenderer() {
         // 頂点情報をキャッシュする。
         modelMesh = ModelMesh(model)
 
-        if (model.isUsingMasking()) {
+//        if (model.isUsingMasking()) {
+        if (true) {
 
             // Initialize clipping mask and buffer preprocessing method
             clippingManager = CubismClippingManager(
@@ -140,20 +141,18 @@ class Live2DRendererImpl : Live2DRenderer() {
                 max(maskBufferCount, 1)
             )
         }
-
-        val sortedDrawableIndexList = IntArray(model.drawableCount)
     }
 
     override fun saveProfile() {
         Live2DRendererProfile.save()
     }
 
-    lateinit var clippingManager: CubismClippingManager
 
     override fun doDrawModel(model: Model) {
 
         // In the case of clipping mask and buffer preprocessing method
-        if (model.isUsingMasking()) {
+//        if (model.isUsingMasking()) {
+        if (true) {
             preDraw()
 //
 //            // If offscreen frame buffer size is different from clipping mask buffer size, recreate it.
@@ -183,6 +182,91 @@ class Live2DRendererImpl : Live2DRenderer() {
 
         // preDraw() method is called twice.
         preDraw()
+        run {
+
+            val drawableCount: Int = model.drawableCount
+            val renderOrder: IntArray = model.model.drawables.renderOrders
+
+
+            // Sort the index by drawing order
+            val sortedDrawableIndexList = IntArray(drawableCount)
+            for (i in 0..<drawableCount) {
+                val order = renderOrder[i]
+                sortedDrawableIndexList[order] = i
+            }
+
+            for (drawableIndex in sortedDrawableIndexList) {
+
+                // If Drawable is not in the display state, the process is passed.
+                if (!model.getDrawableDynamicFlagIsVisible(drawableIndex)) {
+                    continue
+                }
+
+                /*            // マスクを描く必要がある
+                            if (clipContext != null && isUsingHighPrecisionMask()) {
+                                // 描くことになっていた
+                                if (clipContext.isUsing) {
+                                    // 生成したOffscreenSurfaceと同じサイズでビューポートを設定
+                                    GLES20.glViewport(
+                                        0,
+                                        0,
+                                        clippingManager.getClippingMaskBufferSize().x as Int,
+                                        clippingManager.getClippingMaskBufferSize().y as Int
+                                    )
+
+                                    // バッファをクリアする
+                                    preDraw()
+
+                                    // マスク描画処理
+                                    // マスク用RenderTextureをactiveにセット
+                                    getMaskBuffer(clipContext.bufferIndex).beginDraw(rendererProfile.lastFBO)
+
+                                    // マスクをクリアする。
+                                    // 1が無効（描かれない領域）、0が有効（描かれる）領域。（シェーダーでCd*Csで0に近い値をかけてマスクを作る。1をかけると何も起こらない。）
+                                    GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f)
+                                    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
+                                }
+
+                                val clipDrawCount: Int = clipContext.clippingIdCount
+                                for (index in 0..<clipDrawCount) {
+                                    val clipDrawIndex: Int = clipContext.clippingIdList[index]!!
+
+                                    // 頂点情報が更新されておらず、信頼性がない場合は描画をパスする
+                                    if (!getModel().getDrawableDynamicFlagVertexPositionsDidChange(clipDrawIndex)) {
+                                        continue
+                                    }
+
+                                    isCulling(getModel().getDrawableCulling(clipDrawIndex))
+
+                                    // 今回専用の変換を適用して描く
+                                    // チャンネルも切り替える必要がある（A,R,G,B）
+                                    setClippingContextBufferForMask(clipContext)
+
+                                    drawMeshAndroid(model, clipDrawIndex)
+                                }
+                                // --- 後処理 ---
+                                for (j in 0..<clippingManager.getRenderTextureCount()) {
+                                    offscreenSurfaces[j].endDraw()
+                                    setClippingContextBufferForMask(null)
+                                    GLES20.glViewport(
+                                        rendererProfile.lastViewport[0],
+                                        rendererProfile.lastViewport[1],
+                                        rendererProfile.lastViewport[2],
+                                        rendererProfile.lastViewport[3]
+                                    )
+                                }
+                            }*/
+
+                val clipContext = clippingManager.clippingContextListForDraw[drawableIndex]
+
+                // クリッピングマスクをセットする
+                clippingContextBufferForDraw = clipContext
+
+                drawMesh(model, drawableIndex)
+            }
+        }
+        postDraw()
+
     }
 
     /**
@@ -214,6 +298,10 @@ class Live2DRendererImpl : Live2DRenderer() {
 //        }
     }
 
+    fun postDraw() {
+
+    }
+
     override fun drawMesh(
         model: Model,
         index: Int,
@@ -226,7 +314,7 @@ class Live2DRendererImpl : Live2DRenderer() {
 //        }
 
         // Enabling/disabling culling
-        if (model.getDrawableCulling(index)) {
+        if (!model.getDrawableIsDoubleSided(index)) {
             glEnable(GL_CULL_FACE)
         } else {
             glDisable(GL_CULL_FACE)
@@ -236,33 +324,38 @@ class Live2DRendererImpl : Live2DRenderer() {
         glFrontFace(GL_CCW)
 
         // マスク生成時
-        if (isGeneratingMask()) {
-            CubismShaderAndroid.getInstance().setupShaderProgramForMask(this, model, index)
+        if (clippingContextBufferForMask != null) {
+            Live2DShader.setupShaderProgramForMask(this, model, index)
         } else {
-            CubismShaderAndroid.getInstance().setupShaderProgramForDraw(this, model, index)
+            Live2DShader.setupShaderProgramForDraw(this, model, index)
         }
 
 
         // Draw the prygon mesh
         val indexCount: Int = model.model.drawableViews[index].indices!!.size
-//        val indexArrayBuffer: ShortBuffer? = drawableInfoCachesHolder.setUpIndexArray(
-//            index,
-//            model.getDrawableVertexIndices(index)
+        val indexArrayBuffer: ShortBuffer = modelMesh.updateIndices(
+            index,
+            model.getDrawableIndices(index)!!
+        )
+//        glBindVertexArray(modelMesh.vaoArray[index])
+
+//        glDrawElements(
+//            GL_TRIANGLES,
+//            indexCount,
+//            GL_UNSIGNED_INT,
+//            0
 //        )
-        glBindVertexArray(modelMesh.vaoArray[index])
 
         glDrawElements(
             GL_TRIANGLES,
-            indexCount,
-            GL_UNSIGNED_SHORT,
-            0
+            indexArrayBuffer
         )
-        glBindVertexArray(0)
+//        glBindVertexArray(0)
 
         // post-processing
         glUseProgram(0)
-        setClippingContextBufferForDraw(null)
-        setClippingContextBufferForMask(null)
+        clippingContextBufferForDraw = null
+        clippingContextBufferForMask = null
     }
 
 
@@ -270,6 +363,6 @@ class Live2DRendererImpl : Live2DRenderer() {
         Live2DRendererProfile.restore()
     }
 
-    override var isPremultipliedAlpha: Boolean
+    override var isPremultipliedAlpha: Boolean = false
 
 }

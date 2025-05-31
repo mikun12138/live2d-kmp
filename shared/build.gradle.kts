@@ -47,6 +47,8 @@ kotlin {
         }
 
         val lwjglVersion = "3.3.6"
+        val lwjglNatives = "natives-windows"
+
         jvmMain.dependencies {
             implementation(project.dependencies.platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
 
@@ -54,6 +56,12 @@ kotlin {
             implementation("org.lwjgl:lwjgl-glfw:${lwjglVersion}")
             implementation("org.lwjgl:lwjgl-opengl:${lwjglVersion}")
             implementation("org.lwjgl:lwjgl-stb:${lwjglVersion}")
+
+            // 添加对应平台的原生库（根据你的操作系统选择）
+            runtimeOnly("org.lwjgl:lwjgl::$lwjglNatives")
+            runtimeOnly("org.lwjgl:lwjgl-glfw::$lwjglNatives")
+            runtimeOnly("org.lwjgl:lwjgl-opengl::$lwjglNatives")
+            runtimeOnly("org.lwjgl:lwjgl-stb::$lwjglNatives")
         }
     }
 

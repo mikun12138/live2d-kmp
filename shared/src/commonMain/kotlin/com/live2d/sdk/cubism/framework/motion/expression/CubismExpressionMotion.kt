@@ -6,10 +6,10 @@
  */
 package com.live2d.sdk.cubism.framework.motion.expression
 
-import com.live2d.sdk.cubism.framework.CubismFramework.idManager
 import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.motion.ACubismMotion
 import com.live2d.sdk.cubism.framework.data.ExpressionJson
+import com.live2d.sdk.cubism.framework.id.CubismIdManager
 import kotlinx.serialization.json.Json
 
 /**
@@ -35,7 +35,7 @@ class CubismExpressionMotion : ACubismMotion {
                 // Create a configuration object and add it to the list.
                 this.parameters.add(
                     ExpressionParameter(
-                        parameterId = idManager.id(
+                        parameterId = CubismIdManager.id(
                             param.id
                         ),
                         blendType = when (param.blend) {

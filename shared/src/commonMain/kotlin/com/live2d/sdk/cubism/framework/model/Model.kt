@@ -6,8 +6,8 @@
  */
 package com.live2d.sdk.cubism.framework.model
 
-import com.live2d.sdk.cubism.core.CubismDrawableFlag
 import com.live2d.sdk.cubism.core.CubismDrawableFlag.ConstantFlag
+import com.live2d.sdk.cubism.core.CubismDrawableFlag.DynamicFlag
 import com.live2d.sdk.cubism.core.CubismDrawableView
 import com.live2d.sdk.cubism.core.CubismModel
 import com.live2d.sdk.cubism.core.CubismParameterView
@@ -120,20 +120,21 @@ class Model {
         }
 
 
+    private val modelColor = CubismTextureColor()
+
     fun getModelColorWithOpacity(opacity: Float): CubismTextureColor {
-        return CubismTextureColor().apply {
-            this.r = modelColor.r
-            this.g = modelColor.g
-            this.b = modelColor.b
-            this.a = modelColor.a
+        return CubismTextureColor(
+            modelColor.r,
+            modelColor.g,
+            modelColor.b,
+            modelColor.a * opacity,
+        ).apply {
 
-            this.a *= opacity
-
-            if (this@CubismRenderer.isPremultipliedAlpha) {
-                this.r *= this.a
-                this.g *= this.a
-                this.b *= this.a
-            }
+//            if (this@CubismRenderer.isPremultipliedAlpha) {
+//                this.r *= this.a
+//                this.g *= this.a
+//                this.b *= this.a
+//            }
         }
     }
 
@@ -187,7 +188,7 @@ class Model {
         // Detect whether partIndex is not out of bounds index
         assert(0 <= partIndex && partIndex < this.partCount)
 
-        partViews[partIndex].opacity = opacity
+        model.partViews[partIndex].opacity = opacity
     }
 
     fun getPartOpacity(partId: CubismId): Float {
@@ -212,7 +213,7 @@ class Model {
         // Detect whether partIndex is not out of bounds index
         assert(0 <= partIndex && partIndex < this.partCount)
 
-        return partViews[partIndex].opacity
+        return model.partViews[partIndex].opacity
     }
 
     /* ---------- *
@@ -220,7 +221,7 @@ class Model {
      * ---------- */
 
     fun getParameterIndex(parameterId: CubismId): Int {
-        val parameterView: CubismParameterView? = model.findParameterView(parameterId.string)
+        val parameterView: CubismParameterView? = model.findParameterView(parameterId.value)
         if (parameterView != null) {
             return parameterView.index
         }
@@ -232,7 +233,7 @@ class Model {
         }
 
         // If the parameter does not exist in the non-existent parameter ID list, add newly the element.
-        val parameterIndex = parameterViews.size + notExistParameterIds.size
+        val parameterIndex = model.parameterViews.size + notExistParameterIds.size
         notExistParameterIds.put(parameterId, parameterIndex)
         notExistParameterIndices.add(parameterIndex)
 
@@ -246,8 +247,37 @@ class Model {
     }
 
     val parameterCount: Int
-        get() = parameterViews.size
+        get() = model.parameterViews.size
 
+    /**
+     * Get the maximum value of parameters.
+     *
+     * @param parameterIndex parameter index
+     * @return the maximum value of parameter
+     */
+    fun getParameterMaximumValue(parameterIndex: Int): Float {
+        return model.parameterViews[parameterIndex].maximumValue
+    }
+
+    /**
+     * Get the minimum value of parameters.
+     *
+     * @param parameterIndex parameter index
+     * @return the minimum value of parameter
+     */
+    fun getParameterMinimumValue(parameterIndex: Int): Float {
+        return model.parameterViews[parameterIndex].minimumValue
+    }
+
+    /**
+     * Get the default value of parameters.
+     *
+     * @param parameterIndex parameter index
+     * @return the default value of parameter
+     */
+    fun getParameterDefaultValue(parameterIndex: Int): Float {
+        return model.parameterViews[parameterIndex].defaultValue
+    }
     fun getParameterValue(parameterId: CubismId): Float {
         // Speeding up the process, this can get partIndex. However, it is not necessary when setting externally because it is not frequently called.
         val parameterIndex = getParameterIndex(parameterId)
@@ -264,7 +294,7 @@ class Model {
         // Detect whether partIndex is not out of bounds index
         assert(0 <= parameterIndex && parameterIndex < this.parameterCount)
 
-        return parameterViews[parameterIndex].value
+        return model.parameterViews[parameterIndex].value
     }
 
     fun setParameterValue(parameterId: CubismId, value: Float, weight: Float = 1.0f) {
@@ -289,7 +319,7 @@ class Model {
         // Detect whether partIndex is not out of bounds index
         assert(0 <= parameterIndex && parameterIndex < this.parameterCount)
 
-        val parameter: CubismParameterView = parameterViews[parameterIndex]
+        val parameter: CubismParameterView = model.parameterViews[parameterIndex]
         if (parameter.maximumValue < value) {
             value = parameter.maximumValue
         } else if (parameter.minimumValue > value) {
@@ -340,7 +370,7 @@ class Model {
         get() = model.drawableViews.size
 
     fun getDrawableIndex(drawableId: CubismId): Int {
-        val drawableIndex: CubismDrawableView? = model.findDrawableView(drawableId.string)
+        val drawableIndex: CubismDrawableView? = model.findDrawableView(drawableId.value)
         if (drawableIndex != null) {
             return drawableIndex.index
         }
@@ -348,9 +378,12 @@ class Model {
         return -1
     }
 
-    fun getDrawableConstantFlag(
+    /*
+        Drawable - ConstantFlag
+     */
+    private fun getDrawableConstantFlag(
         drawableIndex: Int,
-        flag: CubismDrawableFlag.ConstantFlag,
+        flag: ConstantFlag,
     ): Boolean {
         val constantFlag: Byte = model.drawableViews[drawableIndex].constantFlag
         return isBitSet(constantFlag, flag.value)
@@ -367,10 +400,33 @@ class Model {
                 CubismBlendMode.NORMAL
     }
 
-    fun getDrawableDynamicFlag(drawableIndex: Int, flag: CubismDrawableFlag.DynamicFlag): Boolean {
+    fun getDrawableIsDoubleSided(drawableIndex: Int): Boolean {
+        return getDrawableConstantFlag(drawableIndex, ConstantFlag.IS_DOUBLE_SIDED)
+    }
+
+    fun getDrawableInvertedMask(drawableIndex: Int): Boolean {
+        val constantFlag = model.drawableViews[drawableIndex].constantFlag
+
+        return isBitSet(constantFlag, ConstantFlag.IS_INVERTED_MASK.value)
+    }
+
+    /*
+1        Drawable - DynamicFlag
+     */
+
+    private fun getDrawableDynamicFlag(drawableIndex: Int, flag: DynamicFlag): Boolean {
         val dynamicFlag: Byte = model.drawableViews[drawableIndex].dynamicFlag
         return isBitSet(dynamicFlag, flag.value)
     }
+
+    fun getDrawableDynamicFlagIsVisible(drawableIndex: Int): Boolean {
+        return getDrawableDynamicFlag(drawableIndex, DynamicFlag.IS_VISIBLE)
+    }
+
+    fun getDrawableDynamicFlagVertexPositionsDidChange(drawableIndex: Int): Boolean {
+        return getDrawableDynamicFlag(drawableIndex, DynamicFlag.VISIBILITY_DID_CHANGE)
+    }
+
 
     fun getDrawableTextureIndex(drawableIndex: Int): Int {
         return model.drawableViews[drawableIndex].textureIndex
@@ -472,7 +528,8 @@ class Model {
      */
     private var savedParameters = FloatArray(1)
 
-//    var modelOpacity: Float = 1.0f
+    // 不知道干什么的
+    var modelOpacity: Float = 1.0f
 
     private lateinit var userDrawableMultiplyColors: List<DrawableColorData>
     private lateinit var userDrawableScreenColors: List<DrawableColorData>

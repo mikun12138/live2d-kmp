@@ -85,18 +85,18 @@ class CubismClippingManager(
                             ).tr
                         )
                     }
-                    clippingContextForMask_2_ClippedDrawableIndexList.get(clipContext)!!.forEach {
+                    clippingContextForMask_2_ClippedDrawableIndexList.get(clipContext)!!.forEach { clipDrawIndex ->
                         // If vertex information is not updated and reliable, pass drawing.
                         if (!model.getDrawableDynamicFlagVertexPositionsDidChange(clipDrawIndex)) {
-                            continue
+                            return@forEach
                         }
 
                         // Apply this special transformation to draw it.
                         // Switching channel is also needed.(A,R,G,B)
-                        renderer.setClippingContextBufferForMask(clipContext)
+                        renderer.clippingContextBufferForMask = clipContext
 
 
-                        renderer.drawMeshAndroid(
+                        renderer.drawMesh(
                             model,
                             clipDrawIndex
                         )
@@ -110,7 +110,7 @@ class CubismClippingManager(
 
         // --- Post Processing ---
         // Return the drawing target
-        renderer.setClippingContextBufferForMask(null)
+        renderer.clippingContextBufferForMask = null
         glViewport(lastViewport[0], lastViewport[1], lastViewport[2], lastViewport[3])
 
 

@@ -6,11 +6,10 @@
  */
 package com.live2d.sdk.cubism.framework.rendering
 
+import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.Model
-import kotlin.Boolean
-import kotlin.Int
 
-expect fun <T : Live2DRenderer> Live2DRenderer.create(creation: () -> T): T
+expect fun Live2DRenderer.Companion.create(): Live2DRenderer
 
 abstract class Live2DRenderer {
 
@@ -41,10 +40,19 @@ abstract class Live2DRenderer {
     abstract fun preDraw()
     abstract fun drawMesh(model: Model, index: Int)
 
+    val textures = mutableListOf<Int>()
 
+    val mvpMatrix: CubismMatrix44 = CubismMatrix44.create().apply {
+        loadIdentity()
+    }
+
+    var clippingContextBufferForMask: CubismClippingContext? = null
+
+    var clippingContextBufferForDraw: CubismClippingContext? = null
 
     abstract var isPremultipliedAlpha: Boolean
 
+    companion object
 
 }
 

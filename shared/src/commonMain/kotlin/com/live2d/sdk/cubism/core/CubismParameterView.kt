@@ -5,7 +5,6 @@ import com.live2d.sdk.cubism.core.CubismParameters.ParameterType
 class CubismParameterView internal constructor(index: Int, parameters: CubismParameters) {
     val index: Int
     private var parameters: CubismParameters
-        get() = parameters
 
     init {
         check(index >= 0)

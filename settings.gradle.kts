@@ -16,3 +16,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Live2D"
 include(":shared")
+include(":sandbox")

@@ -18,6 +18,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
 abstract class AAppModel : CubismUserModel() {
+
     var isUsingHighPrecisionMask: Boolean = false
 
 
@@ -33,35 +34,12 @@ abstract class AAppModel : CubismUserModel() {
         val modelJson = Json.decodeFromString<ModelJson>(String(buffer))
         setupModel(dir, modelJson)
 
-        setupRenderer()
-        setupTextures()
+        setupTextures(dir, modelJson)
 
-        initClip / mask()
+// TODO::        initClip / mask()
     }
 
-    /**
-     * 生成されたレンダラーを受け取って初期化する。<br></br>
-     * クリッピングマスクの描画に使うバッファの枚数をデフォルトの1枚より増やしたい場合は、このメソッドを使用する。
-     *
-     * @note 第1引数にnullが与えられた場合`NullPointerException`が投げられる。
-     *
-     * @param renderer CubismRendererを継承したレンダラークラスのインスタンス
-     * @param maskBufferCount 生成したいマスクバッファの枚数
-     */
-    private fun setupRenderer(renderer: Live2DRenderer, maskBufferCount: Int = 1) {
-        this.renderer = renderer
-
-        // Bind a renderer with a model instance
-        this.renderer.initialize(model, maskBufferCount)
-    }
-
-    private fun setupTextures(dir: String, modelJson: ModelJson) {
-        modelJson.fileReferences.textures.forEach { texturePath ->
-            Path(dir, texturePath).readBytes().let { buffer ->
-                // TODO::
-            }
-        }
-    }
+    abstract fun setupTextures(dir: String, modelJson: ModelJson)
 
 
     private fun setupModel(dir: String, modelJson: ModelJson) {
@@ -78,8 +56,8 @@ abstract class AAppModel : CubismUserModel() {
         }
 
         for (expression in modelJson.fileReferences.expressions) {
-            Path(dir, expression.file).readBytes().let { buffer ->
-                name_2_expression.put(expression.name, loadExpression(buffer))
+            Path(dir, expression!!.file).readBytes().let { buffer ->
+                name_2_expression.put(expression!!.name, loadExpression(buffer))
             }
         }
 
@@ -245,15 +223,15 @@ abstract class AAppModel : CubismUserModel() {
 
         // Lip Sync Setting
         // TODO:: move to where
-        if (true) {
-            // リアルタイムでリップシンクを行う場合、システムから音量を取得して0~1の範囲で値を入力します
-            val value = 0.0f
-
-            for (i in lipSyncIds.indices) {
-                val lipSyncId: CubismId = lipSyncIds.get(i)
-                model.addParameterValue(lipSyncId, value, 0.8f)
-            }
-        }
+//        if (true) {
+//            // リアルタイムでリップシンクを行う場合、システムから音量を取得して0~1の範囲で値を入力します
+//            val value = 0.0f
+//
+//            for (i in lipSyncIds.indices) {
+//                val lipSyncId: CubismId = lipSyncIds.get(i)
+//                model.addParameterValue(lipSyncId, value, 0.8f)
+//            }
+//        }
 
 
         // Pose Setting
