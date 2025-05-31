@@ -16,7 +16,6 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.ByteBuffer
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
-import kotlin.use
 
 fun live2dMain() {
     if (!glfwInit()) {
@@ -88,6 +87,7 @@ fun live2dMain() {
         renderer.initialize(model.model, 1)
 
         while (!glfwWindowShouldClose(handle)) {
+            Timer.update()
             // キャッシュ変数の定義を避けるために、multiplyByMatrix()ではなく、multiply()を使用する。
             val matrix = CubismMatrix44.create().apply {
                 loadIdentity()
@@ -102,6 +102,7 @@ fun live2dMain() {
                 matrix.tr
             )
 
+            model.update(Timer.deltaF)
             renderer.mvpMatrix.setMatrix(matrix)
             renderer.drawModel(model.model)
 
@@ -173,4 +174,20 @@ fun loadTexture(bytes: ByteBuffer): Int {
             }
         }
     }
+}
+
+object Timer {
+    fun update() {
+        current = System.nanoTime()
+        delta = current - last
+        last = current
+    }
+
+    var current: Long = 0
+    var last: Long = 0
+    var delta: Long = 0
+
+    val deltaF: Float
+        get() = delta / 1000000000.0f
+
 }

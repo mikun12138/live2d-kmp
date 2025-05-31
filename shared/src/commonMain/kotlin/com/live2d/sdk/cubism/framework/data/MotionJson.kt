@@ -13,7 +13,7 @@ data class MotionJson(
     @SerialName("Curves")
     val curves: List<Curve>,
     @SerialName("UserData")
-    val userData: List<UserData>?
+    val userData: List<UserData> = emptyList()
 ) {
 
     @Serializable
@@ -37,9 +37,9 @@ data class MotionJson(
         @SerialName("TotalUserDataSize")
         val totalUserDataSize: Int,
         @SerialName("FadeInTime")
-        val fadeInTime: Float?,
+        val fadeInTime: Float = -1.0f,
         @SerialName("FadeOutTime")
-        val fadeOutTime: Float?,
+        val fadeOutTime: Float = -1.0f,
     )
     @Serializable
     data class Curve(
@@ -50,9 +50,9 @@ data class MotionJson(
         @SerialName("Segments")
         val segments: List<Float>,
         @SerialName("FadeInTime")
-        val fadeInTime: Float?,
+        val fadeInTime: Float = -1.0f,
         @SerialName("FadeOutTime")
-        val fadeOutTime: Float?,
+        val fadeOutTime: Float = -1.0f,
     )
 
     @Serializable

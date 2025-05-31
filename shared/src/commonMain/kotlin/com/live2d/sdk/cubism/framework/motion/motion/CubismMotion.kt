@@ -29,7 +29,7 @@ class CubismMotion : ACubismMotion {
     }
 
     private fun parse(motionJson: ByteArray) {
-        val json = Json.Default.decodeFromString<MotionJson>(String(motionJson))
+        val json = Json.decodeFromString<MotionJson>(String(motionJson))
 
         motionData = CubismMotionInternal.CubismMotionData(
             duration = json.meta.duration,
@@ -53,7 +53,7 @@ class CubismMotion : ACubismMotion {
                 }
             },
             events = ArrayList<CubismMotionInternal.CubismMotionEvent>(json.meta.userDataCount).apply {
-                repeat(motionData.userDataCount) {
+                repeat(json.meta.userDataCount) {
                     add(CubismMotionInternal.CubismMotionEvent())
                 }
             }
@@ -99,7 +99,7 @@ class CubismMotion : ACubismMotion {
 
             // Segments
             var segmentIndex = 0
-            while (segmentIndex < json.meta.totalSegmentCount) {
+            while (segmentIndex < motionData.curves[curveIndex].segmentCount) {
                 // 起始点
                 if (segmentIndex == 0) {
                     motionData.segments[totalSegmentIndex].basePointIndex = totalPointIndex
@@ -116,7 +116,8 @@ class CubismMotion : ACubismMotion {
                 }
 
                 val segmentType: CubismMotionInternal.CubismMotionSegmentType
-                json.curves[curveIndex].segments[segmentIndex].toInt().let { flagSegment ->
+                json.curves[curveIndex]
+                    .segments[segmentIndex].toInt().let { flagSegment ->
                     segmentType = when (flagSegment) {
                         0 -> CubismMotionInternal.CubismMotionSegmentType.LINEAR
                         1 -> CubismMotionInternal.CubismMotionSegmentType.BEZIER

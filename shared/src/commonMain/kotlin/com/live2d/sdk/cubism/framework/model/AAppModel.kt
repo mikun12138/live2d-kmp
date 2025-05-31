@@ -121,7 +121,6 @@ abstract class AAppModel : CubismUserModel() {
                     loadMotion(buffer)?.let {
                         it.fadeInSeconds = motion.fadeInTime
                         it.fadeOutSeconds = motion.fadeOutTime
-                        // TODO::
                         it.setEffectIds(
                             eyeBlinkParameterIds =
                                 modelJson.groups.find { it.name == "EyeBlink" }?.ids!!.map { value ->

@@ -127,6 +127,7 @@ abstract class CubismUserModel protected constructor() {
         try {
             return CubismMotion(buffer, onFinishedMotionHandler, onBeganMotionHandler)
         } catch (e: Exception) {
+            e.printStackTrace()
             cubismLogError("Failed to loadMotion(). ${e.message}")
             return null
         }

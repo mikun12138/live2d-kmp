@@ -44,7 +44,7 @@ abstract class AMotionManager(
         totalSeconds += deltaTimeSeconds
         val isUpdated = !motionEntries.isEmpty()
 
-        if (motionEntries.last().state.inInit()) {
+        motionEntries.lastOrNull()?.takeIf { it.state.inInit() }?.let {
             motionEntries.dropLast(1).forEach { entry ->
                 entry switchStateTo AMotionQueueEntry.State.FadeOut
             }
