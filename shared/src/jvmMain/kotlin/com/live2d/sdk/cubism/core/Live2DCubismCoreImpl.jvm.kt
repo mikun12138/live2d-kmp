@@ -49,11 +49,11 @@ actual object Live2DCubismCoreImpl {
     }
 
     actual fun syncToNativeModel(model: CubismModel) {
-        // TODO::
+        TODO()
     }
 
     actual fun syncFromNativeModel(model: CubismModel) {
-        // TODO::
+        TODO()
     }
 
     actual fun initializeJavaModelWithNativeModel(model: CubismModel) {
