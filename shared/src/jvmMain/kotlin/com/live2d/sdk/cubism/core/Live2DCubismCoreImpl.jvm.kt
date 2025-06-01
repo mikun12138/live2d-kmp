@@ -1,6 +1,7 @@
 package com.live2d.sdk.cubism.core
 
 import java.lang.foreign.Arena
+import java.lang.foreign.MemorySegment
 import java.lang.foreign.ValueLayout
 
 actual object Live2DCubismCoreImpl {
@@ -49,11 +50,185 @@ actual object Live2DCubismCoreImpl {
     }
 
     actual fun syncToNativeModel(model: CubismModel) {
-        TODO()
+        run {
+            val nativeParamSegment =
+                Live2DCubismCoreFFM.csmGetParameterValues(model.nativeHandle).reinterpret(
+                    Live2DCubismCoreFFM.csmGetParameterCount(model.nativeHandle) * ValueLayout.JAVA_FLOAT.byteSize()
+                )
+            MemorySegment.copy(
+                model.parameters.values, 0,
+                nativeParamSegment, ValueLayout.JAVA_FLOAT, 0,
+                model.parameters.values.size
+            )
+        }
+
+        run {
+            val nativeParamSegment =
+                Live2DCubismCoreFFM.csmGetPartOpacities(model.nativeHandle).reinterpret(
+                    Live2DCubismCoreFFM.csmGetPartCount(model.nativeHandle) * ValueLayout.JAVA_FLOAT.byteSize()
+                )
+            MemorySegment.copy(
+                model.parts.opacities, 0,
+                nativeParamSegment, ValueLayout.JAVA_FLOAT, 0,
+                model.parts.opacities.size
+            )
+        }
     }
 
     actual fun syncFromNativeModel(model: CubismModel) {
-        TODO()
+        Live2DCubismCoreFFM.csmGetParameterCount(model.nativeHandle).let { parameterCount ->
+            Live2DCubismCoreFFM.csmGetParameterValues(model.nativeHandle).also { values ->
+                val values =
+                    values.reinterpret(parameterCount * ValueLayout.JAVA_FLOAT.byteSize())
+                for (i in 0 until parameterCount) {
+                    model.parameters.values[i] =
+                        values.getAtIndex(
+                            ValueLayout.JAVA_FLOAT,
+                            i.toLong()
+                        )
+                }
+            }
+        }
+
+        Live2DCubismCoreFFM.csmGetPartCount(model.nativeHandle).let { parameterCount ->
+            Live2DCubismCoreFFM.csmGetPartOpacities(model.nativeHandle).also { values ->
+                val values =
+                    values.reinterpret(parameterCount * ValueLayout.JAVA_FLOAT.byteSize())
+                for (i in 0 until parameterCount) {
+                    model.parts.opacities[i] =
+                        values.getAtIndex(
+                            ValueLayout.JAVA_FLOAT,
+                            i.toLong()
+                        )
+                }
+            }
+        }
+
+        Live2DCubismCoreFFM.csmGetDrawableCount(model.nativeHandle).let { drawableCount ->
+
+            Live2DCubismCoreFFM.csmGetDrawableConstantFlags(model.nativeHandle).also { flags ->
+                val flags = flags.reinterpret(drawableCount * ValueLayout.JAVA_BYTE.byteSize())
+                for (i in 0 until drawableCount) {
+                    model.drawables.constantFlags[i] =
+                        flags.getAtIndex(
+                            ValueLayout.JAVA_BYTE,
+                            i.toLong()
+                        )
+                }
+            }
+
+            Live2DCubismCoreFFM.csmGetDrawableDynamicFlags(model.nativeHandle).also { flags ->
+                val flags = flags.reinterpret(drawableCount * ValueLayout.JAVA_BYTE.byteSize())
+                for (i in 0 until drawableCount) {
+                    model.drawables.dynamicFlags[i] =
+                        flags.getAtIndex(
+                            ValueLayout.JAVA_BYTE,
+                            i.toLong()
+                        )
+                }
+            }
+
+            Live2DCubismCoreFFM.csmGetDrawableDrawOrders(model.nativeHandle)
+                .also { drawOrders ->
+                    val textureIndices =
+                        drawOrders.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
+                    for (i in 0 until drawableCount) {
+                        model.drawables.drawOrders[i] =
+                            textureIndices.getAtIndex(
+                                ValueLayout.JAVA_INT,
+                                i.toLong()
+                            )
+                    }
+                }
+
+            Live2DCubismCoreFFM.csmGetDrawableRenderOrders(model.nativeHandle)
+                .also { renderOrders ->
+                    val textureIndices =
+                        renderOrders.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
+                    for (i in 0 until drawableCount) {
+                        model.drawables.renderOrders[i] =
+                            textureIndices.getAtIndex(
+                                ValueLayout.JAVA_INT,
+                                i.toLong()
+                            )
+                    }
+                }
+
+            Live2DCubismCoreFFM.csmGetDrawableOpacities(model.nativeHandle).also { opacities ->
+                val textureIndices =
+                    opacities.reinterpret(drawableCount * ValueLayout.JAVA_FLOAT.byteSize())
+                for (i in 0 until drawableCount) {
+                    model.drawables.opacities[i] =
+                        textureIndices.getAtIndex(
+                            ValueLayout.JAVA_FLOAT,
+                            i.toLong()
+                        )
+                }
+
+            }
+
+            val vertexCountsList = mutableListOf<Int>()
+            Live2DCubismCoreFFM.csmGetDrawableVertexCounts(model.nativeHandle)
+                .also { vertexCounts ->
+                    val vertexCounts =
+                        vertexCounts.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
+                    for (i in 0 until drawableCount) {
+                        model.drawables.vertexCounts[i] =
+                            vertexCounts.getAtIndex(
+                                ValueLayout.JAVA_INT,
+                                i.toLong()
+                            ).also {
+                                vertexCountsList.add(it)
+                            }
+                    }
+                }
+
+
+            Live2DCubismCoreFFM.csmGetDrawableVertexPositions(model.nativeHandle)
+                .also { vertexPositions ->
+                    val m0 =
+                        vertexPositions.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize())
+                    for (i in 0 until drawableCount) {
+                        val vertexPosition = m0.getAtIndex(
+                            ValueLayout.ADDRESS,
+                            i.toLong()
+                        )
+
+                        vertexPosition.reinterpret(vertexCountsList.get(i) * ValueLayout.JAVA_FLOAT.byteSize() * 2)
+                            .let {
+                                model.drawables.vertexPositions[i] =
+                                    FloatArray(size = vertexCountsList.get(i) * 2)
+                                for (j in 0 until vertexCountsList.get(i)) {
+                                    model.drawables.vertexPositions[i]!![j * 2] =
+                                        it.getAtIndex(
+                                            ValueLayout.JAVA_FLOAT,
+                                            j * 2L
+                                        )
+                                    model.drawables.vertexPositions[i]!![j * 2 + 1] =
+                                        it.getAtIndex(
+                                            ValueLayout.JAVA_FLOAT,
+                                            j * 2L + 1L
+                                        )
+                                }
+                            }
+                    }
+                }
+
+            Live2DCubismCoreFFM.csmGetDrawableMultiplyColors(model.nativeHandle)
+                .also { multiplyColors ->
+                    val multiplyColors =
+                        multiplyColors.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize() * 4)
+                    for (i in 0 until drawableCount) {
+                        model.drawables.multiplyColors[i] = FloatArray(size = 4)
+                        for (j in 0 until 4) {
+                            model.drawables.multiplyColors[i]!![j] = multiplyColors.getAtIndex(
+                                ValueLayout.JAVA_FLOAT,
+                                i * 4 + j.toLong()
+                            )
+                        }
+                    }
+                }
+        }
     }
 
     actual fun initializeJavaModelWithNativeModel(model: CubismModel) {
@@ -138,41 +313,44 @@ actual object Live2DCubismCoreImpl {
                     }
                 }
 
-                Live2DCubismCoreFFM.csmGetParameterMinimumValues(model.nativeHandle).also { minimumValues ->
-                    val minimumValues =
-                        minimumValues.reinterpret(parameterCount * ValueLayout.JAVA_FLOAT.byteSize())
-                    for (i in 0 until parameterCount) {
-                        cubismParameters.minimumValues[i] =
-                            minimumValues.getAtIndex(
-                                ValueLayout.JAVA_FLOAT,
-                                i.toLong()
-                            )
+                Live2DCubismCoreFFM.csmGetParameterMinimumValues(model.nativeHandle)
+                    .also { minimumValues ->
+                        val minimumValues =
+                            minimumValues.reinterpret(parameterCount * ValueLayout.JAVA_FLOAT.byteSize())
+                        for (i in 0 until parameterCount) {
+                            cubismParameters.minimumValues[i] =
+                                minimumValues.getAtIndex(
+                                    ValueLayout.JAVA_FLOAT,
+                                    i.toLong()
+                                )
+                        }
                     }
-                }
 
-                Live2DCubismCoreFFM.csmGetParameterMaximumValues(model.nativeHandle).also { maximumValues ->
-                    val maximumValues =
-                        maximumValues.reinterpret(parameterCount * ValueLayout.JAVA_FLOAT.byteSize())
-                    for (i in 0 until parameterCount) {
-                        cubismParameters.maximumValues[i] =
-                            maximumValues.getAtIndex(
-                                ValueLayout.JAVA_FLOAT,
-                                i.toLong()
-                            )
+                Live2DCubismCoreFFM.csmGetParameterMaximumValues(model.nativeHandle)
+                    .also { maximumValues ->
+                        val maximumValues =
+                            maximumValues.reinterpret(parameterCount * ValueLayout.JAVA_FLOAT.byteSize())
+                        for (i in 0 until parameterCount) {
+                            cubismParameters.maximumValues[i] =
+                                maximumValues.getAtIndex(
+                                    ValueLayout.JAVA_FLOAT,
+                                    i.toLong()
+                                )
+                        }
                     }
-                }
 
-                Live2DCubismCoreFFM.csmGetParameterDefaultValues(model.nativeHandle).also { defaultValues ->
-                    val defaultValues =
-                        defaultValues.reinterpret(parameterCount * ValueLayout.JAVA_FLOAT.byteSize())
-                    for (i in 0 until parameterCount) {
-                        cubismParameters.defaultValues[i] =
-                            defaultValues.getAtIndex(
-                                ValueLayout.JAVA_FLOAT,
-                                i.toLong()
-                            )
+                Live2DCubismCoreFFM.csmGetParameterDefaultValues(model.nativeHandle)
+                    .also { defaultValues ->
+                        val defaultValues =
+                            defaultValues.reinterpret(parameterCount * ValueLayout.JAVA_FLOAT.byteSize())
+                        for (i in 0 until parameterCount) {
+                            cubismParameters.defaultValues[i] =
+                                defaultValues.getAtIndex(
+                                    ValueLayout.JAVA_FLOAT,
+                                    i.toLong()
+                                )
+                        }
                     }
-                }
 
                 val keyCountsList = mutableListOf<Int>()
                 Live2DCubismCoreFFM.csmGetParameterKeyCounts(model.nativeHandle).also { keyCounts ->
@@ -246,20 +424,22 @@ actual object Live2DCubismCoreImpl {
                     }
                 }
 
-                Live2DCubismCoreFFM.csmGetPartParentPartIndices(model.nativeHandle).also { partParentIndices ->
-                    val partParentIndices =
-                        partParentIndices.reinterpret(partCount * ValueLayout.JAVA_INT.byteSize())
-                    for (i in 0 until partCount) {
-                        cubismParts.parentPartIndices[i] =
-                            partParentIndices.getAtIndex(
-                                ValueLayout.JAVA_INT,
-                                i.toLong()
-                            )
+                Live2DCubismCoreFFM.csmGetPartParentPartIndices(model.nativeHandle)
+                    .also { partParentIndices ->
+                        val partParentIndices =
+                            partParentIndices.reinterpret(partCount * ValueLayout.JAVA_INT.byteSize())
+                        for (i in 0 until partCount) {
+                            cubismParts.parentPartIndices[i] =
+                                partParentIndices.getAtIndex(
+                                    ValueLayout.JAVA_INT,
+                                    i.toLong()
+                                )
+                        }
                     }
-                }
 
                 Live2DCubismCoreFFM.csmGetPartOpacities(model.nativeHandle).also { opacities ->
-                    val opacities = opacities.reinterpret(partCount * ValueLayout.JAVA_FLOAT.byteSize())
+                    val opacities =
+                        opacities.reinterpret(partCount * ValueLayout.JAVA_FLOAT.byteSize())
                     for (i in 0 until partCount) {
                         cubismParts.opacities[i] =
                             opacities.getAtIndex(
@@ -282,7 +462,8 @@ actual object Live2DCubismCoreImpl {
         Live2DCubismCoreFFM.csmGetDrawableCount(model.nativeHandle).let { drawableCount ->
             CubismDrawables(drawableCount).also { cubismDrawables ->
                 Live2DCubismCoreFFM.csmGetDrawableIds(model.nativeHandle).also { drawableIds ->
-                    val partIds = drawableIds.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize())
+                    val partIds =
+                        drawableIds.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize())
                     for (i in 0 until drawableCount) {
                         cubismDrawables.ids[i] =
                             partIds.getAtIndex(
@@ -314,40 +495,44 @@ actual object Live2DCubismCoreImpl {
                     }
                 }
 
-                Live2DCubismCoreFFM.csmGetDrawableTextureIndices(model.nativeHandle).also { textureIndices ->
-                    val textureIndices =
-                        textureIndices.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
-                    for (i in 0 until drawableCount) {
-                        cubismDrawables.textureIndices[i] =
-                            textureIndices.getAtIndex(
-                                ValueLayout.JAVA_INT,
-                                i.toLong()
-                            )
+                Live2DCubismCoreFFM.csmGetDrawableTextureIndices(model.nativeHandle)
+                    .also { textureIndices ->
+                        val textureIndices =
+                            textureIndices.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
+                        for (i in 0 until drawableCount) {
+                            cubismDrawables.textureIndices[i] =
+                                textureIndices.getAtIndex(
+                                    ValueLayout.JAVA_INT,
+                                    i.toLong()
+                                )
+                        }
                     }
-                }
 
-                Live2DCubismCoreFFM.csmGetDrawableDrawOrders(model.nativeHandle).also { drawOrders ->
-                    val textureIndices = drawOrders.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
-                    for (i in 0 until drawableCount) {
-                        cubismDrawables.drawOrders[i] =
-                            textureIndices.getAtIndex(
-                                ValueLayout.JAVA_INT,
-                                i.toLong()
-                            )
+                Live2DCubismCoreFFM.csmGetDrawableDrawOrders(model.nativeHandle)
+                    .also { drawOrders ->
+                        val textureIndices =
+                            drawOrders.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
+                        for (i in 0 until drawableCount) {
+                            cubismDrawables.drawOrders[i] =
+                                textureIndices.getAtIndex(
+                                    ValueLayout.JAVA_INT,
+                                    i.toLong()
+                                )
+                        }
                     }
-                }
 
-                Live2DCubismCoreFFM.csmGetDrawableRenderOrders(model.nativeHandle).also { renderOrders ->
-                    val textureIndices =
-                        renderOrders.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
-                    for (i in 0 until drawableCount) {
-                        cubismDrawables.renderOrders[i] =
-                            textureIndices.getAtIndex(
-                                ValueLayout.JAVA_INT,
-                                i.toLong()
-                            )
+                Live2DCubismCoreFFM.csmGetDrawableRenderOrders(model.nativeHandle)
+                    .also { renderOrders ->
+                        val textureIndices =
+                            renderOrders.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
+                        for (i in 0 until drawableCount) {
+                            cubismDrawables.renderOrders[i] =
+                                textureIndices.getAtIndex(
+                                    ValueLayout.JAVA_INT,
+                                    i.toLong()
+                                )
+                        }
                     }
-                }
 
                 Live2DCubismCoreFFM.csmGetDrawableOpacities(model.nativeHandle).also { opacities ->
                     val textureIndices =
@@ -362,18 +547,20 @@ actual object Live2DCubismCoreImpl {
                 }
 
                 val maskCountsList = mutableListOf<Int>()
-                Live2DCubismCoreFFM.csmGetDrawableMaskCounts(model.nativeHandle).also { maskCounts ->
-                    val textureIndices = maskCounts.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
-                    for (i in 0 until drawableCount) {
-                        cubismDrawables.maskCounts[i] =
-                            textureIndices.getAtIndex(
-                                ValueLayout.JAVA_INT,
-                                i.toLong()
-                            ).also {
-                                maskCountsList.add(it)
-                            }
+                Live2DCubismCoreFFM.csmGetDrawableMaskCounts(model.nativeHandle)
+                    .also { maskCounts ->
+                        val textureIndices =
+                            maskCounts.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
+                        for (i in 0 until drawableCount) {
+                            cubismDrawables.maskCounts[i] =
+                                textureIndices.getAtIndex(
+                                    ValueLayout.JAVA_INT,
+                                    i.toLong()
+                                ).also {
+                                    maskCountsList.add(it)
+                                }
+                        }
                     }
-                }
 
                 Live2DCubismCoreFFM.csmGetDrawableMasks(model.nativeHandle).also { masks ->
                     val m0 = masks.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize())
@@ -398,46 +585,50 @@ actual object Live2DCubismCoreImpl {
                 }
 
                 val vertexCountsList = mutableListOf<Int>()
-                Live2DCubismCoreFFM.csmGetDrawableVertexCounts(model.nativeHandle).also { vertexCounts ->
-                    val vertexCounts = vertexCounts.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
-                    for (i in 0 until drawableCount) {
-                        cubismDrawables.vertexCounts[i] =
-                            vertexCounts.getAtIndex(
-                                ValueLayout.JAVA_INT,
-                                i.toLong()
-                            ).also {
-                                vertexCountsList.add(it)
-                            }
-                    }
-                }
-
-                Live2DCubismCoreFFM.csmGetDrawableVertexPositions(model.nativeHandle).also { vertexPositions ->
-                    val m0 =
-                        vertexPositions.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize())
-                    for (i in 0 until drawableCount) {
-                        val vertexPosition = m0.getAtIndex(
-                            ValueLayout.ADDRESS,
-                            i.toLong()
-                        )
-
-                        vertexPosition.reinterpret(vertexCountsList.get(i) * ValueLayout.JAVA_FLOAT.byteSize() * 2)
-                            .let {
-                                cubismDrawables.vertexPositions[i] = FloatArray(size = vertexCountsList.get(i) * 2)
-                                for (j in 0 until vertexCountsList.get(i)) {
-                                    cubismDrawables.vertexPositions[i]!![j * 2] =
-                                        it.getAtIndex(
-                                            ValueLayout.JAVA_FLOAT,
-                                            j * 2L
-                                        )
-                                    cubismDrawables.vertexPositions[i]!![j * 2 + 1] =
-                                        it.getAtIndex(
-                                            ValueLayout.JAVA_FLOAT,
-                                            j * 2L + 1L
-                                        )
+                Live2DCubismCoreFFM.csmGetDrawableVertexCounts(model.nativeHandle)
+                    .also { vertexCounts ->
+                        val vertexCounts =
+                            vertexCounts.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
+                        for (i in 0 until drawableCount) {
+                            cubismDrawables.vertexCounts[i] =
+                                vertexCounts.getAtIndex(
+                                    ValueLayout.JAVA_INT,
+                                    i.toLong()
+                                ).also {
+                                    vertexCountsList.add(it)
                                 }
-                            }
+                        }
                     }
-                }
+
+                Live2DCubismCoreFFM.csmGetDrawableVertexPositions(model.nativeHandle)
+                    .also { vertexPositions ->
+                        val m0 =
+                            vertexPositions.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize())
+                        for (i in 0 until drawableCount) {
+                            val vertexPosition = m0.getAtIndex(
+                                ValueLayout.ADDRESS,
+                                i.toLong()
+                            )
+
+                            vertexPosition.reinterpret(vertexCountsList.get(i) * ValueLayout.JAVA_FLOAT.byteSize() * 2)
+                                .let {
+                                    cubismDrawables.vertexPositions[i] =
+                                        FloatArray(size = vertexCountsList.get(i) * 2)
+                                    for (j in 0 until vertexCountsList.get(i)) {
+                                        cubismDrawables.vertexPositions[i]!![j * 2] =
+                                            it.getAtIndex(
+                                                ValueLayout.JAVA_FLOAT,
+                                                j * 2L
+                                            )
+                                        cubismDrawables.vertexPositions[i]!![j * 2 + 1] =
+                                            it.getAtIndex(
+                                                ValueLayout.JAVA_FLOAT,
+                                                j * 2L + 1L
+                                            )
+                                    }
+                                }
+                        }
+                    }
 
                 Live2DCubismCoreFFM.csmGetDrawableVertexUvs(model.nativeHandle).also { vertexUVs ->
                     val m0 =
@@ -450,7 +641,8 @@ actual object Live2DCubismCoreImpl {
 
                         vertexUV.reinterpret(vertexCountsList.get(i) * ValueLayout.JAVA_FLOAT.byteSize() * 2)
                             .let {
-                                cubismDrawables.vertexUvs[i] = FloatArray(size = vertexCountsList.get(i) * 2)
+                                cubismDrawables.vertexUvs[i] =
+                                    FloatArray(size = vertexCountsList.get(i) * 2)
                                 for (j in 0 until vertexCountsList.get(i)) {
                                     cubismDrawables.vertexUvs[i]!![j * 2] =
                                         it.getAtIndex(
@@ -468,18 +660,20 @@ actual object Live2DCubismCoreImpl {
                 }
 
                 val indicesCountsList = mutableListOf<Int>()
-                Live2DCubismCoreFFM.csmGetDrawableIndexCounts(model.nativeHandle).also { indexCounts ->
-                    val indexCounts = indexCounts.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
-                    for (i in 0 until drawableCount) {
-                        cubismDrawables.indexCounts[i] =
-                            indexCounts.getAtIndex(
-                                ValueLayout.JAVA_INT,
-                                i.toLong()
-                            ).also {
-                                indicesCountsList.add(it)
-                            }
+                Live2DCubismCoreFFM.csmGetDrawableIndexCounts(model.nativeHandle)
+                    .also { indexCounts ->
+                        val indexCounts =
+                            indexCounts.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
+                        for (i in 0 until drawableCount) {
+                            cubismDrawables.indexCounts[i] =
+                                indexCounts.getAtIndex(
+                                    ValueLayout.JAVA_INT,
+                                    i.toLong()
+                                ).also {
+                                    indicesCountsList.add(it)
+                                }
+                        }
                     }
-                }
 
                 Live2DCubismCoreFFM.csmGetDrawableIndices(model.nativeHandle).also { indices ->
                     val m0 = indices.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize())
@@ -491,7 +685,8 @@ actual object Live2DCubismCoreImpl {
 
                         indice.reinterpret(indicesCountsList.get(i) * ValueLayout.JAVA_SHORT.byteSize())
                             .let {
-                                cubismDrawables.indices[i] = ShortArray(size = indicesCountsList.get(i))
+                                cubismDrawables.indices[i] =
+                                    ShortArray(size = indicesCountsList.get(i))
                                 for (j in 0 until indicesCountsList.get(i)) {
                                     cubismDrawables.indices[i]!![j] =
                                         it.getAtIndex(
@@ -503,45 +698,48 @@ actual object Live2DCubismCoreImpl {
                     }
                 }
 
-                Live2DCubismCoreFFM.csmGetDrawableMultiplyColors(model.nativeHandle).also { multiplyColors ->
-                    val multiplyColors =
-                        multiplyColors.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize() * 4)
-                    for (i in 0 until drawableCount) {
-                        cubismDrawables.multiplyColors[i] = FloatArray(size = 4)
-                        for (j in 0 until 4) {
-                            cubismDrawables.multiplyColors[i]!![j] = multiplyColors.getAtIndex(
-                                ValueLayout.JAVA_FLOAT,
-                                i * 4 + j.toLong()
-                            )
+                Live2DCubismCoreFFM.csmGetDrawableMultiplyColors(model.nativeHandle)
+                    .also { multiplyColors ->
+                        val multiplyColors =
+                            multiplyColors.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize() * 4)
+                        for (i in 0 until drawableCount) {
+                            cubismDrawables.multiplyColors[i] = FloatArray(size = 4)
+                            for (j in 0 until 4) {
+                                cubismDrawables.multiplyColors[i]!![j] = multiplyColors.getAtIndex(
+                                    ValueLayout.JAVA_FLOAT,
+                                    i * 4 + j.toLong()
+                                )
+                            }
                         }
                     }
-                }
 
-                Live2DCubismCoreFFM.csmGetDrawableScreenColors(model.nativeHandle).also { screenColors ->
-                    val screenColors =
-                        screenColors.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize() * 4)
-                    for (i in 0 until drawableCount) {
-                        cubismDrawables.screenColors[i] = FloatArray(size = 4)
-                        for (j in 0 until 4) {
-                            cubismDrawables.screenColors[i]!![j] = screenColors.getAtIndex(
-                                ValueLayout.JAVA_FLOAT,
-                                i * 4 + j.toLong()
-                            )
+                Live2DCubismCoreFFM.csmGetDrawableScreenColors(model.nativeHandle)
+                    .also { screenColors ->
+                        val screenColors =
+                            screenColors.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize() * 4)
+                        for (i in 0 until drawableCount) {
+                            cubismDrawables.screenColors[i] = FloatArray(size = 4)
+                            for (j in 0 until 4) {
+                                cubismDrawables.screenColors[i]!![j] = screenColors.getAtIndex(
+                                    ValueLayout.JAVA_FLOAT,
+                                    i * 4 + j.toLong()
+                                )
+                            }
                         }
                     }
-                }
 
-                Live2DCubismCoreFFM.csmGetDrawableParentPartIndices(model.nativeHandle).also { parentPartIndices ->
-                    val parentPartIndices =
-                        parentPartIndices.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
-                    for (i in 0 until drawableCount) {
-                        cubismDrawables.parentPartIndices[i] =
-                            parentPartIndices.getAtIndex(
-                                ValueLayout.JAVA_INT,
-                                i.toLong()
-                            )
+                Live2DCubismCoreFFM.csmGetDrawableParentPartIndices(model.nativeHandle)
+                    .also { parentPartIndices ->
+                        val parentPartIndices =
+                            parentPartIndices.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
+                        for (i in 0 until drawableCount) {
+                            cubismDrawables.parentPartIndices[i] =
+                                parentPartIndices.getAtIndex(
+                                    ValueLayout.JAVA_INT,
+                                    i.toLong()
+                                )
+                        }
                     }
-                }
 
 
             }

@@ -87,6 +87,8 @@ fun live2dMain() {
         renderer.init(model.model, 1)
 
         while (!glfwWindowShouldClose(handle)) {
+            glClearColor(1.0f, 1.0f, 1.0f, 1.0f)
+
             Timer.update()
             // キャッシュ変数の定義を避けるために、multiplyByMatrix()ではなく、multiply()を使用する。
             val matrix = CubismMatrix44.create().apply {

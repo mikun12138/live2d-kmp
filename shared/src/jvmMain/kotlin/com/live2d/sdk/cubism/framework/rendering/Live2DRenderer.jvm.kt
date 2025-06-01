@@ -169,10 +169,9 @@ class Live2DRendererImpl : Live2DRenderer() {
             }
 
             val clipContext = clippingManager.clippingContextListForDraw[drawableIndex]
-/*
 
             // マスクを描く必要がある
-            if (clipContext != null && isUsingHighPrecisionMask()) {
+            if (clipContext != null && false) {
                 // 描くことになっていた
                 if (clipContext.isUsing) {
                     // 生成したOffscreenSurfaceと同じサイズでビューポートを設定
@@ -185,7 +184,7 @@ class Live2DRendererImpl : Live2DRenderer() {
 
                     // マスク描画処理
                     // マスク用RenderTextureをactiveにセット
-                    getMaskBuffer(clipContext.bufferIndex).beginDraw()
+                    clippingManager.offscreenSurfaces_2_clippingContextForMaskList[clipContext.bufferIndex].first.beginDraw()
 
                     // マスクをクリアする。
                     // 1が無効（描かれない領域）、0が有効（描かれる）領域。（シェーダーでCd*Csで0に近い値をかけてマスクを作る。1をかけると何も起こらない。）
@@ -193,9 +192,7 @@ class Live2DRendererImpl : Live2DRenderer() {
                     glClear(GL_COLOR_BUFFER_BIT)
                 }
 
-                val clipDrawCount: Int = clipContext.clippingIdCount
-                for (index in 0..<clipDrawCount) {
-                    val clipDrawIndex: Int = clipContext.clippingIdList[index]
+                for (clipDrawIndex in clipContext.clippingIdList) {
 
                     // 頂点情報が更新されておらず、信頼性がない場合は描画をパスする
                     if (!model.getDrawableDynamicFlagVertexPositionsDidChange(clipDrawIndex)) {
@@ -210,18 +207,17 @@ class Live2DRendererImpl : Live2DRenderer() {
                 }
                 // --- 後処理 ---
                 for (j in 0..<clippingManager.framebufferCount) {
-                    offscreenSurfaces[j].endDraw()
-                    setClippingContextBufferForMask(null)
-                    GLES20.glViewport(
-                        rendererProfile.lastViewport[0],
-                        rendererProfile.lastViewport[1],
-                        rendererProfile.lastViewport[2],
-                        rendererProfile.lastViewport[3]
+                    clippingManager.offscreenSurfaces_2_clippingContextForMaskList[j].first.endDraw()
+                    clippingContextBufferForMask = null
+                    glViewport(
+                        Live2DRendererProfile.lastViewport[0],
+                        Live2DRendererProfile.lastViewport[1],
+                        Live2DRendererProfile.lastViewport[2],
+                        Live2DRendererProfile.lastViewport[3],
                     )
                 }
             }
 
-*/
 
             // クリッピングマスクをセットする
             clippingContextBufferForDraw = clipContext

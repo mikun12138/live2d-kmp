@@ -28,7 +28,7 @@ abstract class Live2DRenderer {
         if (true) {
 
 //            if (isUsingHighPrecisionMask()) {
-            if (true) {
+            if (false) {
                 clippingManager.setupMatrixForHighPrecision(model)
             } else {
                 clippingManager.setupClippingContext(
