@@ -24,10 +24,6 @@ class CubismClippingContext(
      * 蒙版id列表
      */
     val clippingIdList: IntArray,
-    /**
-     * クリッピングマスクの数
-     */
-    val clippingIdCount: Int
 ) {
     companion object
 

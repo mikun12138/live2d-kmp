@@ -6,16 +6,7 @@
  */
 package com.live2d.sdk.cubism.framework.rendering
 
-import com.live2d.sdk.cubism.framework.model.Model
-
 interface ICubismClippingManager {
-
-    /**
-     * 高精細マスク処理用の行列を計算する。
-     *
-     * @param model         モデルのインスタンス
-     */
-    fun setupMatrixForHighPrecision(model: Model)
 
     companion object {
         /**

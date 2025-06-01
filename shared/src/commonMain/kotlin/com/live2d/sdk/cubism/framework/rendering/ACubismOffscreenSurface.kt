@@ -12,8 +12,8 @@ abstract class ACubismOffscreenSurface {
         endDraw()
     }
 
-     abstract fun beginDraw()
-     abstract fun endDraw()
+    protected abstract fun beginDraw()
+    protected abstract fun endDraw()
 
     abstract fun createOffscreenSurface(
         clippingMaskBufferSizeX: Float,

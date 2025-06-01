@@ -156,11 +156,10 @@ abstract class AAppModel : CubismUserModel() {
         run {
             model.loadParameters()
             run {
-                isMotionUpdated = if (motionManager.isFinished) {
+                if (motionManager.isFinished) {
                     startRandomMotion(IDLE, MotionPriority.IDLE)
-                    false
                 } else {
-                    motionManager.updateMotion(model, deltaSeconds)
+                    isMotionUpdated = motionManager.updateMotion(model, deltaSeconds)
                 }
             }
             model.saveParameters()
@@ -274,6 +273,8 @@ abstract class AAppModel : CubismUserModel() {
 
             //TODO:: sound
         }
+
+        motionManager.startMotionPriority(motion, priority.value)
     }
 
     object MotionGroup {

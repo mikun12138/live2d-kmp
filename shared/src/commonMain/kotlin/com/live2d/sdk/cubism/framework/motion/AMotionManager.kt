@@ -56,7 +56,6 @@ abstract class AMotionManager(
 
         motionEntries.removeIf { it.state.inEnd() }
 
-
         return isUpdated
 
     }

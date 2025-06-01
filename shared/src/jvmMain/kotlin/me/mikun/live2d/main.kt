@@ -84,7 +84,7 @@ fun live2dMain() {
             }
         }
         model.init("Hiyori", "Hiyori" + ".model3.json")
-        renderer.initialize(model.model, 1)
+        renderer.init(model.model, 1)
 
         while (!glfwWindowShouldClose(handle)) {
             Timer.update()

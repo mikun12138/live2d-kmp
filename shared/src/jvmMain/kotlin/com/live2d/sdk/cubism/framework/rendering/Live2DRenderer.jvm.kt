@@ -1,6 +1,8 @@
 package com.live2d.sdk.cubism.framework.rendering
 
 import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.CLIPPING_MASK_BUFFER_SIZE_X
+import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.CLIPPING_MASK_BUFFER_SIZE_Y
 import org.lwjgl.opengl.GL46.*
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -14,7 +16,7 @@ actual fun Live2DRenderer.Companion.create(): Live2DRenderer {
 }
 
 class ModelMesh {
-//    val vaoArray: IntArray
+    //    val vaoArray: IntArray
     private val vertexArrayCaches: Array<FloatBuffer>
 
     private val uvArrayCaches: Array<FloatBuffer>
@@ -122,9 +124,8 @@ class ModelMesh {
 class Live2DRendererImpl : Live2DRenderer() {
     lateinit var modelMesh: ModelMesh
 
-    lateinit var clippingManager: CubismClippingManager
 
-    override fun initialize(
+    override fun init(
         model: Model,
         maskBufferCount: Int,
     ) {
@@ -136,7 +137,7 @@ class Live2DRendererImpl : Live2DRenderer() {
         if (true) {
 
             // Initialize clipping mask and buffer preprocessing method
-            clippingManager = CubismClippingManager(
+            clippingManager = ACubismClippingManager.create(
                 model,
                 max(maskBufferCount, 1)
             )
@@ -150,123 +151,83 @@ class Live2DRendererImpl : Live2DRenderer() {
 
     override fun doDrawModel(model: Model) {
 
-        // In the case of clipping mask and buffer preprocessing method
-//        if (model.isUsingMasking()) {
-        if (true) {
-            preDraw()
-//
-//            // If offscreen frame buffer size is different from clipping mask buffer size, recreate it.
-//            for (i in 0..<clippingManager.framebufferCount) {
-//                val offscreenSurface = offscreenSurfaces[i]
-//
-//                if (!offscreenSurface.isSameSize(clippingManager.getClippingMaskBufferSize())) {
-//                    offscreenSurface.createOffscreenSurface(
-//                        clippingManager.getClippingMaskBufferSize(),
-//                        null
-//                    )
-//                }
-//            }
+        val drawableCount: Int = model.drawableCount
+        val renderOrder: IntArray = model.model.drawables.renderOrders
 
-//            if (isUsingHighPrecisionMask()) {
-            if (true) {
-                clippingManager.setupMatrixForHighPrecision(model)
-            } else {
-                clippingManager.setupClippingContext(
-                    model,
-                    this,
-                    Live2DRendererProfile.lastViewport
-                )
-            }
+        // Sort the index by drawing order
+        val sortedDrawableIndexList = IntArray(drawableCount)
+        for (i in 0..<drawableCount) {
+            val order = renderOrder[i]
+            sortedDrawableIndexList[order] = i
         }
 
+        for (drawableIndex in sortedDrawableIndexList) {
 
-        // preDraw() method is called twice.
-        preDraw()
-        run {
-
-            val drawableCount: Int = model.drawableCount
-            val renderOrder: IntArray = model.model.drawables.renderOrders
-
-
-            // Sort the index by drawing order
-            val sortedDrawableIndexList = IntArray(drawableCount)
-            for (i in 0..<drawableCount) {
-                val order = renderOrder[i]
-                sortedDrawableIndexList[order] = i
+            // If Drawable is not in the display state, the process is passed.
+            if (!model.getDrawableDynamicFlagIsVisible(drawableIndex)) {
+                continue
             }
 
-            for (drawableIndex in sortedDrawableIndexList) {
+            val clipContext = clippingManager.clippingContextListForDraw[drawableIndex]
+/*
 
-                // If Drawable is not in the display state, the process is passed.
-                if (!model.getDrawableDynamicFlagIsVisible(drawableIndex)) {
-                    continue
+            // マスクを描く必要がある
+            if (clipContext != null && isUsingHighPrecisionMask()) {
+                // 描くことになっていた
+                if (clipContext.isUsing) {
+                    // 生成したOffscreenSurfaceと同じサイズでビューポートを設定
+                    glViewport(
+                        0,
+                        0,
+                        CLIPPING_MASK_BUFFER_SIZE_X.toInt(),
+                        CLIPPING_MASK_BUFFER_SIZE_Y.toInt(),
+                    )
+
+                    // マスク描画処理
+                    // マスク用RenderTextureをactiveにセット
+                    getMaskBuffer(clipContext.bufferIndex).beginDraw()
+
+                    // マスクをクリアする。
+                    // 1が無効（描かれない領域）、0が有効（描かれる）領域。（シェーダーでCd*Csで0に近い値をかけてマスクを作る。1をかけると何も起こらない。）
+                    glClearColor(1.0f, 1.0f, 1.0f, 1.0f)
+                    glClear(GL_COLOR_BUFFER_BIT)
                 }
 
-                /*            // マスクを描く必要がある
-                            if (clipContext != null && isUsingHighPrecisionMask()) {
-                                // 描くことになっていた
-                                if (clipContext.isUsing) {
-                                    // 生成したOffscreenSurfaceと同じサイズでビューポートを設定
-                                    GLES20.glViewport(
-                                        0,
-                                        0,
-                                        clippingManager.getClippingMaskBufferSize().x as Int,
-                                        clippingManager.getClippingMaskBufferSize().y as Int
-                                    )
+                val clipDrawCount: Int = clipContext.clippingIdCount
+                for (index in 0..<clipDrawCount) {
+                    val clipDrawIndex: Int = clipContext.clippingIdList[index]
 
-                                    // バッファをクリアする
-                                    preDraw()
+                    // 頂点情報が更新されておらず、信頼性がない場合は描画をパスする
+                    if (!model.getDrawableDynamicFlagVertexPositionsDidChange(clipDrawIndex)) {
+                        continue
+                    }
 
-                                    // マスク描画処理
-                                    // マスク用RenderTextureをactiveにセット
-                                    getMaskBuffer(clipContext.bufferIndex).beginDraw(rendererProfile.lastFBO)
+                    // 今回専用の変換を適用して描く
+                    // チャンネルも切り替える必要がある（A,R,G,B）
+                    clippingContextBufferForMask = clipContext
 
-                                    // マスクをクリアする。
-                                    // 1が無効（描かれない領域）、0が有効（描かれる）領域。（シェーダーでCd*Csで0に近い値をかけてマスクを作る。1をかけると何も起こらない。）
-                                    GLES20.glClearColor(1.0f, 1.0f, 1.0f, 1.0f)
-                                    GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT)
-                                }
-
-                                val clipDrawCount: Int = clipContext.clippingIdCount
-                                for (index in 0..<clipDrawCount) {
-                                    val clipDrawIndex: Int = clipContext.clippingIdList[index]!!
-
-                                    // 頂点情報が更新されておらず、信頼性がない場合は描画をパスする
-                                    if (!getModel().getDrawableDynamicFlagVertexPositionsDidChange(clipDrawIndex)) {
-                                        continue
-                                    }
-
-                                    isCulling(getModel().getDrawableCulling(clipDrawIndex))
-
-                                    // 今回専用の変換を適用して描く
-                                    // チャンネルも切り替える必要がある（A,R,G,B）
-                                    setClippingContextBufferForMask(clipContext)
-
-                                    drawMeshAndroid(model, clipDrawIndex)
-                                }
-                                // --- 後処理 ---
-                                for (j in 0..<clippingManager.getRenderTextureCount()) {
-                                    offscreenSurfaces[j].endDraw()
-                                    setClippingContextBufferForMask(null)
-                                    GLES20.glViewport(
-                                        rendererProfile.lastViewport[0],
-                                        rendererProfile.lastViewport[1],
-                                        rendererProfile.lastViewport[2],
-                                        rendererProfile.lastViewport[3]
-                                    )
-                                }
-                            }*/
-
-                val clipContext = clippingManager.clippingContextListForDraw[drawableIndex]
-
-                // クリッピングマスクをセットする
-                clippingContextBufferForDraw = clipContext
-
-                drawMesh(model, drawableIndex)
+                    draw(model, clipDrawIndex)
+                }
+                // --- 後処理 ---
+                for (j in 0..<clippingManager.framebufferCount) {
+                    offscreenSurfaces[j].endDraw()
+                    setClippingContextBufferForMask(null)
+                    GLES20.glViewport(
+                        rendererProfile.lastViewport[0],
+                        rendererProfile.lastViewport[1],
+                        rendererProfile.lastViewport[2],
+                        rendererProfile.lastViewport[3]
+                    )
+                }
             }
-        }
-        postDraw()
 
+*/
+
+            // クリッピングマスクをセットする
+            clippingContextBufferForDraw = clipContext
+
+            draw(model, drawableIndex)
+        }
     }
 
     /**
@@ -298,11 +259,11 @@ class Live2DRendererImpl : Live2DRenderer() {
 //        }
     }
 
-    fun postDraw() {
+    override fun postDraw() {
 
     }
 
-    override fun drawMesh(
+    override fun doDraw(
         model: Model,
         index: Int,
     ) {

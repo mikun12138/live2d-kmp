@@ -13,14 +13,7 @@ expect fun Live2DRenderer.Companion.create(): Live2DRenderer
 
 abstract class Live2DRenderer {
 
-    /**
-     * レンダラーの初期化処理を実行する。<br></br>
-     * マスクバッファを2つ以上作成する場合はこのメソッドを使用する。第2引数に何も入れない場合のデフォルト値は1となる。
-     *
-     * @param model モデルのインスタンス
-     * @param maskBufferCount バッファの生成数
-     */
-    abstract fun initialize(model: Model, maskBufferCount: Int)
+    abstract fun init(model: Model, maskBufferCount: Int)
 
     fun drawModel(model: Model) {
         /*
@@ -30,6 +23,20 @@ abstract class Live2DRenderer {
          * These methods save and restore the renderer's drawing settings to the state immediately before the model is drawn.
          */
         saveProfile()
+        // In the case of clipping mask and buffer preprocessing method
+//        if (model.isUsingMasking()) {
+        if (true) {
+
+//            if (isUsingHighPrecisionMask()) {
+            if (true) {
+                clippingManager.setupMatrixForHighPrecision(model)
+            } else {
+                clippingManager.setupClippingContext(
+                    model,
+                    this,
+                )
+            }
+        }
         doDrawModel(model)
         restoreProfile()
     }
@@ -37,14 +44,23 @@ abstract class Live2DRenderer {
     abstract fun saveProfile()
     abstract fun doDrawModel(model: Model)
     abstract fun restoreProfile()
-    abstract fun preDraw()
-    abstract fun drawMesh(model: Model, index: Int)
+
+    fun draw(model: Model, index: Int) { // model + drawableIndex = drawable
+        preDraw()
+        doDraw(model, index)
+        postDraw()
+    }
+
+    protected abstract fun preDraw()
+    protected abstract fun doDraw(model: Model, index: Int)
+    protected abstract fun postDraw()
 
     val textures = mutableListOf<Int>()
 
     val mvpMatrix: CubismMatrix44 = CubismMatrix44.create().apply {
         loadIdentity()
     }
+    lateinit var clippingManager: ACubismClippingManager
 
     var clippingContextBufferForMask: CubismClippingContext? = null
 

@@ -21,17 +21,18 @@ import com.live2d.sdk.cubism.framework.utils.CubismDebug.cubismLogError
 import kotlin.math.max
 import kotlin.math.min
 
-/**
- * クリッピングマネージャーの抽象骨格クラス
- *
- * @param <T_ClippingContext> ACubismClippingContextを継承した型
- */
+expect fun ACubismClippingManager.Companion.create(
+    model: Model,
+    maskBufferCount: Int,
+): ACubismClippingManager
+
 abstract class ACubismClippingManager : ICubismClippingManager {
 
     val framebufferCount: Int
     val clippingContextListForDraw: MutableList<CubismClippingContext?> = mutableListOf()
     val clippingContextListForMask: MutableList<CubismClippingContext> = mutableListOf()
-    val clippingContextForMask_2_ClippedDrawableIndexList: MutableMap<CubismClippingContext, MutableList<Int>> = mutableMapOf()
+    val clippingContextForMask_2_ClippedDrawableIndexList: MutableMap<CubismClippingContext, MutableList<Int>> =
+        mutableMapOf()
 
     val offscreenSurfaces_2_clippingContextForMaskList
             : Array<Pair<ACubismOffscreenSurface, List<CubismClippingContext>>> by lazy {
@@ -67,12 +68,11 @@ abstract class ACubismClippingManager : ICubismClippingManager {
 
             // 既にあるClipContextと同じかチェックする。
             val cc =
-                findSameClip(drawableMasks[drawableIndex]!!, drawableMaskCounts[drawableIndex])
+                findSameClip(drawableMasks[drawableIndex]!!)
                     ?: run {
                         CubismClippingContext(
                             this,
                             drawableMasks[drawableIndex]!!,
-                            drawableMaskCounts[drawableIndex]
                         ).also {
                             clippingContextListForMask.add(it)
                         }
@@ -88,7 +88,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
     /*
         TODO::High版本好像有点问题
      */
-    override fun setupMatrixForHighPrecision(model: Model) {
+    fun setupMatrixForHighPrecision(model: Model) {
         // 全てのクリッピングを用意する。
         // 同じクリップ（複数の場合はまとめて1つのクリップ）を使う場合は1度だけ設定する。
         clippingContextForMask_2_ClippedDrawableIndexList.keys.count {
@@ -157,6 +157,8 @@ abstract class ACubismClippingManager : ICubismClippingManager {
         }
     }
 
+    abstract fun setupClippingContext(model: Model, renderer: Live2DRenderer)
+
     protected fun createMatrixForMask(
         layoutBoundsOnTex01: csmRectF,
         scaleX: Float,
@@ -210,7 +212,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
 
 
     // TODO:: 这玩意似乎只需要执行一次
-    fun setupLayoutBounds(usingClipCount: Int) {
+    protected fun setupLayoutBounds(usingClipCount: Int) {
         val useClippingMaskMaxCount = if (framebufferCount <= 1)
             CLIPPING_MASK_MAX_COUNT_ON_DEFAULT
         else
@@ -386,31 +388,16 @@ abstract class ACubismClippingManager : ICubismClippingManager {
         }
     }
 
-    /**
-     * 既にマスクを作っているかを確認する。
-     * 作っているようであれば該当するクリッピングマスクのインスタンスを返す。
-     * 作っていなければnullを返す。
-     *
-     * @param drawableMasks      描画オブジェクトをマスクする描画オブジェクトのリスト
-     * @param drawableMaskCounts 描画オブジェクトをマスクする描画オブジェクトの数
-     * @return 該当するクリッピングマスクが存在すればインスタンスを返し、なければnullを返す。
-     */
-    fun findSameClip(drawableMasks: IntArray, drawableMaskCounts: Int): CubismClippingContext? {
+    private fun findSameClip(drawableMasks: IntArray): CubismClippingContext? {
         return clippingContextForMask_2_ClippedDrawableIndexList.keys.firstOrNull { clipContext ->
-            clipContext.clippingIdCount == drawableMaskCounts
+            clipContext.clippingIdList.size == drawableMasks.size
                     && clipContext.clippingIdList.all { clipId ->
                 drawableMasks.any { it == clipId }
             }
         }
     }
 
-    /**
-     * マスクされる描画オブジェクト群全体を囲む矩形（モデル座標系）を計算する。
-     *
-     * @param model           モデルのインスタンス
-     * @param clippingContext クリッピングマスクのコンテキスト
-     */
-    fun calcClippedDrawTotalBounds(model: Model, clippingContext: CubismClippingContext) {
+    protected fun calcClippedDrawTotalBounds(model: Model, clippingContext: CubismClippingContext) {
         // 被クリッピングマスク（マスクされる描画オブジェクト）の全体の矩形
         var clippedDrawTotalMinX = Float.Companion.MAX_VALUE
         var clippedDrawTotalMinY = Float.Companion.MAX_VALUE
@@ -483,6 +470,5 @@ abstract class ACubismClippingManager : ICubismClippingManager {
             0.0f, 0.0f, 0.0f, 1.0f
         ),
     )
-
-
+    companion object
 }
