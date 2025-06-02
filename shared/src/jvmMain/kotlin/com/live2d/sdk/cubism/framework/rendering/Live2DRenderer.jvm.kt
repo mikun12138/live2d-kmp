@@ -185,7 +185,7 @@ class Live2DRendererImpl : Live2DRenderer() {
 
                     // マスク描画処理
                     // マスク用RenderTextureをactiveにセット
-                    clippingManager.offscreenSurfaces_2_clippingContextForMaskList[clipContext.bufferIndex].first.beginDraw()
+                    clippingManager.offscreenSurfaces[clipContext.bufferIndex].beginDraw()
 
                     // マスクをクリアする。
                     // 1が無効（描かれない領域）、0が有効（描かれる）領域。（シェーダーでCd*Csで0に近い値をかけてマスクを作る。1をかけると何も起こらない。）
@@ -208,7 +208,7 @@ class Live2DRendererImpl : Live2DRenderer() {
                 }
                 // --- 後処理 ---
                 for (j in 0..<clippingManager.framebufferCount) {
-                    clippingManager.offscreenSurfaces_2_clippingContextForMaskList[j].first.endDraw()
+                    clippingManager.offscreenSurfaces[j].endDraw()
                     clippingContextBufferForMask = null
                     glViewport(
                         Live2DRendererProfile.lastViewport[0],

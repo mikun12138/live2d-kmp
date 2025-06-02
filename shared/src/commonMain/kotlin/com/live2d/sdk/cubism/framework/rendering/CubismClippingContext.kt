@@ -9,6 +9,7 @@ package com.live2d.sdk.cubism.framework.rendering
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.type.csmRectF
 
+
 /**
  * クリッピングについての設定を保持するクラス
  * サブクラスに環境依存のフィールドを保持する。
@@ -25,7 +26,16 @@ class CubismClippingContext(
      */
     val clippingIdList: IntArray,
 ) {
-    companion object
+    val clippedDrawableIndexList: MutableList<Int> = ArrayList()
+
+    /**
+     * このマスクにクリップされる描画オブジェクトを追加する
+     *
+     * @param drawableIndex クリッピング対象に追加する描画オブジェクトのインデックス
+     */
+    fun addClippedDrawable(drawableIndex: Int) {
+        clippedDrawableIndexList.add(drawableIndex)
+    }
 
     /**
      * 現在の描画状態でマスクの準備が必要ならtrue
@@ -62,5 +72,8 @@ class CubismClippingContext(
      * このマスクが割り当てられるレンダーテクスチャ（フレームバッファ）やカラーバッファのインデックス
      */
     var bufferIndex: Int = 0
+
+    companion object
+
 
 }

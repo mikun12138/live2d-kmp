@@ -16,7 +16,6 @@ import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companio
 import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.CLIPPING_MASK_MAX_COUNT_ON_MULTI_RENDER_TEXTURE
 import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.COLOR_CHANNEL_COUNT
 import com.live2d.sdk.cubism.framework.type.csmRectF
-import com.live2d.sdk.cubism.framework.type.expand
 import com.live2d.sdk.cubism.framework.utils.CubismDebug.cubismLogError
 
 expect fun ACubismClippingManager.Companion.create(
@@ -29,26 +28,38 @@ abstract class ACubismClippingManager : ICubismClippingManager {
     val framebufferCount: Int
     val clippingContextListForDraw: MutableList<CubismClippingContext?> = mutableListOf()
     val clippingContextListForMask: MutableList<CubismClippingContext> = mutableListOf()
-    val clippingContextForMask_2_ClippedDrawableIndexList: MutableMap<CubismClippingContext, MutableList<Int>> =
-        mutableMapOf()
 
-    val offscreenSurfaces_2_clippingContextForMaskList
-            : Array<Pair<ACubismOffscreenSurface, List<CubismClippingContext>>> by lazy {
-        Array(framebufferCount) { index ->
-            ACubismOffscreenSurface.create().apply {
-                createOffscreenSurface(
-                    CLIPPING_MASK_BUFFER_SIZE_X,
-                    CLIPPING_MASK_BUFFER_SIZE_Y,
-                )
-            } to clippingContextForMask_2_ClippedDrawableIndexList.keys.filter { it.bufferIndex == index }
-        }
-    }
+    //    val clippingContextForMask_2_ClippedDrawableIndexList: MutableMap<CubismClippingContext, MutableList<Int>> =
+//        mutableMapOf()
+//
+//    val offscreenSurfaces_2_clippingContextForMaskList
+//            : Array<Pair<ACubismOffscreenSurface, List<CubismClippingContext>>> by lazy {
+//        Array(framebufferCount) { index ->
+//            ACubismOffscreenSurface.create().apply {
+//                createOffscreenSurface(
+//                    CLIPPING_MASK_BUFFER_SIZE_X,
+//                    CLIPPING_MASK_BUFFER_SIZE_Y,
+//                )
+//            } to clippingContextForMask_2_ClippedDrawableIndexList.keys.filter { it.bufferIndex == index }
+//        }
+//    }
+    val offscreenSurfaces: MutableList<ACubismOffscreenSurface> = mutableListOf()
 
     constructor(
         model: Model,
         maskBufferCount: Int,
     ) {
         framebufferCount = maskBufferCount
+        repeat(framebufferCount) {
+            offscreenSurfaces.add(
+                ACubismOffscreenSurface.create().apply {
+                    createOffscreenSurface(
+                        CLIPPING_MASK_BUFFER_SIZE_X,
+                        CLIPPING_MASK_BUFFER_SIZE_Y
+                    )
+                }
+            )
+        }
 
         val drawableCount = model.drawableCount // 描画オブジェクトの数
         val drawableMasks = model.model.drawables.masks // 描画オブジェクトをマスクする描画オブジェクトのインデックスのリスト
@@ -75,11 +86,8 @@ abstract class ACubismClippingManager : ICubismClippingManager {
                             clippingContextListForMask.add(it)
                         }
                     }
-
+            cc.addClippedDrawable(drawableIndex)
             clippingContextListForDraw.add(cc)
-            clippingContextForMask_2_ClippedDrawableIndexList.getOrPut(cc) {
-                mutableListOf()
-            }.add(drawableIndex)
         }
     }
 
@@ -87,72 +95,72 @@ abstract class ACubismClippingManager : ICubismClippingManager {
         TODO::High版本好像有点问题
      */
     fun setupMatrixForHighPrecision(model: Model) {
-        // 全てのクリッピングを用意する。
-        // 同じクリップ（複数の場合はまとめて1つのクリップ）を使う場合は1度だけ設定する。
-        clippingContextForMask_2_ClippedDrawableIndexList.keys.count {
-            calcClippedDrawTotalBounds(model, it)
-            it.isUsing
-        }.takeIf { it > 0 }?.let {
-
-            setupLayoutBounds(0)
-
-            // 実際にマスクを生成する。
-            // 全てのマスクをどのようにレイアウトして描くかを決定し、ClipContext, ClippedDrawContextに記憶する。
-            for (clipContext in clippingContextForMask_2_ClippedDrawableIndexList.keys) {
-
-                val margin = 0.05f
-                val allClippedDrawRectActually = clipContext.allClippedDrawRect.copy()
-
-                val scaleX: Float
-                run {
-                    val physicalMaskWidth =
-                        clipContext.layoutBounds.width * CLIPPING_MASK_BUFFER_SIZE_X
-                    // 绘制区域大于mask的大小的时候 添加边距 ???
-                    if (clipContext.allClippedDrawRect.width * model.pixelPerUnit > physicalMaskWidth) {
-                        // 拓展自身的0.05
-                        allClippedDrawRectActually.expand(
-                            clipContext.allClippedDrawRect.width * margin,
-                            0.0f
-                        )
-                        scaleX = clipContext.layoutBounds.width / allClippedDrawRectActually.width
-                    } else {
-                        scaleX = model.pixelPerUnit / physicalMaskWidth
-                    }
-                }
-
-                val scaleY: Float
-                run {
-                    val physicalMaskHeight =
-                        clipContext.layoutBounds.height * CLIPPING_MASK_BUFFER_SIZE_Y
-                    if (clipContext.allClippedDrawRect.height * model.pixelPerUnit > physicalMaskHeight) {
-                        allClippedDrawRectActually.expand(
-                            0.0f,
-                            clipContext.allClippedDrawRect.height * margin
-                        )
-                        scaleY = clipContext.layoutBounds.height / allClippedDrawRectActually.height
-                    } else {
-                        scaleY = model.pixelPerUnit / physicalMaskHeight
-                    }
-                }
-
-                clipContext.matrixForMask.setMatrix(
-                    createMatrixForMask(
-                        clipContext.layoutBounds,
-                        scaleX,
-                        scaleY,
-                        allClippedDrawRectActually
-                    ).tr
-                )
-                clipContext.matrixForDraw.setMatrix(
-                    createMatrixForDraw(
-                        clipContext.layoutBounds,
-                        scaleX,
-                        scaleY,
-                        allClippedDrawRectActually
-                    ).tr
-                )
-            }
-        }
+//        // 全てのクリッピングを用意する。
+//        // 同じクリップ（複数の場合はまとめて1つのクリップ）を使う場合は1度だけ設定する。
+//        clippingContextForMask_2_ClippedDrawableIndexList.keys.count {
+//            calcClippedDrawTotalBounds(model, it)
+//            it.isUsing
+//        }.takeIf { it > 0 }?.let {
+//
+//            setupLayoutBounds(0)
+//
+//            // 実際にマスクを生成する。
+//            // 全てのマスクをどのようにレイアウトして描くかを決定し、ClipContext, ClippedDrawContextに記憶する。
+//            for (clipContext in clippingContextForMask_2_ClippedDrawableIndexList.keys) {
+//
+//                val margin = 0.05f
+//                val allClippedDrawRectActually = clipContext.allClippedDrawRect.copy()
+//
+//                val scaleX: Float
+//                run {
+//                    val physicalMaskWidth =
+//                        clipContext.layoutBounds.width * CLIPPING_MASK_BUFFER_SIZE_X
+//                    // 绘制区域大于mask的大小的时候 添加边距 ???
+//                    if (clipContext.allClippedDrawRect.width * model.pixelPerUnit > physicalMaskWidth) {
+//                        // 拓展自身的0.05
+//                        allClippedDrawRectActually.expand(
+//                            clipContext.allClippedDrawRect.width * margin,
+//                            0.0f
+//                        )
+//                        scaleX = clipContext.layoutBounds.width / allClippedDrawRectActually.width
+//                    } else {
+//                        scaleX = model.pixelPerUnit / physicalMaskWidth
+//                    }
+//                }
+//
+//                val scaleY: Float
+//                run {
+//                    val physicalMaskHeight =
+//                        clipContext.layoutBounds.height * CLIPPING_MASK_BUFFER_SIZE_Y
+//                    if (clipContext.allClippedDrawRect.height * model.pixelPerUnit > physicalMaskHeight) {
+//                        allClippedDrawRectActually.expand(
+//                            0.0f,
+//                            clipContext.allClippedDrawRect.height * margin
+//                        )
+//                        scaleY = clipContext.layoutBounds.height / allClippedDrawRectActually.height
+//                    } else {
+//                        scaleY = model.pixelPerUnit / physicalMaskHeight
+//                    }
+//                }
+//
+//                clipContext.matrixForMask.setMatrix(
+//                    createMatrixForMask(
+//                        clipContext.layoutBounds,
+//                        scaleX,
+//                        scaleY,
+//                        allClippedDrawRectActually
+//                    ).tr
+//                )
+//                clipContext.matrixForDraw.setMatrix(
+//                    createMatrixForDraw(
+//                        clipContext.layoutBounds,
+//                        scaleX,
+//                        scaleY,
+//                        allClippedDrawRectActually
+//                    ).tr
+//                )
+//            }
+//        }
     }
 
     abstract fun setupClippingContext(model: Model, renderer: Live2DRenderer)
@@ -225,7 +233,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
 //                )
 //            }
             // この場合は一つのマスクターゲットを毎回クリアして使用する
-            clippingContextForMask_2_ClippedDrawableIndexList.keys.forEach { cc ->
+            clippingContextListForMask.forEach { cc ->
                 cc.layoutChannelIndex = 0 // どうせ毎回消すので固定で良い
                 cc.layoutBounds = csmRectF()
 //                cc.bufferIndex = 0
@@ -387,7 +395,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
     }
 
     private fun findSameClip(drawableMasks: IntArray): CubismClippingContext? {
-        return clippingContextForMask_2_ClippedDrawableIndexList.keys.firstOrNull { clipContext ->
+        return clippingContextListForMask.firstOrNull { clipContext ->
             clipContext.clippingIdList.size == drawableMasks.size
                     && clipContext.clippingIdList.all { clipId ->
                 drawableMasks.any { it == clipId }
@@ -404,7 +412,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
 
         // このマスクが実際に必要か判定する。
         // このクリッピングを利用する「描画オブジェクト」がひとつでも使用可能であればマスクを生成する必要がある。
-        for (drawableIndex in clippingContextForMask_2_ClippedDrawableIndexList.get(clippingContext)!!) {
+        for (drawableIndex in clippingContext.clippedDrawableIndexList) {
             // マスクを使用する描画オブジェクトの描画される矩形を求める。
 
             val drawableVertexCount = model.getDrawableVertexCount(drawableIndex)
@@ -415,15 +423,18 @@ abstract class ACubismClippingManager : ICubismClippingManager {
             var maxX = -Float.Companion.MAX_VALUE
             var maxY = -Float.Companion.MAX_VALUE
 
-            var pi: Int = VERTEX_OFFSET
-            repeat(drawableVertexCount) {
-                val x = drawableVertices!![pi]
-                val y = drawableVertices[pi + 1]
-                minX = Math.min(minX, x);
-                maxX = Math.max(maxX, x);
-                minY = Math.min(minY, y);
-                maxY = Math.max(maxY, y);
-                pi += VERTEX_STEP
+            val loop = drawableVertexCount * VERTEX_STEP
+            run {
+                var pi = VERTEX_OFFSET
+                while (pi < loop) {
+                    val x = drawableVertices!![pi]
+                    val y = drawableVertices[pi + 1]
+                    minX = Math.min(minX, x)
+                    maxX = Math.max(maxX, x)
+                    minY = Math.min(minY, y)
+                    maxY = Math.max(maxY, y)
+                    pi += VERTEX_STEP
+                }
             }
 
             if (minX == Float.Companion.MAX_VALUE) {
@@ -468,5 +479,6 @@ abstract class ACubismClippingManager : ICubismClippingManager {
             0.0f, 0.0f, 0.0f, 1.0f
         ),
     )
+
     companion object
 }
