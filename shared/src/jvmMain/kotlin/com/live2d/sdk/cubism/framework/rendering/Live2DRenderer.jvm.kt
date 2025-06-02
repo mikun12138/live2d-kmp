@@ -150,6 +150,7 @@ class Live2DRendererImpl : Live2DRenderer() {
 
 
     override fun doDrawModel(model: Model) {
+        preDraw()
 
         val drawableCount: Int = model.drawableCount
         val renderOrder: IntArray = model.model.drawables.renderOrders
@@ -217,7 +218,6 @@ class Live2DRendererImpl : Live2DRenderer() {
                     )
                 }
             }
-
 
             // クリッピングマスクをセットする
             clippingContextBufferForDraw = clipContext

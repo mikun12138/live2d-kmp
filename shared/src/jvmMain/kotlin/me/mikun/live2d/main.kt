@@ -87,8 +87,14 @@ fun live2dMain() {
         renderer.init(model.model, 1)
 
         while (!glfwWindowShouldClose(handle)) {
-            glClear(GL_COLOR_BUFFER_BIT)
-            glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+            glClearColor(
+                0.0f,
+                0.0f,
+                0.0f,
+                1.0f
+            )
+            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+            glClearDepthf(1.0f)
 
             Timer.update()
             // キャッシュ変数の定義を避けるために、multiplyByMatrix()ではなく、multiply()を使用する。

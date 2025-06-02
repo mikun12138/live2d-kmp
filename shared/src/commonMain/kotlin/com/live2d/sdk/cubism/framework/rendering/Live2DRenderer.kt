@@ -46,12 +46,12 @@ abstract class Live2DRenderer {
     abstract fun restoreProfile()
 
     fun draw(model: Model, index: Int) { // model + drawableIndex = drawable
-        preDraw()
+//        preDraw()
         doDraw(model, index)
-        postDraw()
+//        postDraw()
     }
 
-    protected abstract fun preDraw()
+    abstract fun preDraw()
     protected abstract fun doDraw(model: Model, index: Int)
     protected abstract fun postDraw()
 

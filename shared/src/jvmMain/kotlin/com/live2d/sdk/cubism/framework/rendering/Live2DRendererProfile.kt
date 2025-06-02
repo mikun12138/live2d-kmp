@@ -246,12 +246,12 @@ object Live2DRendererProfile {
 
         glFrontFace(lastFrontFace[0]);
 
-        glColorMask(
-            lastColorMask[0],
-            lastColorMask[1],
-            lastColorMask[2],
-            lastColorMask[3]
-        );
+//        glColorMask(
+//            lastColorMask[0],
+//            lastColorMask[1],
+//            lastColorMask[2],
+//            lastColorMask[3]
+//        );
 
         // If the buffer was bound before, it needs to be destroyed.
         glBindBuffer(

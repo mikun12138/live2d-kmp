@@ -49,6 +49,7 @@ actual object Live2DCubismCoreImpl {
         Live2DCubismCoreFFM.csmResetDrawableDynamicFlags.invoke(modelHandle)
     }
 
+
     actual fun syncToNativeModel(model: CubismModel) {
         run {
             val nativeParamSegment =
@@ -230,7 +231,6 @@ actual object Live2DCubismCoreImpl {
                 }
         }
     }
-
     actual fun initializeJavaModelWithNativeModel(model: CubismModel) {
         val outSizeInPixels = Arena.global().allocate(2 * ValueLayout.JAVA_FLOAT.byteSize())
         val outOriginInPixels = Arena.global().allocate(2 * ValueLayout.JAVA_FLOAT.byteSize())

@@ -569,7 +569,7 @@ object Live2DShader {
                 "u_screenColor"
             )
             uniformChannelFlagLocation = when (type) {
-                MASKED, MASKED, MASKED_INVERTED, MASKED_PREMULTIPLIED_ALPHA, MASKED_INVERTED_PREMULTIPLIED_ALPHA -> {
+                MASK, MASKED, MASKED_INVERTED, MASKED_PREMULTIPLIED_ALPHA, MASKED_INVERTED_PREMULTIPLIED_ALPHA -> {
                     glGetUniformLocation(
                         type.shaderProgram.id,
                         "u_channelFlag"

@@ -18,8 +18,6 @@ import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companio
 import com.live2d.sdk.cubism.framework.type.csmRectF
 import com.live2d.sdk.cubism.framework.type.expand
 import com.live2d.sdk.cubism.framework.utils.CubismDebug.cubismLogError
-import kotlin.math.max
-import kotlin.math.min
 
 expect fun ACubismClippingManager.Companion.create(
     model: Model,
@@ -421,10 +419,10 @@ abstract class ACubismClippingManager : ICubismClippingManager {
             repeat(drawableVertexCount) {
                 val x = drawableVertices!![pi]
                 val y = drawableVertices[pi + 1]
-                minX = min(minX, x)
-                maxX = max(maxX, x)
-                minY = min(minY, y)
-                maxY = max(maxY, y)
+                minX = Math.min(minX, x);
+                maxX = Math.max(maxX, x);
+                minY = Math.min(minY, y);
+                maxY = Math.max(maxY, y);
                 pi += VERTEX_STEP
             }
 
@@ -433,10 +431,10 @@ abstract class ACubismClippingManager : ICubismClippingManager {
             }
 
             // 全体の矩形に反映
-            clippedDrawTotalMinX = min(clippedDrawTotalMinX, minX)
-            clippedDrawTotalMaxX = max(clippedDrawTotalMaxX, maxX)
-            clippedDrawTotalMinY = min(clippedDrawTotalMinY, minY)
-            clippedDrawTotalMaxY = max(clippedDrawTotalMaxY, maxY)
+            clippedDrawTotalMinX = Math.min(clippedDrawTotalMinX, minX);
+            clippedDrawTotalMaxX = Math.max(clippedDrawTotalMaxX, maxX);
+            clippedDrawTotalMinY = Math.min(clippedDrawTotalMinY, minY);
+            clippedDrawTotalMaxY = Math.max(clippedDrawTotalMaxY, maxY);
         }
 
         if (clippedDrawTotalMinX == Float.Companion.MAX_VALUE) {
