@@ -80,7 +80,6 @@ class MotionQueueEntry(
 
             var value: Float
 
-            // Evaluate model curves
             motion.motionData.curves.filter { it.type == CubismMotionCurveTarget.MODEL }
                 .forEach { curve ->
 
@@ -107,14 +106,16 @@ class MotionQueueEntry(
                     }
                 }
 
-            val tmpFadeIn = if (motion.fadeInSeconds <= 0.0f)
-                1.0f
-            else
-                getEasingSine((totalSeconds - startTimePoint) / motion.fadeInSeconds)
-            val tmpFadeOut = if (motion.fadeOutSeconds <= 0.0f || endTimePoint < 0.0f)
-                1.0f
-            else
-                getEasingSine((endTimePoint - totalSeconds) / motion.fadeOutSeconds)
+            val tmpFadeIn =
+                if (motion.fadeInSeconds <= 0.0f)
+                    1.0f
+                else
+                    getEasingSine((totalSeconds - startTimePoint) / motion.fadeInSeconds)
+            val tmpFadeOut =
+                if (motion.fadeOutSeconds <= 0.0f || endTimePoint < 0.0f)
+                    1.0f
+                else
+                    getEasingSine((endTimePoint - totalSeconds) / motion.fadeOutSeconds)
 
             val fadeWeight = calFadeWeight(totalSeconds)
             motion.motionData.curves.filter { it.type == CubismMotionCurveTarget.PARAMETER }
@@ -158,7 +159,7 @@ class MotionQueueEntry(
 
                         // If the parameter has a fade-in or fade-out setting, apply it.
                         val fin: Float = if (motion.existFadeIn(curve)) {
-                            if (curve.fadeInTime == 0.0f)
+                            if (curve.fadeInTime <= 0.0f)
                                 1.0f
                             else
                                 getEasingSine((totalSeconds - startTimePoint) / curve.fadeInTime)
@@ -166,7 +167,7 @@ class MotionQueueEntry(
                             tmpFadeIn
                         }
                         val fout: Float = if (motion.existFadeOut(curve)) {
-                            if (curve.fadeOutTime == 0.0f || endTimePoint < 0.0f)
+                            if (curve.fadeOutTime <= 0.0f || endTimePoint < 0.0f)
                                 1.0f
                             else
                                 getEasingSine((endTimePoint - totalSeconds) / curve.fadeOutTime)
@@ -183,6 +184,13 @@ class MotionQueueEntry(
                     } else {
                         // Apply each fading.
                         v = sourceValue + (value - sourceValue) * fadeWeight
+                        if (curve.id.value == "ParamLeg") {
+                            println("sourceValue: " + sourceValue);
+                            println("value: " + value);
+                            println("fadeWeight: " + fadeWeight);
+                            println(curve.id.value + ": " + v);
+                            println()
+                        }
                     }
                     model.setParameterValue(parameterIndex, v)
                 }

@@ -6,11 +6,14 @@ import com.live2d.sdk.cubism.framework.id.CubismIdManager
 import com.live2d.sdk.cubism.framework.math.CubismMath
 import com.live2d.sdk.cubism.framework.motion.ACubismMotion
 import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal
+import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal.CubismMotionPoint
+import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal.CubismMotionSegmentType
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
 import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
 import kotlinx.serialization.json.Json
 import java.util.BitSet
 import kotlin.math.max
+
 
 /**
  * Motion class.
@@ -20,7 +23,7 @@ class CubismMotion : ACubismMotion {
     constructor(
         buffer: ByteArray,
         finishedMotionCallBack: IFinishedMotionCallback = IFinishedMotionCallback { },
-        beganMotionCallBack: IBeganMotionCallback = IBeganMotionCallback { }
+        beganMotionCallBack: IBeganMotionCallback = IBeganMotionCallback { },
     ) {
         parse(buffer)
 
@@ -99,7 +102,7 @@ class CubismMotion : ACubismMotion {
 
             // Segments
             var segmentIndex = 0
-            while (segmentIndex < motionData.curves[curveIndex].segmentCount) {
+            while (segmentIndex < json.curves[curveIndex].segments.size) {
                 // 起始点
                 if (segmentIndex == 0) {
                     motionData.segments[totalSegmentIndex].basePointIndex = totalPointIndex
@@ -268,7 +271,7 @@ class CubismMotion : ACubismMotion {
      */
     fun setEffectIds(
         eyeBlinkParameterIds: List<CubismId>,
-        lipSyncParameterIds: List<CubismId>
+        lipSyncParameterIds: List<CubismId>,
     ) {
         this.eyeBlinkParameterIds.clear()
         this.eyeBlinkParameterIds.addAll(eyeBlinkParameterIds)
@@ -281,41 +284,92 @@ class CubismMotion : ACubismMotion {
         curve: CubismMotionInternal.CubismMotionCurve,
         time: Float,
         isCorrection: Boolean,
-        endTime: Float
+        endTime: Float,
     ): Float {
+        if (curve.id.value == "ParamLeg") {
+            println("time: " + time);
+            println("isCorrection: " + isCorrection);
+            println("endTime: " + endTime);
+            println()
+        }
 
-        val nextBaseSegmentIndex: Int = curve.baseSegmentIndex + curve.segmentCount
-        var nextSegmentBasicPointIndex = 0
-        return (curve.baseSegmentIndex until nextBaseSegmentIndex).firstOrNull {
+        var target = -1
+        val totalSegmentCount = curve.baseSegmentIndex + curve.segmentCount
+        if (curve.id.value == "ParamLeg") {
+            println("baseSegmentIndex: " + curve.baseSegmentIndex)
+            println("segmentCount: " + curve.segmentCount)
+        }
+
+        var pointPosition = 0
+        for (i in curve.baseSegmentIndex..<totalSegmentCount) {
             // Get first point of next segment.
-            nextSegmentBasicPointIndex =
-                motionData.segments[it].basePointIndex + motionData.segments[it].segmentType.pointCount
+            pointPosition = (motionData.segments.get(i).basePointIndex
+                    + (if (motionData.segments.get(i).segmentType == CubismMotionSegmentType.BEZIER)
+                3
+            else
+                1))
+
             // Break if time lies within current segment.
-            motionData.points[nextSegmentBasicPointIndex].time > time
-        }?.let { it: Int ->
+            if (motionData.points.get(pointPosition).time > time) {
+                target = i
+                break
+            }
+        }
 
-            val points: MutableList<CubismMotionInternal.CubismMotionPoint> =
-                motionData.points.subList(
-                    motionData.segments[it].basePointIndex,
-                    nextSegmentBasicPointIndex
-                )
-
-            motionData.segments[it].evaluator.evaluate(points, time)
-        } ?: run {
+        if (target == -1) {
             if (isCorrection && time < endTime) {
                 // 終点から始点への補正処理
-                correctEndPoint(
+                return correctEndPoint(
                     motionData,
-                    nextBaseSegmentIndex - 1,
-                    motionData.segments[curve.baseSegmentIndex].basePointIndex,
-                    nextSegmentBasicPointIndex,
+                    totalSegmentCount - 1,
+                    motionData.segments.get(curve.baseSegmentIndex).basePointIndex,
+                    pointPosition,
                     time,
                     endTime
                 )
             }
 
-            motionData.points[nextSegmentBasicPointIndex].value
+            return motionData.points.get(pointPosition).value
         }
+
+        val segment = motionData.segments.get(target)
+
+        val points: MutableList<CubismMotionPoint> =
+            motionData.points.subList(segment.basePointIndex, motionData.points.size)
+        return segment.evaluator.evaluate(points, time)
+
+//        val nextBaseSegmentIndex: Int = curve.baseSegmentIndex + curve.segmentCount
+//        var nextSegmentBasicPointIndex = 0
+//        return (curve.baseSegmentIndex until nextBaseSegmentIndex).firstOrNull {
+//            // Get first point of next segment.
+//            nextSegmentBasicPointIndex =
+//                motionData.segments[it].basePointIndex + motionData.segments[it].segmentType.pointCount
+//            // Break if time lies within current segment.
+//            motionData.points[nextSegmentBasicPointIndex].time > time
+//        }?.let { it: Int ->
+//
+//            val points: MutableList<CubismMotionInternal.CubismMotionPoint> =
+//                motionData.points.subList(
+//                    motionData.segments[it].basePointIndex,
+//                    nextSegmentBasicPointIndex
+//                )
+//
+//            motionData.segments[it].evaluator.evaluate(points, time)
+//        } ?: run {
+//            if (isCorrection && time < endTime) {
+//                // 終点から始点への補正処理
+//                correctEndPoint(
+//                    motionData,
+//                    nextBaseSegmentIndex - 1,
+//                    motionData.segments[curve.baseSegmentIndex].basePointIndex,
+//                    nextSegmentBasicPointIndex,
+//                    time,
+//                    endTime
+//                )
+//            }
+//
+//            motionData.points[nextSegmentBasicPointIndex].value
+//        }
 
     }
 
@@ -325,7 +379,7 @@ class CubismMotion : ACubismMotion {
         beginIndex: Int,
         endIndex: Int,
         time: Float,
-        endTime: Float
+        endTime: Float,
     ): Float {
         val motionPoint = listOf(
             run {
@@ -350,7 +404,8 @@ class CubismMotion : ACubismMotion {
             )
 
             CubismMotionInternal.CubismMotionSegmentType.LINEAR,
-            CubismMotionInternal.CubismMotionSegmentType.BEZIER -> LinearEvaluator.evaluate(
+            CubismMotionInternal.CubismMotionSegmentType.BEZIER,
+                -> LinearEvaluator.evaluate(
                 motionPoint,
                 time
             )
@@ -476,14 +531,14 @@ class CubismMotion : ACubismMotion {
         }
 
         enum class EffectID(
-            val value: String
+            val value: String,
         ) {
             EYE_BLINK("EyeBlink"),
             LIP_SYNC("LipSync");
         }
 
         enum class OpacityID(
-            val value: String
+            val value: String,
         ) {
             OPACITY("Opacity")
         }
@@ -498,7 +553,7 @@ class CubismMotion : ACubismMotion {
         private fun lerpPoints(
             a: CubismMotionInternal.CubismMotionPoint,
             b: CubismMotionInternal.CubismMotionPoint,
-            t: Float
+            t: Float,
         ): CubismMotionInternal.CubismMotionPoint = CubismMotionInternal.CubismMotionPoint(
             a.time + ((b.time - a.time) * t),
             a.value + ((b.value - a.value) * t),

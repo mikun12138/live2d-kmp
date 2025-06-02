@@ -157,7 +157,10 @@ abstract class AAppModel : CubismUserModel() {
             model.loadParameters()
             run {
                 if (motionManager.isFinished) {
-                    startRandomMotion(IDLE, MotionPriority.IDLE)
+                    startMotion(
+                        name_2_motionList[IDLE]!![2],
+                        MotionPriority.IDLE
+                    )
                 } else {
                     isMotionUpdated = motionManager.updateMotion(model, deltaSeconds)
                 }
@@ -273,6 +276,8 @@ abstract class AAppModel : CubismUserModel() {
 
             //TODO:: sound
         }
+        println("[APP] start motion: ${model}")
+
 
         motionManager.startMotionPriority(motion, priority.value)
     }

@@ -278,6 +278,7 @@ class Model {
     fun getParameterDefaultValue(parameterIndex: Int): Float {
         return model.parameterViews[parameterIndex].defaultValue
     }
+
     fun getParameterValue(parameterId: CubismId): Float {
         // Speeding up the process, this can get partIndex. However, it is not necessary when setting externally because it is not frequently called.
         val parameterIndex = getParameterIndex(parameterId)
@@ -307,17 +308,18 @@ class Model {
         if (notExistParameterIndices.contains(parameterIndex)) {
             val index = notExistParameterIndices.indexOf(parameterIndex)
             val parameterValue = notExistParameterValues[index]
-            val weightedParameterValue = if (weight == 1.0f)
-                value
-            else
-                (parameterValue * (1.0f - weight)) + (value * weight)
+            val weightedParameterValue =
+                if (weight == 1.0f)
+                    value
+                else
+                    (parameterValue * (1.0f - weight)) + (value * weight)
             notExistParameterValues[index] = weightedParameterValue
             return
         }
 
 
         // Detect whether partIndex is not out of bounds index
-        assert(0 <= parameterIndex && parameterIndex < this.parameterCount)
+        check(0 <= parameterIndex && parameterIndex < this.parameterCount)
 
         val parameter: CubismParameterView = model.parameterViews[parameterIndex]
         if (parameter.maximumValue < value) {
@@ -327,10 +329,11 @@ class Model {
         }
 
         val parameterValue: Float = parameter.value
-        val weightedParameterValue = if (weight == 1.0f)
-            value
-        else
-            (parameterValue * (1.0f - weight)) + (value * weight)
+        val weightedParameterValue =
+            if (weight == 1.0f)
+                value
+            else
+                (parameterValue * (1.0f - weight)) + (value * weight)
         parameter.value = weightedParameterValue
     }
 
@@ -508,8 +511,6 @@ class Model {
     private fun isBitSet(flag: Byte, mask: Byte): Boolean {
         return (flag.toInt() and mask.toInt()) == mask.toInt()
     }
-
-
 
 
     /**
