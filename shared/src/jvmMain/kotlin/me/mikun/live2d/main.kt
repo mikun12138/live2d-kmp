@@ -5,7 +5,7 @@ import com.live2d.sdk.cubism.framework.CubismFrameworkConfig
 import com.live2d.sdk.cubism.framework.data.ModelJson
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.AAppModel
-import com.live2d.sdk.cubism.framework.rendering.Live2DRenderer
+import com.live2d.sdk.cubism.framework.rendering.ALive2DRenderer
 import com.live2d.sdk.cubism.framework.rendering.create
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
@@ -66,15 +66,16 @@ fun live2dMain() {
             GL_ONE_MINUS_SRC_ALPHA
         )
 
-        val renderer = Live2DRenderer.create()
+        val renderer = ALive2DRenderer.create()
         val model = object : AAppModel() {
             override fun setupTextures(
                 dir: String,
                 modelJson: ModelJson,
             ) {
-                modelJson.fileReferences.textures.forEach { texturePath ->
+                modelJson.fileReferences.textures.forEachIndexed { index, texturePath ->
                     Path(dir, texturePath).readBytes().let { buffer ->
-                        renderer.textures.add(
+                        renderer.textures.put(
+                            index,
                             loadTexture(
                                 MemoryUtil.memAlloc(buffer.size).put(buffer).flip()
                             )
@@ -112,8 +113,8 @@ fun live2dMain() {
             )
 
             model.update(Timer.deltaF)
-            renderer.mvpMatrix.setMatrix(matrix)
-            renderer.drawModel(model.model)
+            renderer.mvpMatrix44.setMatrix(matrix)
+            renderer.drawModel()
 
             glfwSwapBuffers(handle)
             glfwPollEvents()

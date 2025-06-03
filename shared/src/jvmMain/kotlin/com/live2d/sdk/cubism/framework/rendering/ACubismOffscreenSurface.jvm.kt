@@ -1,5 +1,6 @@
 package com.live2d.sdk.cubism.framework.rendering
 
+import com.live2d.sdk.cubism.framework.math.CubismVector2
 import org.lwjgl.opengl.GL46.*
 import java.nio.ByteBuffer
 
@@ -8,19 +9,20 @@ actual fun ACubismOffscreenSurface.Companion.create(): ACubismOffscreenSurface {
 }
 
 class CubismOffscreenSurface : ACubismOffscreenSurface() {
-
     override fun beginDraw() {
         if (renderTexture == null) {
             return
         }
 
-        // 存储旧的 fbo
         glGetIntegerv(
             GL_FRAMEBUFFER_BINDING,
             oldFBO
         )
 
-        glBindFramebuffer(GL_FRAMEBUFFER, renderTexture!![0])
+        glBindFramebuffer(
+            GL_FRAMEBUFFER,
+            renderTexture!![0]
+        );
     }
 
     override fun endDraw() {
@@ -28,7 +30,10 @@ class CubismOffscreenSurface : ACubismOffscreenSurface() {
             return
         }
 
-        glBindFramebuffer(GL_FRAMEBUFFER, oldFBO[0])
+        glBindFramebuffer(
+            GL_FRAMEBUFFER,
+            oldFBO[0]
+        );
     }
 
     fun clear(
@@ -46,38 +51,66 @@ class CubismOffscreenSurface : ACubismOffscreenSurface() {
         glClear(GL_COLOR_BUFFER_BIT)
     }
 
-    // TODO:: check and recreate
-    override fun createOffscreenSurface(x: Float, y: Float) {
+    override fun createOffscreenSurface(displayBufferSize: CubismVector2) {
         destroyOffscreenSurface()
 
         val ret = IntArray(size = 1)
 
+        colorBuffer = IntArray(size = 1)
         colorBuffer[0] = glGenTextures()
 
-        glBindTexture(GL_TEXTURE_2D, colorBuffer[0])
+        glBindTexture(
+            GL_TEXTURE_2D,
+            colorBuffer[0]
+        )
         glTexImage2D(
             GL_TEXTURE_2D,
             0,
             GL_RGBA,
-            x.toInt(),
-            y.toInt(),
+            displayBufferSize.x.toInt(),
+            displayBufferSize.y.toInt(),
             0,
             GL_RGBA,
             GL_UNSIGNED_BYTE,
             null as ByteBuffer?
         )
 
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glBindTexture(GL_TEXTURE_2D, 0);
+        glTexParameteri(
+            GL_TEXTURE_2D,
+            GL_TEXTURE_WRAP_S,
+            GL_CLAMP_TO_EDGE
+        );
+        glTexParameteri(
+            GL_TEXTURE_2D,
+            GL_TEXTURE_WRAP_T,
+            GL_CLAMP_TO_EDGE
+        );
+        glTexParameteri(
+            GL_TEXTURE_2D,
+            GL_TEXTURE_MIN_FILTER,
+            GL_LINEAR
+        );
+        glTexParameteri(
+            GL_TEXTURE_2D,
+            GL_TEXTURE_MAG_FILTER,
+            GL_LINEAR
+        );
+        glBindTexture(
+            GL_TEXTURE_2D,
+            0
+        );
 
         val tmpFBO = IntArray(1)
-        glGetIntegerv(GL_FRAMEBUFFER_BINDING, tmpFBO)
+        glGetIntegerv(
+            GL_FRAMEBUFFER_BINDING,
+            tmpFBO
+        )
 
         ret[0] = glGenFramebuffers();
-        glBindFramebuffer(GL_FRAMEBUFFER, ret[0]);
+        glBindFramebuffer(
+            GL_FRAMEBUFFER,
+            ret[0]
+        );
         glFramebufferTexture2D(
             GL_FRAMEBUFFER,
             GL_COLOR_ATTACHMENT0,
@@ -85,12 +118,15 @@ class CubismOffscreenSurface : ACubismOffscreenSurface() {
             this.colorBuffer[0],
             0
         );
-        glBindFramebuffer(GL_FRAMEBUFFER, tmpFBO[0]);
+        glBindFramebuffer(
+            GL_FRAMEBUFFER,
+            tmpFBO[0]
+        );
 
         this.renderTexture = IntArray(size = 1)
         this.renderTexture?.let { it[0] = ret[0] }
-        bufferWidth = x.toInt()
-        bufferHeight = y.toInt()
+        bufferWidth = displayBufferSize.x.toInt()
+        bufferHeight = displayBufferSize.y.toInt()
 
     }
 
@@ -101,19 +137,33 @@ class CubismOffscreenSurface : ACubismOffscreenSurface() {
         }
     }
 
-    fun isSameSize(width: Float, height: Float): Boolean {
-        return (width.toInt() == bufferWidth) && (height.toInt() == bufferHeight)
+    fun isValid() = renderTexture != null
+
+    override fun isSameSize(bufferSize: CubismVector2): Boolean {
+        val width = bufferSize.x.toInt()
+        val height = bufferSize.y.toInt()
+        return (width == bufferWidth) && (height == bufferHeight)
     }
 
+    /**
+     * texture as rendering target. It is called frame buffer.
+     */
     var renderTexture: IntArray? = null
 
+    /**
+     * old frame buffer
+     */
+    private var oldFBO = IntArray(1)
 
-    private var oldFBO: IntArray = IntArray(1)
-
+    /**
+     * width specified at Create() method
+     */
     private var bufferWidth = 0
 
+    /**
+     * height specified at Create() method
+     */
     private var bufferHeight = 0
-
 
 //    /**
 //     * Whether the color buffer is the one set by the argument

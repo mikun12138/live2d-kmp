@@ -10,70 +10,29 @@ import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.type.csmRectF
 
 
-/**
- * クリッピングについての設定を保持するクラス
- * サブクラスに環境依存のフィールドを保持する。
- */
-
 class CubismClippingContext(
-    /**
-     * このマスクを管理しているマネージャーのインスタンス
-     */
     val manager: ACubismClippingManager,
-    /**
-     * クリッピングマスクのIDの配列
-     * 蒙版id列表
-     */
     val clippingIdList: IntArray,
+    val clippingIdCount: Int
 ) {
     val clippedDrawableIndexList: MutableList<Int> = ArrayList()
 
-    /**
-     * このマスクにクリップされる描画オブジェクトを追加する
-     *
-     * @param drawableIndex クリッピング対象に追加する描画オブジェクトのインデックス
-     */
     fun addClippedDrawable(drawableIndex: Int) {
         clippedDrawableIndexList.add(drawableIndex)
     }
 
-    /**
-     * 現在の描画状態でマスクの準備が必要ならtrue
-     */
-    // use only isUsingHighPrecisionMask == true
-    // TODO:: sb
-    var isUsing: Boolean = false
+    var isUsing = false
 
-    /**
-     * RGBAのいずれのチャンネルにこのクリップを配置するか（0:R, 1:G, 2:B, 3:A）
-     */
-    var layoutChannelIndex: Int = 0
+    var layoutChannelIndex = 0
 
-    /**
-     * マスク用チャンネルのどの領域にマスクを入れるか(View座標-1..1, UVは0..1に直す)
-     */
-    var layoutBounds: csmRectF = csmRectF()
+    val layoutBounds: csmRectF = csmRectF()
 
-    /**
-     * このクリッピングで、クリッピングされる全ての描画オブジェクトの囲み矩形（毎回更新）
-     */
-    var allClippedDrawRect: csmRectF = csmRectF()
+    val allClippedDrawRect: csmRectF = csmRectF()
 
-    /**
-     * マスクの位置計算結果を保持する行列
-     */
     val matrixForMask: CubismMatrix44 = CubismMatrix44.create()
 
-    /**
-     * 描画オブジェクトの位置計算結果を保持する行列
-     */
     val matrixForDraw: CubismMatrix44 = CubismMatrix44.create()
-    /**
-     * このマスクが割り当てられるレンダーテクスチャ（フレームバッファ）やカラーバッファのインデックス
-     */
-    var bufferIndex: Int = 0
 
-    companion object
-
+    var bufferIndex = 0
 
 }

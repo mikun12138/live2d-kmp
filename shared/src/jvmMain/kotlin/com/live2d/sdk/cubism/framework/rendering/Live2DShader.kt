@@ -10,224 +10,6 @@ import com.live2d.sdk.cubism.framework.type.right
 
 
 object Live2DShader {
-/*
-    fun setupShaderProgramForDraw(
-        renderer: Live2DRendererImpl,
-        model: Model,
-        index: Int,
-    ) {
-        var srcColor = 0
-        var dstColor = 0
-        var srcAlpha = 0
-        var dstAlpha = 0
-
-        val isMasked = renderer.clippingContextBufferForDraw != null
-        val isInvertedMask = model.getDrawableInvertedMask(index)
-        val isPremultipliedAlpha = renderer.isPremultipliedAlpha
-        val type = when {
-            !isMasked && !isPremultipliedAlpha -> SIMPLE
-            isMasked && !isInvertedMask && !isPremultipliedAlpha -> MASKED
-            isMasked && isInvertedMask && !isPremultipliedAlpha -> MASKED_INVERTED
-            !isMasked && isPremultipliedAlpha -> PREMULTIPLIED_ALPHA
-            isMasked && !isInvertedMask && isPremultipliedAlpha -> MASKED_PREMULTIPLIED_ALPHA
-            isMasked && isInvertedMask && isPremultipliedAlpha -> MASKED_INVERTED_PREMULTIPLIED_ALPHA
-            else -> null
-        }
-
-        with(
-            when (model.getDrawableBlendMode(index)) {
-                CubismBlendMode.ADDITIVE -> {
-                    srcColor = GL_ONE
-                    dstColor = GL_ONE
-                    srcAlpha = GL_ZERO
-                    dstAlpha = GL_ONE
-                    when (type) {
-                        SIMPLE -> ADD
-                        MASKED -> ADD_MASKED
-                        MASKED_INVERTED -> ADD_MASKED_INVERTED
-                        PREMULTIPLIED_ALPHA -> ADD_PREMULTIPLIED_ALPHA
-                        MASKED_PREMULTIPLIED_ALPHA -> ADD_MASKED_PREMULTIPLIED_ALPHA
-                        MASKED_INVERTED_PREMULTIPLIED_ALPHA -> ADD_MASKED_INVERTED_PREMULTIPLIED_ALPHA
-                        else -> null!!
-                    }
-                }
-
-                CubismBlendMode.MULTIPLICATIVE -> {
-                    srcColor = GL_DST_COLOR;
-                    dstColor = GL_ONE_MINUS_SRC_ALPHA;
-                    srcAlpha = GL_ZERO;
-                    dstAlpha = GL_ONE;
-                    when (type) {
-                        SIMPLE -> MULT
-                        MASKED -> MULT_MASKED
-                        MASKED_INVERTED -> MULT_MASKED_INVERTED
-                        PREMULTIPLIED_ALPHA -> MULT_PREMULTIPLIED_ALPHA
-                        MASKED_PREMULTIPLIED_ALPHA -> MULT_MASKED_PREMULTIPLIED_ALPHA
-                        MASKED_INVERTED_PREMULTIPLIED_ALPHA -> MULT_MASKED_INVERTED_PREMULTIPLIED_ALPHA
-                        else -> null!!
-                    }
-                }
-
-                else -> {
-                    srcColor = GL_ONE;
-                    dstColor = GL_ONE_MINUS_SRC_ALPHA;
-                    srcAlpha = GL_ONE;
-                    dstAlpha = GL_ONE_MINUS_SRC_ALPHA;
-                    when (type) {
-                        SIMPLE -> NORMAL
-                        MASKED -> NORMAL_MASKED
-                        MASKED_INVERTED -> NORMAL_MASKED_INVERTED
-                        PREMULTIPLIED_ALPHA -> NORMAL_PREMULTIPLIED_ALPHA
-                        MASKED_PREMULTIPLIED_ALPHA -> NORMAL_MASKED_PREMULTIPLIED_ALPHA
-                        MASKED_INVERTED_PREMULTIPLIED_ALPHA -> NORMAL_MASKED_INVERTED_PREMULTIPLIED_ALPHA
-                        else -> null!!
-                    }
-                }
-            }
-        ) {
-            glUseProgram(this.type.shaderProgram.id)
-
-            renderer.modelMesh.let { modelMesh ->
-                modelMesh.updatePositions(
-                    index,
-                    model.getDrawableVertexPositions(index)!!
-                ).also { vertexBuffer ->
-                    glEnableVertexAttribArray(this.attributePositionLocation);
-                    glVertexAttribPointer(
-                        this.attributePositionLocation,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        vertexBuffer
-                    );
-                }
-
-                modelMesh.updateUvs(
-                    index,
-                    model.getDrawableVertexUVs(index)!!
-                ).also { uvBuffer ->
-                    glEnableVertexAttribArray(this.attributeTexCoordLocation);
-                    glVertexAttribPointer(
-                        this.attributeTexCoordLocation,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        uvBuffer
-                    )
-                }
-            }
-
-            if (isMasked) {
-                glActiveTexture(GL_TEXTURE1)
-
-                // OffscreenSurfaceに描かれたテクスチャ
-                val tex: Int =
-                    renderer.clippingManager.offscreenSurfaces[
-                        renderer.clippingContextBufferForDraw!!.bufferIndex
-                    ].colorBuffer[0]
-                glBindTexture(
-                    GL_TEXTURE_2D,
-                    tex
-                )
-                glUniform1i(
-                    this.samplerTexture1Location,
-                    1
-                )
-
-                // set up a matrix to convert View-coordinates to ClippingContext coordinates
-                glUniformMatrix4fv(
-                    this.uniformClipMatrixLocation,
-                    false,
-                    renderer.clippingContextBufferForDraw!!.matrixForDraw.tr,
-                )
-
-                // Set used color channel.
-                val channelIndex: Int = renderer.clippingContextBufferForDraw!!.layoutChannelIndex
-                val colorChannel: CubismTextureColor = renderer
-                    .clippingContextBufferForDraw!!
-                    .manager
-                    .channelColors[channelIndex]
-                glUniform4f(
-                    this.uniformChannelFlagLocation,
-                    colorChannel.r,
-                    colorChannel.g,
-                    colorChannel.b,
-                    colorChannel.a
-                )
-            }
-
-
-            // texture setting
-            val textureId: Int = renderer.textures[model.getDrawableTextureIndex(index)]
-            glActiveTexture(GL_TEXTURE0)
-            glBindTexture(
-                GL_TEXTURE_2D,
-                textureId
-            )
-            glUniform1i(
-                this.samplerTexture0Location,
-                0
-            )
-
-
-            // coordinate transformation
-            val matrix44 = renderer.mvpMatrix
-            glUniformMatrix4fv(
-                this.uniformMatrixLocation,
-                false,
-                matrix44.tr,
-            )
-
-
-            // ベース色の取得
-            val baseColor = model.getModelColorWithOpacity(
-                model.getDrawableOpacity(index)
-            )
-            val multiplyColor = CubismTextureColor(
-                model.getDrawableMultiplyColors(index)!![0],
-                model.getDrawableMultiplyColors(index)!![1],
-                model.getDrawableMultiplyColors(index)!![2],
-                model.getDrawableMultiplyColors(index)!![3],
-            )
-            val screenColor = CubismTextureColor(
-                model.getDrawableScreenColors(index)!![0],
-                model.getDrawableScreenColors(index)!![1],
-                model.getDrawableScreenColors(index)!![2],
-                model.getDrawableScreenColors(index)!![3],
-            )
-            glUniform4f(
-                this.uniformBaseColorLocation,
-                baseColor.r,
-                baseColor.g,
-                baseColor.b,
-                baseColor.a
-            )
-            glUniform4f(
-                this.uniformMultiplyColorLocation,
-                multiplyColor.r,
-                multiplyColor.g,
-                multiplyColor.b,
-                multiplyColor.a
-            )
-            glUniform4f(
-                this.uniformScreenColorLocation,
-                screenColor.r,
-                screenColor.g,
-                screenColor.b,
-                screenColor.a
-            )
-
-            glBlendFuncSeparate(
-                srcColor,
-                dstColor,
-                srcAlpha,
-                dstAlpha
-            )
-        }
-    }
-    */
     fun setupShaderProgramForDraw(
         renderer: Live2DRendererImpl,
         model: Model,
@@ -304,8 +86,8 @@ object Live2DShader {
         ) {
             glUseProgram(this.type.shaderProgram.id)
 
-            renderer.modelMesh.let { modelMesh ->
-                modelMesh?.updatePositions(
+            renderer.drawableInfoCachesHolder.let { drawableInfoCachesHolder ->
+                drawableInfoCachesHolder?.setUpVertexArray(
                     index,
                     model.getDrawableVertexPositions(index)!!
                 )?.also { vertexBuffer ->
@@ -320,7 +102,7 @@ object Live2DShader {
                     );
                 }
 
-                modelMesh?.updateUvs(
+                drawableInfoCachesHolder?.setUpUvArray(
                     index,
                     model.getDrawableVertexUVs(index)!!
                 )?.also { uvBuffer ->
@@ -341,7 +123,8 @@ object Live2DShader {
 
                 // OffscreenSurfaceに描かれたテクスチャ
                 val tex: Int =
-                    renderer.clippingManager.offscreenSurfaces[renderer.clippingContextBufferForDraw!!.bufferIndex].colorBuffer!![0]
+                    renderer.offscreenSurfaces[renderer.clippingContextBufferForDraw!!.bufferIndex].colorBuffer[0]
+
                 glBindTexture(
                     GL_TEXTURE_2D,
                     tex
@@ -375,9 +158,9 @@ object Live2DShader {
 
 
             // texture setting
-            val textureId: Int = renderer.textures[
+            val textureId: Int = renderer.getBoundTextureId(
                 model.getDrawableTextureIndex(index)
-            ]
+            )
             glActiveTexture(GL_TEXTURE0)
             glBindTexture(
                 GL_TEXTURE_2D,
@@ -390,7 +173,7 @@ object Live2DShader {
 
 
             // coordinate transformation
-            val matrix44 = renderer.mvpMatrix
+            val matrix44 = renderer.mvpMatrix44
             glUniformMatrix4fv(
                 this.uniformMatrixLocation,
                 false,
@@ -399,21 +182,11 @@ object Live2DShader {
 
 
             // ベース色の取得
-            val baseColor = model.getModelColorWithOpacity(
+            val baseColor = renderer.model.getModelColorWithOpacity(
                 model.getDrawableOpacity(index)
             )
-            val multiplyColor = CubismTextureColor(
-                model.getDrawableMultiplyColors(index)!![0],
-                model.getDrawableMultiplyColors(index)!![1],
-                model.getDrawableMultiplyColors(index)!![2],
-                model.getDrawableMultiplyColors(index)!![3],
-            )
-            val screenColor = CubismTextureColor(
-                model.getDrawableScreenColors(index)!![0],
-                model.getDrawableScreenColors(index)!![1],
-                model.getDrawableScreenColors(index)!![2],
-                model.getDrawableScreenColors(index)!![3],
-            )
+            val multiplyColor = model.model.drawableViews[index].multiplyColors!!
+            val screenColor = model.model.drawableViews[index].screenColors!!
             glUniform4f(
                 this.uniformBaseColorLocation,
                 baseColor.r,
@@ -423,17 +196,17 @@ object Live2DShader {
             )
             glUniform4f(
                 this.uniformMultiplyColorLocation,
-                multiplyColor.r,
-                multiplyColor.g,
-                multiplyColor.b,
-                multiplyColor.a
+                multiplyColor[0],
+                multiplyColor[1],
+                multiplyColor[2],
+                multiplyColor[3]
             )
             glUniform4f(
                 this.uniformScreenColorLocation,
-                screenColor.r,
-                screenColor.g,
-                screenColor.b,
-                screenColor.a
+                screenColor[0],
+                screenColor[1],
+                screenColor[2],
+                screenColor[3]
             )
 
             glBlendFuncSeparate(
@@ -444,136 +217,6 @@ object Live2DShader {
             )
         }
     }
-
-    /*
-    fun setupShaderProgramForMask(
-        renderer: Live2DRendererImpl,
-        model: Model,
-        index: Int,
-    ) {
-        var srcColor = 0
-        var dstColor = 0
-        var srcAlpha = 0
-        var dstAlpha = 0
-
-        glUseProgram(SETUP_MASK.type.shaderProgram.id)
-
-        renderer.textures[model.getDrawableTextureIndex(index)].let { textureId ->
-
-            glActiveTexture(GL_TEXTURE0)
-            glBindTexture(
-                GL_TEXTURE_2D,
-                textureId
-            )
-            glUniform1i(
-                SETUP_MASK.samplerTexture0Location,
-                0
-            )
-
-            renderer.modelMesh?.let { modelMesh ->
-                // position
-                modelMesh.updatePositions(
-                    index,
-                    model.getDrawableVertexPositions(index)!!
-                ).also { buffer ->
-                    glEnableVertexAttribArray(SETUP_MASK.attributePositionLocation)
-                    glVertexAttribPointer(
-                        SETUP_MASK.attributePositionLocation,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        buffer
-                    )
-                }
-
-                // uv
-                modelMesh.updateUvs(
-                    index,
-                    model.getDrawableVertexUVs(index)!!
-                ).also { buffer ->
-                    glEnableVertexAttribArray(SETUP_MASK.attributeTexCoordLocation)
-                    glVertexAttribPointer(
-                        SETUP_MASK.attributeTexCoordLocation,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        buffer
-                    )
-                }
-
-                val channelIndex = renderer.clippingContextBufferForMask!!.layoutChannelIndex
-                val colorChannel =
-                    renderer.clippingContextBufferForMask!!.manager.channelColors[channelIndex]
-
-                glUniform4f(
-                    SETUP_MASK.uniformChannelFlagLocation,
-                    colorChannel.r,
-                    colorChannel.g,
-                    colorChannel.b,
-                    colorChannel.a
-                );
-
-                glUniformMatrix4fv(
-                    SETUP_MASK.uniformClipMatrixLocation,
-                    false,
-                    renderer.clippingContextBufferForMask!!.matrixForMask.tr,
-                );
-
-                val rect: csmRectF = renderer.clippingContextBufferForMask!!.layoutBounds
-
-                glUniform4f(
-                    SETUP_MASK.uniformBaseColorLocation,
-                    rect.x * 2.0f - 1.0f,
-                    rect.y * 2.0f - 1.0f,
-                    rect.right * 2.0f - 1.0f,
-                    rect.bottom * 2.0f - 1.0f
-                )
-
-                val multiplyColor = CubismTextureColor(
-                    model.getDrawableMultiplyColors(index)!![0],
-                    model.getDrawableMultiplyColors(index)!![1],
-                    model.getDrawableMultiplyColors(index)!![2],
-                    model.getDrawableMultiplyColors(index)!![3],
-                )
-                val screenColor = CubismTextureColor(
-                    model.getDrawableScreenColors(index)!![0],
-                    model.getDrawableScreenColors(index)!![1],
-                    model.getDrawableScreenColors(index)!![2],
-                    model.getDrawableScreenColors(index)!![3],
-                )
-                glUniform4f(
-                    SETUP_MASK.uniformMultiplyColorLocation,
-                    multiplyColor.r,
-                    multiplyColor.g,
-                    multiplyColor.b,
-                    multiplyColor.a
-                )
-                glUniform4f(
-                    SETUP_MASK.uniformScreenColorLocation,
-                    screenColor.r,
-                    screenColor.g,
-                    screenColor.b,
-                    screenColor.a
-                )
-
-                srcColor = GL_ZERO;
-                dstColor = GL_ONE_MINUS_SRC_COLOR;
-                srcAlpha = GL_ZERO;
-                dstAlpha = GL_ONE_MINUS_SRC_ALPHA;
-
-                glBlendFuncSeparate(
-                    srcColor,
-                    dstColor,
-                    srcAlpha,
-                    dstAlpha
-                );
-            }
-        }
-    }
-
-     */
 
     fun setupShaderProgramForMask(
         renderer: Live2DRendererImpl,
@@ -587,7 +230,7 @@ object Live2DShader {
 
         glUseProgram(SETUP_MASK.type.shaderProgram.id)
 
-        renderer.textures[model.getDrawableTextureIndex(index)].let { textureId ->
+        renderer.getBoundTextureId(model.getDrawableTextureIndex(index)).let { textureId ->
 
             glActiveTexture(GL_TEXTURE0)
             glBindTexture(
@@ -599,9 +242,9 @@ object Live2DShader {
                 0
             )
 
-            renderer.modelMesh?.let { modelMesh ->
+            renderer.drawableInfoCachesHolder?.let { drawableInfoCachesHolder ->
                 // position
-                modelMesh.updatePositions(
+                drawableInfoCachesHolder.setUpVertexArray(
                     index,
                     model.getDrawableVertexPositions(index)!!
                 ).also { buffer ->
@@ -617,7 +260,7 @@ object Live2DShader {
                 }
 
                 // uv
-                modelMesh.updateUvs(
+                drawableInfoCachesHolder.setUpUvArray(
                     index,
                     model.getDrawableVertexUVs(index)!!
                 ).also { buffer ->
@@ -635,7 +278,7 @@ object Live2DShader {
                 val channelIndex = renderer.clippingContextBufferForMask!!.layoutChannelIndex
                 val colorChannel =
                     renderer.clippingContextBufferForMask!!.manager.channelColors[channelIndex]
-
+                // TODO:: level: -114514 本该循环执行
                 glUniform4f(
                     SETUP_MASK.uniformChannelFlagLocation,
                     colorChannel.r,
@@ -660,31 +303,21 @@ object Live2DShader {
                     rect.bottom * 2.0f - 1.0f
                 )
 
-                val multiplyColor = CubismTextureColor(
-                    model.getDrawableMultiplyColors(index)!![0],
-                    model.getDrawableMultiplyColors(index)!![1],
-                    model.getDrawableMultiplyColors(index)!![2],
-                    model.getDrawableMultiplyColors(index)!![3],
-                )
-                val screenColor = CubismTextureColor(
-                    model.getDrawableScreenColors(index)!![0],
-                    model.getDrawableScreenColors(index)!![1],
-                    model.getDrawableScreenColors(index)!![2],
-                    model.getDrawableScreenColors(index)!![3],
-                )
+                val multiplyColor = model.model.drawableViews[index].multiplyColors!!
+                val screenColor = model.model.drawableViews[index].screenColors!!
                 glUniform4f(
                     SETUP_MASK.uniformMultiplyColorLocation,
-                    multiplyColor.r,
-                    multiplyColor.g,
-                    multiplyColor.b,
-                    multiplyColor.a
+                    multiplyColor[0],
+                    multiplyColor[1],
+                    multiplyColor[2],
+                    multiplyColor[3]
                 )
                 glUniform4f(
                     SETUP_MASK.uniformScreenColorLocation,
-                    screenColor.r,
-                    screenColor.g,
-                    screenColor.b,
-                    screenColor.a
+                    screenColor[0],
+                    screenColor[1],
+                    screenColor[2],
+                    screenColor[3]
                 )
 
                 srcColor = GL_ZERO;
@@ -701,6 +334,7 @@ object Live2DShader {
             }
         }
     }
+
 
 
     val SETUP_MASK = CubismShaderSet(

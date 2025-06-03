@@ -5,14 +5,12 @@ import com.live2d.sdk.cubism.framework.data.ModelJson
 import com.live2d.sdk.cubism.framework.effect.CubismBreath
 import com.live2d.sdk.cubism.framework.effect.CubismBreath.BreathParameterData
 import com.live2d.sdk.cubism.framework.effect.CubismEyeBlink
-import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.id.CubismIdManager
 import com.live2d.sdk.cubism.framework.model.AAppModel.MotionGroup.IDLE
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
 import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
 import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotion
 import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion
-import com.live2d.sdk.cubism.framework.rendering.Live2DRenderer
 import kotlinx.serialization.json.Json
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes

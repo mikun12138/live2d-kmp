@@ -427,7 +427,7 @@ class Model {
     }
 
     fun getDrawableDynamicFlagVertexPositionsDidChange(drawableIndex: Int): Boolean {
-        return getDrawableDynamicFlag(drawableIndex, DynamicFlag.VISIBILITY_DID_CHANGE)
+        return getDrawableDynamicFlag(drawableIndex, DynamicFlag.VERTEX_POSITIONS_DID_CHANGE)
     }
 
 
