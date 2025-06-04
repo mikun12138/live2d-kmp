@@ -13,7 +13,6 @@ class Live2DRendererImpl : ALive2DRenderer() {
 
     private var areTexturesChanged = true
 
-
     private lateinit var sortedDrawableIndexArray: IntArray
 
     private lateinit var clippingManager: ACubismClippingManager
@@ -200,7 +199,7 @@ class Live2DRendererImpl : ALive2DRenderer() {
         clipDrawIndex: Int,
     ) {
         // If the texture referenced by the model is not bound, skip drawing.
-        if (textures[model.getDrawableTextureIndex(clipDrawIndex)] == null) {
+        if (model.textures[model.getDrawableTextureIndex(clipDrawIndex)] == null) {
             return;
         }
 
@@ -294,7 +293,6 @@ class Live2DRendererImpl : ALive2DRenderer() {
     }
 
     fun getBoundTextureId(textureId: Int): Int {
-        val boundTextureId = textures.get(textureId)
-        return if (boundTextureId == null) -1 else boundTextureId
+        return model.textures.get(textureId)?.id ?: -1
     }
 }

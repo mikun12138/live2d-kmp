@@ -1,17 +1,9 @@
 package com.live2d.sdk.cubism.core
 
-class CubismPartView internal constructor(index: Int, parts: CubismParts) {
-    val index: Int
-    private val parts: CubismParts
-
-    init {
-        check(index >= 0)
-
-        checkNotNull(parts)
-
-        this.index = index
-        this.parts = parts
-    }
+class CubismPartView internal constructor(
+    val index: Int,
+    val parts: CubismParts,
+) {
 
     val id: String?
         get() = this.parts.ids[this.index]
@@ -25,7 +17,4 @@ class CubismPartView internal constructor(index: Int, parts: CubismParts) {
     val parentPartIndex: Int
         get() = this.parts.parentPartIndices[this.index]
 
-    fun getParts(): CubismParts {
-        return this.parts
-    }
 }

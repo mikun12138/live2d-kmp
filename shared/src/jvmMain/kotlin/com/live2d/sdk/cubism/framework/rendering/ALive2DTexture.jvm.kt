@@ -5,14 +5,13 @@ import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 import java.nio.ByteBuffer
 
-actual fun ALive2DTexture.create(buffer: ByteBuffer): ALive2DTexture {
+actual fun ALive2DTexture.Companion.create(buffer: ByteBuffer): ALive2DTexture {
     return Live2DTexture(buffer)
 }
 
-class Live2DTexture {
-    fun load(buffer: ByteBuffer) {
-
-        return MemoryStack.stackPush().use { stack ->
+class Live2DTexture : ALive2DTexture {
+    constructor(buffer: ByteBuffer) : super(
+        MemoryStack.stackPush().use { stack ->
             val width = stack.mallocInt(1)
             val height = stack.mallocInt(1)
             val channels = stack.mallocInt(1)
@@ -73,6 +72,5 @@ class Live2DTexture {
                 }
             }
         }
-    }
-
+    )
 }

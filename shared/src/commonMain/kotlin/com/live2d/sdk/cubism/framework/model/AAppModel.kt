@@ -15,7 +15,9 @@ import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotionM
 import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion
 import com.live2d.sdk.cubism.framework.motion.motion.CubismMotionManager
 import com.live2d.sdk.cubism.framework.rendering.ALive2DTexture
+import com.live2d.sdk.cubism.framework.rendering.create
 import kotlinx.serialization.json.Json
+import java.nio.ByteBuffer
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
@@ -142,7 +144,16 @@ open class AAppModel : Live2DUserModel() {
     }
 
     fun setupTextures(dir: String, modelJson: ModelJson) {
-
+        modelJson.fileReferences.textures.forEachIndexed { index, texturePath ->
+            Path(dir, texturePath).readBytes().let { buffer ->
+                model.textures.put(
+                    index,
+                    ALive2DTexture.create(
+                        ByteBuffer.allocateDirect(buffer.size).put(buffer).flip()
+                    )
+                )
+            }
+        }
     }
 
     override fun doUpdate(deltaSeconds: Float) {
@@ -281,3 +292,5 @@ open class AAppModel : Live2DUserModel() {
     }
 
 }
+
+

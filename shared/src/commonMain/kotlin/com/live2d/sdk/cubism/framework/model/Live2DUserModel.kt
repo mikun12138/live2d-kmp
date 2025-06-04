@@ -164,6 +164,5 @@ abstract class Live2DUserModel protected constructor() {
     protected val name_2_expression: MutableMap<String, CubismExpressionMotion?> = mutableMapOf()
     protected var physics: CubismPhysics? = null
     protected var modelUserData: CubismModelUserData? = null
-    // TODO:: texture也算renderSystem 可以把蒙版什么的也放一块
-    protected val textures: MutableMap<Int, ALive2DTexture> = HashMap(32)
+
 }

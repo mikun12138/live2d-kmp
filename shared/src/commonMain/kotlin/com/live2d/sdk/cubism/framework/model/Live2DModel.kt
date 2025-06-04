@@ -13,11 +13,14 @@ import com.live2d.sdk.cubism.core.CubismModel
 import com.live2d.sdk.cubism.core.CubismParameterView
 import com.live2d.sdk.cubism.core.CubismPartView
 import com.live2d.sdk.cubism.framework.id.Live2DId
+import com.live2d.sdk.cubism.framework.rendering.ALive2DTexture
 import com.live2d.sdk.cubism.framework.rendering.CubismBlendMode
 import com.live2d.sdk.cubism.framework.rendering.CubismTextureColor
 
 class Live2DModel {
     val model: CubismModel
+
+    val textures: MutableMap<Int, ALive2DTexture> = HashMap(32)
 
     constructor(model: CubismModel) {
         this.model = model

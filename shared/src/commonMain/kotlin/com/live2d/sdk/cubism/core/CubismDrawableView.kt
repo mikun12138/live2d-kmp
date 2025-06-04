@@ -1,17 +1,9 @@
 package com.live2d.sdk.cubism.core
 
-class CubismDrawableView internal constructor(index: Int, drawables: CubismDrawables) {
-    val index: Int
+class CubismDrawableView internal constructor(
+    val index: Int,
     val drawables: CubismDrawables
-
-    init {
-        check(index >= 0)
-
-        checkNotNull(drawables)
-
-        this.index = index
-        this.drawables = drawables
-    }
+) {
 
     val id: String?
         get() = this.drawables.ids[this.index]

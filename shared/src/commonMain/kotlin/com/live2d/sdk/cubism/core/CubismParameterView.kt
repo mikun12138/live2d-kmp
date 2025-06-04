@@ -2,18 +2,10 @@ package com.live2d.sdk.cubism.core
 
 import com.live2d.sdk.cubism.core.CubismParameters.ParameterType
 
-class CubismParameterView internal constructor(index: Int, parameters: CubismParameters) {
-    val index: Int
-    private var parameters: CubismParameters
-
-    init {
-        check(index >= 0)
-
-        checkNotNull(parameters)
-
-        this.index = index
-        this.parameters = parameters
-    }
+class CubismParameterView internal constructor(
+    val index: Int,
+    val parameters: CubismParameters
+) {
 
     val id: String?
         get() = this.parameters.ids[this.index]
