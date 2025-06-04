@@ -9,7 +9,7 @@ package com.live2d.sdk.cubism.framework.motion.expression
 
 import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
-import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.motion.ACubismMotion
 import com.live2d.sdk.cubism.framework.motion.AMotionManager
 import com.live2d.sdk.cubism.framework.motion.AMotionQueueEntry
@@ -32,7 +32,7 @@ class CubismExpressionMotionManager(
         motionEntries.add(ExpressionMotionQueueEntry(this, motion))
     }
 
-    override fun doUpdateMotion(model: Model, deltaTimeSeconds: Float) {
+    override fun doUpdateMotion(model: Live2DModel, deltaTimeSeconds: Float) {
 
         var expressionWeight = 0.0f
 
@@ -97,7 +97,7 @@ class CubismExpressionMotionManager(
     }
 
     private fun applyParameterValues(
-        model: Model, expressionWeight: Float
+        model: Live2DModel, expressionWeight: Float
     ) {
         // 将值应用于 model
         for (value in expressionParameterValues) {

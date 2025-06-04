@@ -6,11 +6,10 @@
  */
 package com.live2d.sdk.cubism.framework.rendering
 
-import com.live2d.sdk.cubism.framework.model.Model
-import com.live2d.sdk.cubism.framework.type.csmRectF
+import com.live2d.sdk.cubism.framework.model.Live2DModel
 
 
-interface ICubismClippingManager {
+interface ILive2DClippingManager {
     companion object {
 
         /**
@@ -30,18 +29,9 @@ interface ICubismClippingManager {
     }
 //    fun setupMatrixForHighPrecision(model: Model, isRightHanded: Boolean)
 
-    fun createMatrixForMask(
-        isRightHanded: Boolean,
-        layoutBoundsOnTex01: csmRectF,
-        scaleX: Float,
-        scaleY: Float,
-    )
-
     fun setupClippingContext(
-        model: Model,
+        model: Live2DModel,
         renderer: ALive2DRenderer
     )
-
-    fun setupLayoutBounds(usingClipCount: Int)
 
 }

@@ -10,7 +10,7 @@ import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.type.csmRectF
 
 
-class CubismClippingContext(
+class Live2DClippingContext(
     val manager: ACubismClippingManager,
     val clippingIdList: IntArray,
     val clippingIdCount: Int

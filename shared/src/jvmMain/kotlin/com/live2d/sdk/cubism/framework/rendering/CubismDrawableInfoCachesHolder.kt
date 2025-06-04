@@ -1,6 +1,6 @@
 package com.live2d.sdk.cubism.framework.rendering
 
-import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.model.Live2DModel
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.FloatBuffer
@@ -9,7 +9,7 @@ import java.nio.ShortBuffer
 /**
  * Drawableの情報を格納するバッファをキャッシュし保持するクラス。
  */
-class CubismDrawableInfoCachesHolder(model: Model) {
+class CubismDrawableInfoCachesHolder(model: Live2DModel) {
 
     fun setUpVertexArray(drawableIndex: Int, drawableVertices: FloatArray): FloatBuffer {
         val vertexArray = vertexArrayCaches[drawableIndex]

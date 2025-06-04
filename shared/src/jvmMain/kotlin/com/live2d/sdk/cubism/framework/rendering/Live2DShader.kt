@@ -1,6 +1,6 @@
 package com.live2d.sdk.cubism.framework.rendering
 
-import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.type.csmRectF
 import org.lwjgl.opengl.GL20.glUniformMatrix4fv
 import org.lwjgl.opengl.GL46.*
@@ -12,7 +12,7 @@ import com.live2d.sdk.cubism.framework.type.right
 object Live2DShader {
     fun setupShaderProgramForDraw(
         renderer: Live2DRendererImpl,
-        model: Model,
+        model: Live2DModel,
         index: Int
     ) {
         var srcColor = 0
@@ -220,7 +220,7 @@ object Live2DShader {
 
     fun setupShaderProgramForMask(
         renderer: Live2DRendererImpl,
-        model: Model,
+        model: Live2DModel,
         index: Int
     ) {
         var srcColor = 0

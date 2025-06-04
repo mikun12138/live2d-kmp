@@ -231,6 +231,7 @@ actual object Live2DCubismCoreImpl {
                 }
         }
     }
+
     actual fun initializeJavaModelWithNativeModel(model: CubismModel) {
         val outSizeInPixels = Arena.global().allocate(2 * ValueLayout.JAVA_FLOAT.byteSize())
         val outOriginInPixels = Arena.global().allocate(2 * ValueLayout.JAVA_FLOAT.byteSize())
@@ -754,6 +755,21 @@ actual object Live2DCubismCoreImpl {
 
         }
 
+    }
+
+    actual fun coreLogFunction(logFunction: LogFunction) {
+        CoreLogFunctionBridge.logFunction = logFunction
+    }
+
+    object CoreLogFunctionBridge {
+        var logFunction: LogFunction = { println(it) }
+
+        @JvmStatic
+        fun print(memorySegment: MemorySegment) {
+            logFunction(
+                memorySegment.reinterpret(Long.MAX_VALUE).getUtf8String(0)
+            )
+        }
     }
 
 }

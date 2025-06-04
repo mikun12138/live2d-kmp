@@ -7,7 +7,7 @@
 package com.live2d.sdk.cubism.framework.rendering
 
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.model.Live2DModel
 
 
 expect fun ALive2DRenderer.Companion.create(): ALive2DRenderer
@@ -15,12 +15,12 @@ expect fun ALive2DRenderer.Companion.create(): ALive2DRenderer
 abstract class ALive2DRenderer {
 
 
-    fun init(model: Model, maskBufferCount: Int) {
+    fun init(model: Live2DModel, maskBufferCount: Int) {
         doInit(model, maskBufferCount)
         this.model = model
     }
 
-    abstract fun doInit(model: Model, maskBufferCount: Int)
+    abstract fun doInit(model: Live2DModel, maskBufferCount: Int)
 
     fun drawModel() {
 
@@ -45,7 +45,7 @@ abstract class ALive2DRenderer {
     abstract fun preDraw()
 
     abstract fun drawMeshAndroid(
-        model: Model,
+        model: Live2DModel,
         clipDrawIndex: Int,
     )
 
@@ -61,7 +61,7 @@ abstract class ALive2DRenderer {
 
     private var anisotropy = 0f
 
-    lateinit var model: Model
+    lateinit var model: Live2DModel
     lateinit var offscreenSurfaces: Array<ACubismOffscreenSurface>
 
     val textures: MutableMap<Int, Int> = HashMap(32)
@@ -71,9 +71,9 @@ abstract class ALive2DRenderer {
     private val tmpModelColor = CubismTextureColor()
 
 
-    var clippingContextBufferForMask: CubismClippingContext? = null
+    var clippingContextBufferForMask: Live2DClippingContext? = null
 
-    var clippingContextBufferForDraw: CubismClippingContext?? = null
+    var clippingContextBufferForDraw: Live2DClippingContext?? = null
 
     companion object
 

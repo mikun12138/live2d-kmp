@@ -1,12 +1,9 @@
 package com.live2d.sdk.cubism.core
 
 class CubismModel {
-    lateinit var parameterViews: Array<CubismParameterView>
-        private set
-    lateinit var partViews: Array<CubismPartView>
-        private set
-    lateinit var drawableViews: Array<CubismDrawableView>
-        private set
+    val parameterViews: Array<CubismParameterView>
+    val partViews: Array<CubismPartView>
+    val drawableViews: Array<CubismDrawableView>
 
     lateinit var canvasInfo: CubismCanvasInfo
         private set
@@ -17,14 +14,10 @@ class CubismModel {
     lateinit var drawables: CubismDrawables
         private set
 
-    private lateinit var moc: CubismMoc
-    var nativeHandle: Long = 0
-        private set
+    val nativeHandle: Long
 
-
-    fun init(moc: CubismMoc): CubismModel {
-        this.nativeHandle = Live2DCubismCoreImpl.instantiateModel(moc.nativeHandle)
-        this.moc = moc
+    internal constructor(nativeHandle: Long) {
+        this.nativeHandle = nativeHandle
 
         Live2DCubismCoreImpl.initializeJavaModelWithNativeModel(this)
 
@@ -37,16 +30,8 @@ class CubismModel {
         this.drawableViews = Array(this.drawables.count) {
             CubismDrawableView(it, this.drawables)
         }
-        return this
     }
 
-    fun close() {
-        if (this.nativeHandle != 0L) {
-            Live2DCubismCoreImpl.destroyModel(this.nativeHandle)
-            this.nativeHandle = 0L
-            this.moc.deleteAssociation(this)
-        }
-    }
 
     fun update() {
         this.throwIfAlreadyReleased()

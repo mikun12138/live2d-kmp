@@ -6,9 +6,6 @@
  */
 package com.live2d.sdk.cubism.framework.id
 
-/**
- * Manager class of ID names
- */
 object CubismIdManager {
 
     fun registerId(id: String): CubismId {

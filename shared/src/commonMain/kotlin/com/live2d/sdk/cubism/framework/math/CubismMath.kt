@@ -6,7 +6,7 @@
  */
 package com.live2d.sdk.cubism.framework.math
 
-import com.live2d.sdk.cubism.framework.utils.CubismDebug
+import com.live2d.sdk.cubism.framework.utils.Live2DLogger
 import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.atan2
@@ -279,7 +279,7 @@ object CubismMath {
             || divisor.compareTo(0.0f) == 0 || dividend.isNaN()
             || divisor.isNaN()
         ) {
-            CubismDebug.cubismLogWarning(
+            Live2DLogger.warning(
                 "dividend: $dividend, divisor: $divisor ModF() returns 'NaN'."
             )
             return Float.Companion.NaN

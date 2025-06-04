@@ -12,13 +12,15 @@ import com.live2d.sdk.cubism.core.CubismDrawableView
 import com.live2d.sdk.cubism.core.CubismModel
 import com.live2d.sdk.cubism.core.CubismParameterView
 import com.live2d.sdk.cubism.core.CubismPartView
+import com.live2d.sdk.cubism.core.Live2DCubismCoreImpl
 import com.live2d.sdk.cubism.framework.id.CubismId
 import com.live2d.sdk.cubism.framework.rendering.CubismBlendMode
 import com.live2d.sdk.cubism.framework.rendering.CubismTextureColor
 
-class Model {
-    lateinit var model: CubismModel
-    fun init(model: CubismModel): Model {
+class Live2DModel {
+    val model: CubismModel
+
+    constructor(model: CubismModel) {
         this.model = model
 
         val multiplyColor = CubismTextureColor(
@@ -65,7 +67,6 @@ class Model {
 //            }
 //        }
 
-        return this
     }
 
     /**

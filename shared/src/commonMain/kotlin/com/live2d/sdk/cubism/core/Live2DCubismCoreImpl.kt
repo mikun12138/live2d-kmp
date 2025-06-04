@@ -28,4 +28,9 @@ expect object Live2DCubismCoreImpl {
 
     fun initializeJavaModelWithNativeModel(model: CubismModel)
 
+    fun coreLogFunction(logFunction: LogFunction)
+
+
+
 }
+

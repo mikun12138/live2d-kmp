@@ -6,29 +6,28 @@
  */
 package com.live2d.sdk.cubism.framework.rendering
 
-import com.live2d.sdk.cubism.framework.CubismFramework.VERTEX_OFFSET
-import com.live2d.sdk.cubism.framework.CubismFramework.VERTEX_STEP
+import com.live2d.sdk.cubism.framework.Live2DFramework.VERTEX_OFFSET
+import com.live2d.sdk.cubism.framework.Live2DFramework.VERTEX_STEP
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.math.CubismVector2
-import com.live2d.sdk.cubism.framework.model.Model
-import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.CLIPPING_MASK_MAX_COUNT_ON_DEFAULT
-import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.CLIPPING_MASK_MAX_COUNT_ON_MULTI_RENDER_TEXTURE
-import com.live2d.sdk.cubism.framework.rendering.ICubismClippingManager.Companion.COLOR_CHANNEL_COUNT
+import com.live2d.sdk.cubism.framework.model.Live2DModel
+import com.live2d.sdk.cubism.framework.rendering.ILive2DClippingManager.Companion.CLIPPING_MASK_MAX_COUNT_ON_DEFAULT
+import com.live2d.sdk.cubism.framework.rendering.ILive2DClippingManager.Companion.CLIPPING_MASK_MAX_COUNT_ON_MULTI_RENDER_TEXTURE
+import com.live2d.sdk.cubism.framework.rendering.ILive2DClippingManager.Companion.COLOR_CHANNEL_COUNT
 import com.live2d.sdk.cubism.framework.type.csmRectF
-import com.live2d.sdk.cubism.framework.utils.CubismDebug.cubismLogError
 import kotlin.math.max
 import kotlin.math.min
 
 
 expect fun ACubismClippingManager.Companion.create(
-    model: Model,
+    model: Live2DModel,
     maskBufferCount: Int,
 ): ACubismClippingManager
 
-abstract class ACubismClippingManager : ICubismClippingManager {
+abstract class ACubismClippingManager : ILive2DClippingManager {
 
     constructor(
-        model: Model,
+        model: Live2DModel,
         maskBufferCount: Int,
     ) {
         renderTextureCount = maskBufferCount
@@ -52,14 +51,14 @@ abstract class ACubismClippingManager : ICubismClippingManager {
             }
 
             // 既にあるClipContextと同じかチェックする。
-            var cc: CubismClippingContext? = findSameClip(drawableMasks[i]!!, drawableMaskCounts[i])
+            var cc: Live2DClippingContext? = findSameClip(drawableMasks[i]!!, drawableMaskCounts[i])
             if (cc == null) {
                 // 同一のマスクが存在していない場合は生成する。
-                cc = CubismClippingContext(
+                cc = Live2DClippingContext(
                     this,
                     drawableMasks[i]!!,
                     drawableMaskCounts[i]
-                ) as CubismClippingContext?
+                ) as Live2DClippingContext?
 
                 clippingContextListForMask.add(cc)
             }
@@ -148,7 +147,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
 
     */
 
-    override fun createMatrixForMask(
+    fun createMatrixForMask(
         isRightHanded: Boolean,
         layoutBoundsOnTex01: csmRectF,
         scaleX: Float,
@@ -190,7 +189,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
         tmpMatrixForDraw.setMatrix(tmpMatrix)
     }
 
-    override fun setupLayoutBounds(usingClipCount: Int) {
+    fun setupLayoutBounds(usingClipCount: Int) {
         val useClippingMaskMaxCount = if (renderTextureCount <= 1)
             CLIPPING_MASK_MAX_COUNT_ON_DEFAULT
         else
@@ -199,7 +198,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
         if (usingClipCount <= 0 || usingClipCount > useClippingMaskMaxCount) {
             // この場合は一つのマスクターゲットを毎回クリアして使用する
             for (index in clippingContextListForMask.indices) {
-                val cc: CubismClippingContext = clippingContextListForMask.get(index)!!
+                val cc: Live2DClippingContext = clippingContextListForMask.get(index)!!
 
                 cc.layoutChannelIndex = 0 // どうせ毎回消すので固定で良い
                 cc.layoutBounds.x = 0.0f
@@ -251,7 +250,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
                     // 何もしない。
                 } else if (layoutCount == 1) {
                     // 全てをそのまま使う。
-                    val cc: CubismClippingContext = clippingContextListForMask.get(curClipIndex++)!!
+                    val cc: Live2DClippingContext = clippingContextListForMask.get(curClipIndex++)!!
                     cc.layoutChannelIndex = channelIndex
                     val bounds: csmRectF = cc.layoutBounds
 
@@ -265,7 +264,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
                     for (i in 0..<layoutCount) {
                         val xpos = i % 2
 
-                        val cc: CubismClippingContext =
+                        val cc: Live2DClippingContext =
                             clippingContextListForMask.get(curClipIndex++)!!
                         cc.layoutChannelIndex = channelIndex
                         val bounds: csmRectF = cc.layoutBounds
@@ -284,7 +283,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
                         val xpos = i % 2
                         val ypos = i / 2
 
-                        val cc: CubismClippingContext =
+                        val cc: Live2DClippingContext =
                             clippingContextListForMask.get(curClipIndex++)!!
                         cc.layoutChannelIndex = channelIndex
                         val bounds: csmRectF = cc.layoutBounds
@@ -302,7 +301,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
                         val xpos = i % 3
                         val ypos = i / 3
 
-                        val cc: CubismClippingContext =
+                        val cc: Live2DClippingContext =
                             clippingContextListForMask.get(curClipIndex++)!!
                         cc.layoutChannelIndex = channelIndex
                         val bounds: csmRectF = cc.layoutBounds
@@ -329,7 +328,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
                     // 引き続き実行する場合、 SetupShaderProgramでオーバーアクセスが発生するので仕方なく適当に入れておく。
                     // もちろん描画結果はろくなことにならない。
                     for (i in 0..<layoutCount) {
-                        val cc: CubismClippingContext =
+                        val cc: Live2DClippingContext =
                             clippingContextListForMask.get(curClipIndex++)!!
                         cc.layoutChannelIndex = 0
 
@@ -346,10 +345,10 @@ abstract class ACubismClippingManager : ICubismClippingManager {
         }
     }
 
-    fun findSameClip(drawableMasks: IntArray, drawableMaskCounts: Int): CubismClippingContext? {
+    fun findSameClip(drawableMasks: IntArray, drawableMaskCounts: Int): Live2DClippingContext? {
         // 作成済みClippingContextと一致するか確認
         for (i in clippingContextListForMask.indices) {
-            val clipContext: CubismClippingContext = clippingContextListForMask.get(i)!!
+            val clipContext: Live2DClippingContext = clippingContextListForMask.get(i)!!
 
             val count: Int = clipContext.clippingIdCount
             if (count != drawableMaskCounts) {
@@ -376,7 +375,7 @@ abstract class ACubismClippingManager : ICubismClippingManager {
         return null // 見つからなかった。
     }
 
-    fun calcClippedDrawTotalBounds(model: Model, clippingContext: CubismClippingContext) {
+    fun calcClippedDrawTotalBounds(model: Live2DModel, clippingContext: Live2DClippingContext) {
         // 被クリッピングマスク（マスクされる描画オブジェクト）の全体の矩形
         var clippedDrawTotalMinX = Float.Companion.MAX_VALUE
         var clippedDrawTotalMinY = Float.Companion.MAX_VALUE
@@ -473,10 +472,10 @@ abstract class ACubismClippingManager : ICubismClippingManager {
     )
 
 
-    protected val clippingContextListForMask: MutableList<CubismClippingContext?> = mutableListOf()
+    protected val clippingContextListForMask: MutableList<Live2DClippingContext?> = mutableListOf()
 
 
-    val clippingContextListForDraw: MutableList<CubismClippingContext?> = mutableListOf()
+    val clippingContextListForDraw: MutableList<Live2DClippingContext?> = mutableListOf()
 
     val clippingMaskBufferSize: CubismVector2 = CubismVector2(256f, 256f)
 

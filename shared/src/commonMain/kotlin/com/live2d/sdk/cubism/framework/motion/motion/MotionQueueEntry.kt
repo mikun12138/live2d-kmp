@@ -2,7 +2,7 @@ package com.live2d.sdk.cubism.framework.motion.motion
 
 import com.live2d.sdk.cubism.framework.id.CubismIdManager
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
-import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.motion.AMotionQueueEntry
 import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal.CubismMotionCurveTarget
 import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion.Companion.EffectID
@@ -32,7 +32,7 @@ class MotionQueueEntry(
     }
 
     fun doUpdateParameters(
-        model: Model,
+        model: Live2DModel,
         totalSeconds: Float,
     ) {
 //        if (previousLoopState != loop) {

@@ -4,8 +4,6 @@ import java.lang.foreign.Arena
 import java.lang.foreign.FunctionDescriptor
 import java.lang.foreign.MemorySegment
 import java.lang.foreign.ValueLayout
-import java.lang.invoke.MethodHandles
-import java.lang.invoke.MethodType
 import kotlin.io.path.Path
 
 
@@ -250,29 +248,32 @@ sealed class Live2DCubismCoreFFM : LibraryFFM {
         FunctionDescriptor.ofVoid(
             ValueLayout.ADDRESS,
         )
-    ), () -> Unit {
-        override fun invoke() {
-            val logHander = MethodHandles.lookup().findStatic(
-                ICubismLoggerBridge::class.java,
-                "print",
-                MethodType.methodType(
-                    Void.TYPE,
-                    MemorySegment::class.java,
-                )
-            )
-            val logFunctionPointer = linker.upcallStub(
-                logHander,
-                FunctionDescriptor.ofVoid(
-                    ValueLayout.ADDRESS,
-                ),
-                Arena.global()
-            )
+    ), ((String) -> Unit) -> Unit {
+        override fun invoke(var0: (String) -> Unit) {
+            return this.methodHandle.invokeExact(
 
-            Arena.ofConfined().use {
-                return this.methodHandle.invokeExact(
-                    logFunctionPointer
-                ) as Unit
-            }
+            ) as Unit
+//            val logHander = MethodHandles.lookup().findStatic(
+//                ICubismLoggerBridge::class.java,
+//                "print",
+//                MethodType.methodType(
+//                    Void.TYPE,
+//                    MemorySegment::class.java,
+//                )
+//            )
+//            val logFunctionPointer = linker.upcallStub(
+//                logHander,
+//                FunctionDescriptor.ofVoid(
+//                    ValueLayout.ADDRESS,
+//                ),
+//                Arena.global()
+//            )
+//
+//            Arena.ofConfined().use {
+//                return this.methodHandle.invokeExact(
+//                    logFunctionPointer
+//                ) as Unit
+//            }
         }
     }
 
@@ -1177,14 +1178,3 @@ sealed class Live2DCubismCoreFFM : LibraryFFM {
     }
 }
 
-object ICubismLoggerBridge {
-    @JvmStatic
-    fun print(memorySegment: MemorySegment) {
-//        println(
-//            memorySegment.reinterpret(Long.MAX_VALUE).getUtf8String(0)
-//        )
-        Live2DCubismCore.logger?.print(
-            memorySegment.reinterpret(Long.MAX_VALUE).getUtf8String(0)
-        )
-    }
-}

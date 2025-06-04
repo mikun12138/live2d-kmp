@@ -1,6 +1,6 @@
 package com.live2d.sdk.cubism.framework.rendering
 
-import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.model.Live2DModel
 import org.lwjgl.opengl.GL46.*
 
 
@@ -25,7 +25,7 @@ class Live2DRendererImpl : ALive2DRenderer() {
     var drawableInfoCachesHolder: CubismDrawableInfoCachesHolder? = null
 
     override fun doInit(
-        model: Model,
+        model: Live2DModel,
         maskBufferCount: Int,
     ) {
         drawableInfoCachesHolder = CubismDrawableInfoCachesHolder(
@@ -196,7 +196,7 @@ class Live2DRendererImpl : ALive2DRenderer() {
      * 实现绘制
      */
     override fun drawMeshAndroid(
-        model: Model,
+        model: Live2DModel,
         clipDrawIndex: Int,
     ) {
         // If the texture referenced by the model is not bound, skip drawing.

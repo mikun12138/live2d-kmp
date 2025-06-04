@@ -19,7 +19,7 @@ import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion
 import com.live2d.sdk.cubism.framework.motion.motion.CubismMotionManager
 import com.live2d.sdk.cubism.framework.physics.CubismPhysics
 import com.live2d.sdk.cubism.framework.userdata.CubismModelUserData
-import com.live2d.sdk.cubism.framework.utils.CubismDebug.cubismLogError
+import com.live2d.sdk.cubism.framework.utils.Live2DLogger
 
 /**
  * This is the base class of the model that the user actually utilizes. The user defined model class inherits this class.
@@ -91,21 +91,9 @@ abstract class CubismUserModel protected constructor() {
         */
 
     protected fun loadModel(buffer: ByteArray, shouldCheckMocConsistency: Boolean = false) {
-        val moc = Moc().init(buffer, shouldCheckMocConsistency)
+        val moc = Live2DMoc(buffer, shouldCheckMocConsistency)
 
-        if (moc == null) {
-            cubismLogError("Failed to create CubismMoc instance.")
-            return
-        }
-
-        val model = moc.initModel()
-
-        if (model == null) {
-            cubismLogError("Failed to create the model.")
-            return
-        }
-
-        this.model = model
+        this.model = moc.instantiateModel()
 
         this.model.saveParameters()
         modelMatrix = CubismModelMatrix.create(this.model.canvasWidth, this.model.canvasHeight)
@@ -115,7 +103,7 @@ abstract class CubismUserModel protected constructor() {
         try {
             pose = CubismPose(buffer)
         } catch (e: Exception) {
-            cubismLogError("Failed to loadPose(). ${e.message}")
+            Live2DLogger.error("Failed to loadPose(). ${e.message}")
         }
     }
 
@@ -128,7 +116,7 @@ abstract class CubismUserModel protected constructor() {
             return CubismMotion(buffer, onFinishedMotionHandler, onBeganMotionHandler)
         } catch (e: Exception) {
             e.printStackTrace()
-            cubismLogError("Failed to loadMotion(). ${e.message}")
+            Live2DLogger.error("Failed to loadMotion(). ${e.message}")
             return null
         }
     }
@@ -137,7 +125,7 @@ abstract class CubismUserModel protected constructor() {
         try {
             return CubismExpressionMotion(buffer)
         } catch (e: Exception) {
-            cubismLogError("Failed to loadExpressionMotion(). ${e.message}")
+            Live2DLogger.error("Failed to loadExpressionMotion(). ${e.message}")
             return null
         }
     }
@@ -146,7 +134,7 @@ abstract class CubismUserModel protected constructor() {
         try {
             physics = CubismPhysics(buffer)
         } catch (e: Exception) {
-            cubismLogError("Failed to loadPhysics(). ${e.message}")
+            Live2DLogger.error("Failed to loadPhysics(). ${e.message}")
         }
     }
 
@@ -154,7 +142,7 @@ abstract class CubismUserModel protected constructor() {
         try {
             modelUserData = CubismModelUserData(buffer)
         } catch (e: Exception) {
-            cubismLogError("Failed to loadUserData(). ${e.message}")
+            Live2DLogger.error("Failed to loadUserData(). ${e.message}")
         }
     }
 
@@ -173,7 +161,7 @@ abstract class CubismUserModel protected constructor() {
     /**
      * A model instance
      */
-    lateinit var model: Model
+    lateinit var model: Live2DModel
         protected set
 
     /**

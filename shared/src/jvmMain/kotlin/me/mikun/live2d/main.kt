@@ -1,7 +1,7 @@
 package me.mikun.live2d
 
-import com.live2d.sdk.cubism.framework.CubismFramework
-import com.live2d.sdk.cubism.framework.CubismFrameworkConfig
+import com.live2d.sdk.cubism.framework.Live2DFramework
+import com.live2d.sdk.cubism.framework.Live2DFrameworkConfig
 import com.live2d.sdk.cubism.framework.data.ModelJson
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.AAppModel
@@ -46,9 +46,7 @@ fun live2dMain() {
     GL.createCapabilities()
 
     run {
-        CubismFramework.startUp(CubismFrameworkConfig())
-        CubismFramework.reinit()
-
+        Live2DFramework.init()
 
         glTexParameteri(
             GL_TEXTURE_2D,

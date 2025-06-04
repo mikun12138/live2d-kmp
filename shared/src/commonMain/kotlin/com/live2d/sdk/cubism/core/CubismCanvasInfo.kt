@@ -11,13 +11,6 @@ class CubismCanvasInfo internal constructor(
         private set
 
     init {
-        checkNotNull(sizeInPixels)
-
-        checkNotNull(originInPixels)
-
-        check(sizeInPixels.size == 2)
-
-        check(originInPixels.size == 2)
 
         this.sizeInPixels[0] = sizeInPixels[0]
         this.sizeInPixels[1] = sizeInPixels[1]

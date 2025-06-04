@@ -1,10 +1,9 @@
 package com.live2d.sdk.cubism.framework.motion.motion
 
-import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.motion.ACubismMotion
 import com.live2d.sdk.cubism.framework.motion.AMotionManager
 import com.live2d.sdk.cubism.framework.motion.AMotionQueueEntry
-import com.live2d.sdk.cubism.framework.motion.ICubismMotionEventFunction
 
 /**
  * Class for managing motion playback, used to play ACubismMotion subclasses such as CubismMotion motion.
@@ -20,7 +19,7 @@ class CubismMotionManager (
         motionEntries.add(MotionQueueEntry(this, motion))
     }
 
-    override fun doUpdateMotion(model: Model, deltaTimeSeconds: Float) {
+    override fun doUpdateMotion(model: Live2DModel, deltaTimeSeconds: Float) {
 
         motionEntries.forEachIndexed { index, entry ->
 

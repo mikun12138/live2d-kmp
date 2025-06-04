@@ -1,6 +1,6 @@
 package com.live2d.sdk.cubism.framework.motion.expression
 
-import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.motion.AMotionQueueEntry
 import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotion.Companion.DEFAULT_ADDITIVE_VALUE
 import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotion.Companion.DEFAULT_MULTIPLY_VALUE
@@ -21,7 +21,7 @@ class ExpressionMotionQueueEntry(
     }
 
     fun updateParameter(
-        model: Model,
+        model: Live2DModel,
         totalSeconds: Float,
     ) {
         val fadeWeight = calFadeWeight(totalSeconds)

@@ -1,6 +1,6 @@
 package com.live2d.sdk.cubism.framework.model
 
-import com.live2d.sdk.cubism.framework.CubismDefaultParameterId
+import com.live2d.sdk.cubism.framework.id.CubismDefaultParameterId
 import com.live2d.sdk.cubism.framework.data.ModelJson
 import com.live2d.sdk.cubism.framework.effect.CubismBreath
 import com.live2d.sdk.cubism.framework.effect.CubismBreath.BreathParameterData

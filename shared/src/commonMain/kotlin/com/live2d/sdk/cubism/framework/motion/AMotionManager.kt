@@ -6,7 +6,7 @@
  */
 package com.live2d.sdk.cubism.framework.motion
 
-import com.live2d.sdk.cubism.framework.model.Model
+import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.util.switchStateTo
 
 /**
@@ -40,7 +40,7 @@ abstract class AMotionManager(
 
     protected abstract fun doStartMotion(motion: ACubismMotion)
 
-    fun updateMotion(model: Model, deltaTimeSeconds: Float): Boolean {
+    fun updateMotion(model: Live2DModel, deltaTimeSeconds: Float): Boolean {
         totalSeconds += deltaTimeSeconds
         val isUpdated = !motionEntries.isEmpty()
 
@@ -60,7 +60,7 @@ abstract class AMotionManager(
 
     }
 
-    protected abstract fun doUpdateMotion(model: Model, deltaTimeSeconds: Float)
+    protected abstract fun doUpdateMotion(model: Live2DModel, deltaTimeSeconds: Float)
 
 
     val isFinished: Boolean
