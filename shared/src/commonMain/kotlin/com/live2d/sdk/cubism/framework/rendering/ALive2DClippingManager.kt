@@ -58,7 +58,7 @@ abstract class ACubismClippingManager : ILive2DClippingManager {
                     this,
                     drawableMasks[i]!!,
                     drawableMaskCounts[i]
-                ) as Live2DClippingContext?
+                )
 
                 clippingContextListForMask.add(cc)
             }
@@ -472,7 +472,7 @@ abstract class ACubismClippingManager : ILive2DClippingManager {
     )
 
 
-    protected val clippingContextListForMask: MutableList<Live2DClippingContext?> = mutableListOf()
+    val clippingContextListForMask: MutableList<Live2DClippingContext> = mutableListOf()
 
 
     val clippingContextListForDraw: MutableList<Live2DClippingContext?> = mutableListOf()
