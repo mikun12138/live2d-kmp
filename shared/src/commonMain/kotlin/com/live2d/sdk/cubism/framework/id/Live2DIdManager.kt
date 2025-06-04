@@ -6,37 +6,37 @@
  */
 package com.live2d.sdk.cubism.framework.id
 
-object CubismIdManager {
+object Live2DIdManager {
 
-    fun registerId(id: String): CubismId {
-        return CubismId(id).also { ids.add(it) }
+    fun registerId(id: String): Live2DId {
+        return Live2DId(id).also { ids.add(it) }
     }
 
-    fun id(id: String): CubismId {
+    fun id(id: String): Live2DId {
         return registerId(id)
     }
 
-    fun id(id: CubismId): CubismId {
+    fun id(id: Live2DId): Live2DId {
         return registerId(id)
     }
 
-    fun registerId(cubismId: CubismId): CubismId {
-        return registerId(cubismId.value)
+    fun registerId(live2DId: Live2DId): Live2DId {
+        return registerId(live2DId.value)
     }
 
     fun isExist(id: String?): Boolean {
         return findId(id) != null
     }
 
-    fun isExist(id: CubismId?): Boolean {
+    fun isExist(id: Live2DId?): Boolean {
         return findId(id) != null
     }
 
-    private fun findId(foundId: String?): CubismId? {
+    private fun findId(foundId: String?): Live2DId? {
         return ids.find { it.value == foundId }
     }
 
-    private fun findId(foundId: CubismId?): CubismId? {
+    private fun findId(foundId: Live2DId?): Live2DId? {
         return ids.find { it == foundId }
     }
 
@@ -44,5 +44,5 @@ object CubismIdManager {
         ids.clear()
     }
 
-    private val ids: MutableSet<CubismId> = mutableSetOf()
+    private val ids: MutableSet<Live2DId> = mutableSetOf()
 }

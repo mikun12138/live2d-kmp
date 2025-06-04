@@ -6,7 +6,7 @@
  */
 package com.live2d.sdk.cubism.framework.id
 
-data class CubismId constructor(
+data class Live2DId constructor(
     val value: String
 ) {
     override fun toString(): String {

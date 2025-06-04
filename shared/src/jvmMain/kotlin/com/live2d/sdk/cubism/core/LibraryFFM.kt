@@ -34,13 +34,6 @@ fun Arena.allocateByteArray(var0: ByteArray): MemorySegment {
         .copyFrom(MemorySegment.ofArray(var0))
 }
 
-fun Arena.allocateFloatArray(var0: FloatArray): MemorySegment {
-    val size = var0.size * ValueLayout.JAVA_FLOAT.byteSize()
-    return this
-        .allocate(size)
-        .copyFrom(MemorySegment.ofArray(var0))
-}
-
 fun Arena.allocateAlignedByteArray(
     var0: ByteArray,
     alignment: Long

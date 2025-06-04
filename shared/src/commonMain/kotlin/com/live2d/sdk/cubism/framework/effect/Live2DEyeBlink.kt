@@ -6,18 +6,18 @@
  */
 package com.live2d.sdk.cubism.framework.effect
 
-import com.live2d.sdk.cubism.framework.id.CubismId
+import com.live2d.sdk.cubism.framework.id.Live2DId
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.data.ModelJson
-import com.live2d.sdk.cubism.framework.id.CubismIdManager
+import com.live2d.sdk.cubism.framework.id.Live2DIdManager
 
 /**
  * This class offers auto eyeblink function.
  */
-class CubismEyeBlink {
+class Live2DEyeBlink {
     constructor(modelJson: ModelJson) {
         modelJson.groups.find { it.name == "EyeBlink" }?.let { group ->
-            parameterIds.addAll(group.ids.map { CubismIdManager.id(it) })
+            parameterIds.addAll(group.ids.map { Live2DIdManager.id(it) })
         }
     }
 
@@ -51,12 +51,6 @@ class CubismEyeBlink {
         OPENING
     }
 
-    /**
-     * Update model's parameters.
-     *
-     * @param model the target model
-     * @param deltaTimeSeconds delta time[s]
-     */
     fun updateParameters(model: Live2DModel, deltaTimeSeconds: Float) {
         userTimeSeconds += deltaTimeSeconds
 
@@ -138,7 +132,7 @@ class CubismEyeBlink {
 
     private var blinkingState = EyeState.FIRST
 
-    private var parameterIds: MutableList<CubismId?> = mutableListOf()
+    private var parameterIds: MutableList<Live2DId?> = mutableListOf()
 
     private var nextBlinkingTime = 0f
 

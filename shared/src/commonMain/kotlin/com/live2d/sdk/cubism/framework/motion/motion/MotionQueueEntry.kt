@@ -1,6 +1,6 @@
 package com.live2d.sdk.cubism.framework.motion.motion
 
-import com.live2d.sdk.cubism.framework.id.CubismIdManager
+import com.live2d.sdk.cubism.framework.id.Live2DIdManager
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.motion.AMotionQueueEntry
@@ -89,17 +89,17 @@ class MotionQueueEntry(
                     )
 
                     when (curve.id) {
-                        CubismIdManager.id(EffectID.EYE_BLINK.value) -> {
+                        Live2DIdManager.id(EffectID.EYE_BLINK.value) -> {
                             eyeBlinkValue = value
                             isUpdatedEyeBlink = true
                         }
 
-                        CubismIdManager.id(EffectID.LIP_SYNC.value) -> {
+                        Live2DIdManager.id(EffectID.LIP_SYNC.value) -> {
                             lipSyncValue = value
                             isUpdatedLipSync = true
                         }
 
-                        CubismIdManager.id(OpacityID.OPACITY.value) -> {
+                        Live2DIdManager.id(OpacityID.OPACITY.value) -> {
                             // 不透明度の値が存在すれば反映する。
                             model.modelOpacity = value
                         }

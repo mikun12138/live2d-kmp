@@ -4,7 +4,7 @@ import java.lang.foreign.Arena
 import java.lang.foreign.MemorySegment
 import java.lang.foreign.ValueLayout
 
-actual object Live2DCubismCoreImpl {
+actual object Live2DCoreImpl {
 
     actual fun getVersion(): Int {
         return Live2DCubismCoreFFM.getVersion()

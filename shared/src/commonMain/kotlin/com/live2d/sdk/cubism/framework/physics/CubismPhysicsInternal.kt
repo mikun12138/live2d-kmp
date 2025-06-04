@@ -6,7 +6,7 @@
  */
 package com.live2d.sdk.cubism.framework.physics
 
-import com.live2d.sdk.cubism.framework.id.CubismId
+import com.live2d.sdk.cubism.framework.id.Live2DId
 import com.live2d.sdk.cubism.framework.math.CubismVector2
 
 /**
@@ -65,7 +65,7 @@ class CubismPhysicsInternal {
         /**
          * Parameter ID
          */
-        lateinit var Id: CubismId
+        lateinit var Id: Live2DId
 
         /**
          * Type of destination

@@ -7,7 +7,7 @@ package com.live2d.sdk.cubism.framework.id
  * Default value specifications are based on the following manual.
  * [...](http://docs.live2d.com/cubism-editor-manual/standard-parametor-list/)
  */
-object CubismDefaultParameterId {
+object Live2DDefaultParameterId {
     enum class HitAreaId(
         val id: String
     ) {

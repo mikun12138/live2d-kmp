@@ -1,8 +1,8 @@
 package com.live2d.sdk.cubism.framework.motion.motion
 
 import com.live2d.sdk.cubism.framework.data.MotionJson
-import com.live2d.sdk.cubism.framework.id.CubismId
-import com.live2d.sdk.cubism.framework.id.CubismIdManager
+import com.live2d.sdk.cubism.framework.id.Live2DId
+import com.live2d.sdk.cubism.framework.id.Live2DIdManager
 import com.live2d.sdk.cubism.framework.math.CubismMath
 import com.live2d.sdk.cubism.framework.motion.ACubismMotion
 import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal
@@ -50,9 +50,9 @@ class CubismMotion : ACubismMotion {
                     add(CubismMotionInternal.CubismMotionSegment())
                 }
             },
-            points = ArrayList<CubismMotionInternal.CubismMotionPoint>(json.meta.totalPointCount).apply {
+            points = ArrayList<CubismMotionPoint>(json.meta.totalPointCount).apply {
                 repeat(json.meta.totalPointCount) {
-                    add(CubismMotionInternal.CubismMotionPoint())
+                    add(CubismMotionPoint())
                 }
             },
             events = ArrayList<CubismMotionInternal.CubismMotionEvent>(json.meta.userDataCount).apply {
@@ -86,7 +86,7 @@ class CubismMotion : ACubismMotion {
                     json.curves[curveIndex].target
                 )
 
-                curve.id = CubismIdManager.id(
+                curve.id = Live2DIdManager.id(
                     json.curves[curveIndex].id
                 )
                 curve.baseSegmentIndex = totalSegmentIndex
@@ -118,22 +118,22 @@ class CubismMotion : ACubismMotion {
                     motionData.segments[totalSegmentIndex].basePointIndex = totalPointIndex - 1
                 }
 
-                val segmentType: CubismMotionInternal.CubismMotionSegmentType
+                val segmentType: CubismMotionSegmentType
                 json.curves[curveIndex]
                     .segments[segmentIndex].toInt().let { flagSegment ->
                     segmentType = when (flagSegment) {
-                        0 -> CubismMotionInternal.CubismMotionSegmentType.LINEAR
-                        1 -> CubismMotionInternal.CubismMotionSegmentType.BEZIER
-                        2 -> CubismMotionInternal.CubismMotionSegmentType.STEPPED
-                        3 -> CubismMotionInternal.CubismMotionSegmentType.INVERSESTEPPED
+                        0 -> CubismMotionSegmentType.LINEAR
+                        1 -> CubismMotionSegmentType.BEZIER
+                        2 -> CubismMotionSegmentType.STEPPED
+                        3 -> CubismMotionSegmentType.INVERSESTEPPED
                         else -> error("unsupported segmentType!")
                     }
                 }
 
                 when (segmentType) {
-                    CubismMotionInternal.CubismMotionSegmentType.LINEAR -> {
+                    CubismMotionSegmentType.LINEAR -> {
                         motionData.segments[totalSegmentIndex].let { segment ->
-                            segment.segmentType = CubismMotionInternal.CubismMotionSegmentType.LINEAR
+                            segment.segmentType = CubismMotionSegmentType.LINEAR
                             segment.evaluator = LinearEvaluator
                         }
                         // 线性需要另外一个点
@@ -146,9 +146,9 @@ class CubismMotion : ACubismMotion {
                         segmentIndex += 3
                     }
 
-                    CubismMotionInternal.CubismMotionSegmentType.BEZIER -> {
+                    CubismMotionSegmentType.BEZIER -> {
                         motionData.segments[totalSegmentIndex].let { segment ->
-                            segment.segmentType = CubismMotionInternal.CubismMotionSegmentType.BEZIER
+                            segment.segmentType = CubismMotionSegmentType.BEZIER
 
                             segment.evaluator =
                                 if (json.meta.areBeziersRestricted || USE_OLD_BEZIERS_CURVE_MOTION)
@@ -175,9 +175,9 @@ class CubismMotion : ACubismMotion {
                         segmentIndex += 7
                     }
 
-                    CubismMotionInternal.CubismMotionSegmentType.STEPPED -> {
+                    CubismMotionSegmentType.STEPPED -> {
                         motionData.segments[totalSegmentIndex].let { segment ->
-                            segment.segmentType = CubismMotionInternal.CubismMotionSegmentType.STEPPED
+                            segment.segmentType = CubismMotionSegmentType.STEPPED
                             segment.evaluator = SteppedEvaluator
                         }
 
@@ -190,9 +190,9 @@ class CubismMotion : ACubismMotion {
                         segmentIndex += 3
                     }
 
-                    CubismMotionInternal.CubismMotionSegmentType.INVERSESTEPPED -> {
+                    CubismMotionSegmentType.INVERSESTEPPED -> {
                         motionData.segments[totalSegmentIndex].let { segment ->
-                            segment.segmentType = CubismMotionInternal.CubismMotionSegmentType.INVERSESTEPPED
+                            segment.segmentType = CubismMotionSegmentType.INVERSESTEPPED
                             segment.evaluator = InverseSteppedEvaluator
                         }
 
@@ -270,8 +270,8 @@ class CubismMotion : ACubismMotion {
      * @param lipSyncParameterIds parameter ID list to which automatic lip-syncing is applied
      */
     fun setEffectIds(
-        eyeBlinkParameterIds: List<CubismId>,
-        lipSyncParameterIds: List<CubismId>,
+        eyeBlinkParameterIds: List<Live2DId>,
+        lipSyncParameterIds: List<Live2DId>,
     ) {
         this.eyeBlinkParameterIds.clear()
         this.eyeBlinkParameterIds.addAll(eyeBlinkParameterIds)
@@ -287,9 +287,9 @@ class CubismMotion : ACubismMotion {
         endTime: Float,
     ): Float {
         if (curve.id.value == "ParamLeg") {
-            println("time: " + time);
-            println("isCorrection: " + isCorrection);
-            println("endTime: " + endTime);
+            println("time: " + time)
+            println("isCorrection: " + isCorrection)
+            println("endTime: " + endTime)
             println()
         }
 
@@ -383,28 +383,28 @@ class CubismMotion : ACubismMotion {
     ): Float {
         val motionPoint = listOf(
             run {
-                val src: CubismMotionInternal.CubismMotionPoint = motionData.points[endIndex]
-                CubismMotionInternal.CubismMotionPoint(src.time, src.value)
+                val src: CubismMotionPoint = motionData.points[endIndex]
+                CubismMotionPoint(src.time, src.value)
             },
             run {
-                val src: CubismMotionInternal.CubismMotionPoint = motionData.points[beginIndex]
-                CubismMotionInternal.CubismMotionPoint(endTime, src.value)
+                val src: CubismMotionPoint = motionData.points[beginIndex]
+                CubismMotionPoint(endTime, src.value)
             },
         )
 
         return when (motionData.segments[segmentIndex].segmentType) {
-            CubismMotionInternal.CubismMotionSegmentType.STEPPED -> SteppedEvaluator.evaluate(
+            CubismMotionSegmentType.STEPPED -> SteppedEvaluator.evaluate(
                 motionPoint,
                 time
             )
 
-            CubismMotionInternal.CubismMotionSegmentType.INVERSESTEPPED -> InverseSteppedEvaluator.evaluate(
+            CubismMotionSegmentType.INVERSESTEPPED -> InverseSteppedEvaluator.evaluate(
                 motionPoint,
                 time
             )
 
-            CubismMotionInternal.CubismMotionSegmentType.LINEAR,
-            CubismMotionInternal.CubismMotionSegmentType.BEZIER,
+            CubismMotionSegmentType.LINEAR,
+            CubismMotionSegmentType.BEZIER,
                 -> LinearEvaluator.evaluate(
                 motionPoint,
                 time
@@ -414,7 +414,7 @@ class CubismMotion : ACubismMotion {
     }
 
     object LinearEvaluator : CubismMotionInternal.CsmMotionSegmentEvaluationFunction {
-        override fun evaluate(points: List<CubismMotionInternal.CubismMotionPoint>, time: Float): Float {
+        override fun evaluate(points: List<CubismMotionPoint>, time: Float): Float {
             val p0 = points[0]
             val p1 = points[1]
 
@@ -428,7 +428,7 @@ class CubismMotion : ACubismMotion {
     }
 
     object BezierEvaluator : CubismMotionInternal.CsmMotionSegmentEvaluationFunction {
-        override fun evaluate(points: List<CubismMotionInternal.CubismMotionPoint>, time: Float): Float {
+        override fun evaluate(points: List<CubismMotionPoint>, time: Float): Float {
             val p0 = points[0]
             val p1 = points[1]
             val p2 = points[2]
@@ -439,12 +439,12 @@ class CubismMotion : ACubismMotion {
                 0.0f
             )
 
-            val p01: CubismMotionInternal.CubismMotionPoint = lerpPoints(p0, p1, t)
-            val p12: CubismMotionInternal.CubismMotionPoint = lerpPoints(p1, p2, t)
-            val p23: CubismMotionInternal.CubismMotionPoint = lerpPoints(p2, p3, t)
+            val p01: CubismMotionPoint = lerpPoints(p0, p1, t)
+            val p12: CubismMotionPoint = lerpPoints(p1, p2, t)
+            val p23: CubismMotionPoint = lerpPoints(p2, p3, t)
 
-            val p012: CubismMotionInternal.CubismMotionPoint = lerpPoints(p01, p12, t)
-            val p123: CubismMotionInternal.CubismMotionPoint = lerpPoints(p12, p23, t)
+            val p012: CubismMotionPoint = lerpPoints(p01, p12, t)
+            val p123: CubismMotionPoint = lerpPoints(p12, p23, t)
 
             return lerpPoints(p012, p123, t).value
         }
@@ -452,7 +452,7 @@ class CubismMotion : ACubismMotion {
 
     object BezierEvaluatorCardanoInterpretation :
         CubismMotionInternal.CsmMotionSegmentEvaluationFunction {
-        override fun evaluate(points: List<CubismMotionInternal.CubismMotionPoint>, time: Float): Float {
+        override fun evaluate(points: List<CubismMotionPoint>, time: Float): Float {
             val p0 = points[0]
             val p1 = points[1]
             val p2 = points[2]
@@ -470,25 +470,25 @@ class CubismMotion : ACubismMotion {
 
             val t: Float = CubismMath.cardanoAlgorithmForBezier(a, b, c, d)
 
-            val p01: CubismMotionInternal.CubismMotionPoint = lerpPoints(p0, p1, t)
-            val p12: CubismMotionInternal.CubismMotionPoint = lerpPoints(p1, p2, t)
-            val p23: CubismMotionInternal.CubismMotionPoint = lerpPoints(p2, p3, t)
+            val p01: CubismMotionPoint = lerpPoints(p0, p1, t)
+            val p12: CubismMotionPoint = lerpPoints(p1, p2, t)
+            val p23: CubismMotionPoint = lerpPoints(p2, p3, t)
 
-            val p012: CubismMotionInternal.CubismMotionPoint = lerpPoints(p01, p12, t)
-            val p123: CubismMotionInternal.CubismMotionPoint = lerpPoints(p12, p23, t)
+            val p012: CubismMotionPoint = lerpPoints(p01, p12, t)
+            val p123: CubismMotionPoint = lerpPoints(p12, p23, t)
 
             return lerpPoints(p012, p123, t).value
         }
     }
 
     object SteppedEvaluator : CubismMotionInternal.CsmMotionSegmentEvaluationFunction {
-        override fun evaluate(points: List<CubismMotionInternal.CubismMotionPoint>, time: Float): Float {
+        override fun evaluate(points: List<CubismMotionPoint>, time: Float): Float {
             return points[0].value
         }
     }
 
     object InverseSteppedEvaluator : CubismMotionInternal.CsmMotionSegmentEvaluationFunction {
-        override fun evaluate(points: List<CubismMotionInternal.CubismMotionPoint>, time: Float): Float {
+        override fun evaluate(points: List<CubismMotionPoint>, time: Float): Float {
             return points[1].value
         }
     }
@@ -513,8 +513,8 @@ class CubismMotion : ACubismMotion {
     // TODO::
     var loop: Boolean = false
 
-    val eyeBlinkParameterIds: MutableList<CubismId> = mutableListOf()
-    val lipSyncParameterIds: MutableList<CubismId> = mutableListOf()
+    val eyeBlinkParameterIds: MutableList<Live2DId> = mutableListOf()
+    val lipSyncParameterIds: MutableList<Live2DId> = mutableListOf()
     // TODO::
     val eyeBlinkOverrideFlags = BitSet(eyeBlinkParameterIds.size)
     val lipSyncOverrideFlags = BitSet(lipSyncParameterIds.size)
@@ -551,10 +551,10 @@ class CubismMotion : ACubismMotion {
 
         // lerp: Linear Interpolate(線形補間の略)
         private fun lerpPoints(
-            a: CubismMotionInternal.CubismMotionPoint,
-            b: CubismMotionInternal.CubismMotionPoint,
+            a: CubismMotionPoint,
+            b: CubismMotionPoint,
             t: Float,
-        ): CubismMotionInternal.CubismMotionPoint = CubismMotionInternal.CubismMotionPoint(
+        ): CubismMotionPoint = CubismMotionPoint(
             a.time + ((b.time - a.time) * t),
             a.value + ((b.value - a.value) * t),
         )

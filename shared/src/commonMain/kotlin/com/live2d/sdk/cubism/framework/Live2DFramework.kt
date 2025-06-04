@@ -7,7 +7,7 @@
 package com.live2d.sdk.cubism.framework
 
 import com.live2d.sdk.cubism.core.Live2D
-import com.live2d.sdk.cubism.framework.id.CubismIdManager
+import com.live2d.sdk.cubism.framework.id.Live2DIdManager
 import com.live2d.sdk.cubism.framework.utils.Live2DLogger
 
 object Live2DFramework {
@@ -36,7 +36,7 @@ object Live2DFramework {
     }
 
     private fun doInit() {
-        CubismIdManager.clear()
+        Live2DIdManager.clear()
     }
 
     private var isStarted = false

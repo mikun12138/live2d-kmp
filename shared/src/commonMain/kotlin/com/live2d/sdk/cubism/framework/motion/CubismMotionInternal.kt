@@ -6,7 +6,7 @@
  */
 package com.live2d.sdk.cubism.framework.motion
 
-import com.live2d.sdk.cubism.framework.id.CubismId
+import com.live2d.sdk.cubism.framework.id.Live2DId
 import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion
 
 /**
@@ -91,7 +91,7 @@ class CubismMotionInternal {
      */
     class CubismMotionCurve {
         var type: CubismMotionCurveTarget = CubismMotionCurveTarget.MODEL
-        lateinit var id: CubismId
+        lateinit var id: Live2DId
 
         /**
          * number of segments

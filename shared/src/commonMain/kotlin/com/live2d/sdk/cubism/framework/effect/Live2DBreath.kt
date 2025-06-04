@@ -6,7 +6,7 @@
  */
 package com.live2d.sdk.cubism.framework.effect
 
-import com.live2d.sdk.cubism.framework.id.CubismId
+import com.live2d.sdk.cubism.framework.id.Live2DId
 import com.live2d.sdk.cubism.framework.math.CubismMath.PI
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 import kotlin.math.sin
@@ -14,12 +14,12 @@ import kotlin.math.sin
 /**
  * This class offers the breath function.
  */
-class CubismBreath {
+class Live2DBreath {
     data class BreathParameterData(
         /**
          * A parameter ID bound breath info.
          */
-        val parameterId: CubismId,
+        val parameterId: Live2DId,
 
         /**
          * A wave offset when breathing is taken as a sine wave

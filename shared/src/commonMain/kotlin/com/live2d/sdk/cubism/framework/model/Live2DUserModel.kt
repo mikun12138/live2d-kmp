@@ -6,25 +6,18 @@
  */
 package com.live2d.sdk.cubism.framework.model
 
-import com.live2d.sdk.cubism.framework.effect.CubismBreath
-import com.live2d.sdk.cubism.framework.effect.CubismEyeBlink
-import com.live2d.sdk.cubism.framework.effect.CubismPose
+import com.live2d.sdk.cubism.framework.pose.CubismPose
 import com.live2d.sdk.cubism.framework.math.CubismModelMatrix
-import com.live2d.sdk.cubism.framework.math.CubismTargetPoint
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
 import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
 import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotion
-import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotionManager
 import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion
-import com.live2d.sdk.cubism.framework.motion.motion.CubismMotionManager
 import com.live2d.sdk.cubism.framework.physics.CubismPhysics
+import com.live2d.sdk.cubism.framework.rendering.ALive2DTexture
 import com.live2d.sdk.cubism.framework.userdata.CubismModelUserData
 import com.live2d.sdk.cubism.framework.utils.Live2DLogger
 
-/**
- * This is the base class of the model that the user actually utilizes. The user defined model class inherits this class.
- */
-abstract class CubismUserModel protected constructor() {
+abstract class Live2DUserModel protected constructor() {
 
     var totalSeconds = 0.0f
     var lastTotalSeconds = 0.0f
@@ -158,43 +151,19 @@ abstract class CubismUserModel protected constructor() {
     protected abstract fun doUpdate(deltaSeconds: Float)
 
 
-    /**
-     * A model instance
-     */
     lateinit var model: Live2DModel
         protected set
 
-    /**
-     * A model matrix
-     */
     var modelMatrix: CubismModelMatrix? = null
 
     /*
         System
      */
-
-    /**
-     * Auto eye-blink
-     */
-    protected var eyeBlink: CubismEyeBlink? = null
-
-    /**
-     * Breathing
-     */
-    protected var breath: CubismBreath? = null
-
-    /**
-     * pose
-     */
     protected var pose: CubismPose? = null
-
-    protected var motionManager: CubismMotionManager = CubismMotionManager()
-    protected var expressionManager: CubismExpressionMotionManager = CubismExpressionMotionManager()
+    protected val name_2_motionList: MutableMap<String, MutableList<CubismMotion>> = mutableMapOf()
+    protected val name_2_expression: MutableMap<String, CubismExpressionMotion?> = mutableMapOf()
     protected var physics: CubismPhysics? = null
     protected var modelUserData: CubismModelUserData? = null
-
-    /**
-     * A mouse dragging manager
-     */
-    protected var dragManager: CubismTargetPoint = CubismTargetPoint()
+    // TODO:: texture也算renderSystem 可以把蒙版什么的也放一块
+    protected val textures: MutableMap<Int, ALive2DTexture> = HashMap(32)
 }

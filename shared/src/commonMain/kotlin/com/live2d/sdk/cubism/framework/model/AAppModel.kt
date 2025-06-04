@@ -1,30 +1,36 @@
 package com.live2d.sdk.cubism.framework.model
 
-import com.live2d.sdk.cubism.framework.id.CubismDefaultParameterId
+import com.live2d.sdk.cubism.framework.id.Live2DDefaultParameterId
 import com.live2d.sdk.cubism.framework.data.ModelJson
-import com.live2d.sdk.cubism.framework.effect.CubismBreath
-import com.live2d.sdk.cubism.framework.effect.CubismBreath.BreathParameterData
-import com.live2d.sdk.cubism.framework.effect.CubismEyeBlink
-import com.live2d.sdk.cubism.framework.id.CubismIdManager
+import com.live2d.sdk.cubism.framework.effect.Live2DBreath
+import com.live2d.sdk.cubism.framework.effect.Live2DBreath.BreathParameterData
+import com.live2d.sdk.cubism.framework.effect.Live2DEyeBlink
+import com.live2d.sdk.cubism.framework.effect.Live2DLipSync
+import com.live2d.sdk.cubism.framework.id.Live2DIdManager
+import com.live2d.sdk.cubism.framework.math.CubismTargetPoint
 import com.live2d.sdk.cubism.framework.model.AAppModel.MotionGroup.IDLE
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
 import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
-import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotion
+import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotionManager
 import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion
+import com.live2d.sdk.cubism.framework.motion.motion.CubismMotionManager
+import com.live2d.sdk.cubism.framework.rendering.ALive2DTexture
 import kotlinx.serialization.json.Json
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
-abstract class AAppModel : CubismUserModel() {
+open class AAppModel : Live2DUserModel() {
 
     var isUsingHighPrecisionMask: Boolean = false
+    protected var motionManager: CubismMotionManager = CubismMotionManager()
+    protected var expressionManager: CubismExpressionMotionManager = CubismExpressionMotionManager()
 
+    // effects
+    protected var breath: Live2DBreath? = null
+    protected var eyeBlink: Live2DEyeBlink? = null
+    protected var lipSync: Live2DLipSync? = null
 
-//    private val eyeBlinkIds: MutableList<CubismId> = mutableListOf()
-//    private val lipSyncIds: MutableList<CubismId> = mutableListOf()
-
-    private val name_2_motionList: MutableMap<String, MutableList<CubismMotion>> = mutableMapOf()
-    private val name_2_expression: MutableMap<String, CubismExpressionMotion?> = mutableMapOf()
+    protected var dragManager: CubismTargetPoint = CubismTargetPoint()
 
 
     fun init(dir: String, modelJsonFileName: String) {
@@ -37,82 +43,15 @@ abstract class AAppModel : CubismUserModel() {
 // TODO::        initClip / mask()
     }
 
-    abstract fun setupTextures(dir: String, modelJson: ModelJson)
-
-
     private fun setupModel(dir: String, modelJson: ModelJson) {
         Path(dir, modelJson.fileReferences.moc).readBytes().let { buffer ->
             loadModel(buffer, true)
-        }
-
-        Path(dir, modelJson.fileReferences.physics).readBytes().let { Buffer ->
-            loadPhysics(Buffer)
         }
 
         Path(dir, modelJson.fileReferences.pose).readBytes().let { buffer ->
             loadPose(buffer)
         }
 
-        for (expression in modelJson.fileReferences.expressions) {
-            Path(dir, expression!!.file).readBytes().let { buffer ->
-                name_2_expression.put(expression!!.name, loadExpression(buffer))
-            }
-        }
-
-        Path(dir, modelJson.fileReferences.userData).readBytes().let { buffer ->
-            loadUserData(buffer)
-        }
-
-        // Load eye blink data
-        // TODO:: save it
-        eyeBlink = CubismEyeBlink(modelJson)
-
-        // Load Breath Data
-        // TODO:: save it
-        breath = CubismBreath(
-            BreathParameterData(
-                CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_X.id),
-                0.0f,
-                15.0f,
-                6.5345f,
-                0.5f
-            ),
-            BreathParameterData(
-                CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_Y.id),
-                0.0f,
-                8.0f,
-                3.5345f,
-                0.5f
-            ),
-            BreathParameterData(
-                CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_Z.id),
-                0.0f,
-                10.0f,
-                5.5345f,
-                0.5f
-            ),
-            BreathParameterData(
-                CubismIdManager.id(CubismDefaultParameterId.ParameterId.BODY_ANGLE_X.id),
-                0.0f,
-                4.0f,
-                15.5345f,
-                0.5f
-            ),
-            BreathParameterData(
-                CubismIdManager.id(CubismDefaultParameterId.ParameterId.BREATH.id),
-                0.5f,
-                0.5f,
-                3.2345f,
-                0.5f,
-            )
-        )
-
-        // TODO:: layout
-//        modelJson.layout
-
-        model.saveParameters()
-
-        // Just preload motions
         for ((name, motionGroup) in modelJson.fileReferences.motionGroups) {
             motionGroup.forEachIndexed { index, motion ->
                 Path(dir, motion.file).readBytes().let { buffer ->
@@ -122,13 +61,13 @@ abstract class AAppModel : CubismUserModel() {
                         it.setEffectIds(
                             eyeBlinkParameterIds =
                                 modelJson.groups.find { it.name == "EyeBlink" }?.ids!!.map { value ->
-                                    CubismIdManager.id(
+                                    Live2DIdManager.id(
                                         value
                                     )
                                 },
                             lipSyncParameterIds =
                                 modelJson.groups.find { it.name == "LipSync" }?.ids!!.map { value ->
-                                    CubismIdManager.id(
+                                    Live2DIdManager.id(
                                         value
                                     )
                                 }
@@ -141,101 +80,148 @@ abstract class AAppModel : CubismUserModel() {
             }
         }
 
-        motionManager.stopAllMotions()
+        for (expression in modelJson.fileReferences.expressions) {
+            Path(dir, expression.file).readBytes().let { buffer ->
+                loadExpression(buffer)?.let { }
+                name_2_expression.put(expression.name, loadExpression(buffer))
+            }
+        }
+
+        Path(dir, modelJson.fileReferences.physics).readBytes().let { Buffer ->
+            loadPhysics(Buffer)
+        }
+
+        Path(dir, modelJson.fileReferences.userData).readBytes().let { buffer ->
+            loadUserData(buffer)
+        }
+
+        eyeBlink = Live2DEyeBlink(modelJson)
+
+        breath = Live2DBreath(
+            BreathParameterData(
+                Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.ANGLE_X.id),
+                0.0f,
+                15.0f,
+                6.5345f,
+                0.5f
+            ),
+            BreathParameterData(
+                Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.ANGLE_Y.id),
+                0.0f,
+                8.0f,
+                3.5345f,
+                0.5f
+            ),
+            BreathParameterData(
+                Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.ANGLE_Z.id),
+                0.0f,
+                10.0f,
+                5.5345f,
+                0.5f
+            ),
+            BreathParameterData(
+                Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.BODY_ANGLE_X.id),
+                0.0f,
+                4.0f,
+                15.5345f,
+                0.5f
+            ),
+            BreathParameterData(
+                Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.BREATH.id),
+                0.5f,
+                0.5f,
+                3.2345f,
+                0.5f,
+            )
+        )
+
+        // TODO:: layout
+//        modelJson.layout
+
+        model.saveParameters()
+    }
+
+    fun setupTextures(dir: String, modelJson: ModelJson) {
+
     }
 
     override fun doUpdate(deltaSeconds: Float) {
 
-        dragManager.update(deltaSeconds)
+        // Pose Setting
+        pose?.updateParameters(model, deltaSeconds)
 
         // モーションによるパラメーター更新の有無
         var isMotionUpdated = false
-        // Idle动画
+        model.loadParameters()
         run {
-            model.loadParameters()
-            run {
-                if (motionManager.isFinished) {
-                    startMotion(
-                        name_2_motionList[IDLE]!![2],
-                        MotionPriority.IDLE
-                    )
-                } else {
-                    isMotionUpdated = motionManager.updateMotion(model, deltaSeconds)
-                }
+            if (motionManager.isFinished) {
+                startRandomMotion(
+                    IDLE,
+                    MotionPriority.IDLE
+                )
+            } else {
+                isMotionUpdated = motionManager.updateMotion(model, deltaSeconds)
             }
-            model.saveParameters()
         }
+        model.saveParameters()
+
+        // expression
+        expressionManager.updateMotion(model, deltaSeconds)
+
+        // physics
+        physics?.evaluate(model, deltaSeconds)
+
+        // userData
+        // TODO::
 
         // eye blink
         if (!isMotionUpdated) {
             eyeBlink?.updateParameters(model, deltaSeconds)
         }
 
-
-        // expression
-        expressionManager.updateMotion(model, deltaSeconds)
+        // Breath Function
+        breath?.updateParameters(model, deltaSeconds)
 
 
         /*
             drag
             TODO:: move to dragManager?
-         */
-        run {
-            // ドラッグ追従機能
-            // ドラッグによる顔の向きの調整
-            model.addParameterValue(
-                CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_X.id),
-                dragManager.x * 30
-            ) // -30から30の値を加える
-            model.addParameterValue(
-                CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_Y.id),
-                dragManager.y * 30
-            )
-            model.addParameterValue(
-                CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_Z.id),
-                dragManager.x * dragManager.y * (-30)
-            )
+        */
+        /*
+                run {
+                    // ドラッグ追従機能
+                    // ドラッグによる顔の向きの調整
+                    model.addParameterValue(
+                        CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_X.id),
+                        dragManager.x * 30
+                    ) // -30から30の値を加える
+                    model.addParameterValue(
+                        CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_Y.id),
+                        dragManager.y * 30
+                    )
+                    model.addParameterValue(
+                        CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_Z.id),
+                        dragManager.x * dragManager.y * (-30)
+                    )
 
-            // ドラッグによる体の向きの調整
-            model.addParameterValue(
-                CubismIdManager.id(CubismDefaultParameterId.ParameterId.BODY_ANGLE_X.id),
-                dragManager.x * 10
-            ) // -10から10の値を加える
+                    // ドラッグによる体の向きの調整
+                    model.addParameterValue(
+                        CubismIdManager.id(CubismDefaultParameterId.ParameterId.BODY_ANGLE_X.id),
+                        dragManager.x * 10
+                    ) // -10から10の値を加える
 
-            // ドラッグによる目の向きの調整
-            model.addParameterValue(
-                CubismIdManager.id(CubismDefaultParameterId.ParameterId.EYE_BALL_X.id),
-                dragManager.x
-            ) // -1から1の値を加える
-            model.addParameterValue(
-                CubismIdManager.id(CubismDefaultParameterId.ParameterId.EYE_BALL_Y.id),
-                dragManager.y
-            )
-        }
-
-        // Breath Function
-        breath?.updateParameters(model, deltaSeconds)
-
-        // Physics Setting
-        physics?.evaluate(model, deltaSeconds)
-
-
-        // Lip Sync Setting
-        // TODO:: move to where
-//        if (true) {
-//            // リアルタイムでリップシンクを行う場合、システムから音量を取得して0~1の範囲で値を入力します
-//            val value = 0.0f
-//
-//            for (i in lipSyncIds.indices) {
-//                val lipSyncId: CubismId = lipSyncIds.get(i)
-//                model.addParameterValue(lipSyncId, value, 0.8f)
-//            }
-//        }
-
-
-        // Pose Setting
-        pose?.updateParameters(model, deltaSeconds)
-
+                    // ドラッグによる目の向きの調整
+                    model.addParameterValue(
+                        CubismIdManager.id(CubismDefaultParameterId.ParameterId.EYE_BALL_X.id),
+                        dragManager.x
+                    ) // -1から1の値を加える
+                    model.addParameterValue(
+                        CubismIdManager.id(CubismDefaultParameterId.ParameterId.EYE_BALL_Y.id),
+                        dragManager.y
+                    )
+                }
+            */
+        dragManager.update(deltaSeconds)
     }
 
     fun startRandomMotion(

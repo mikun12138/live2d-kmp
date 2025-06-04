@@ -7,7 +7,7 @@
  */
 package com.live2d.sdk.cubism.framework.motion.expression
 
-import com.live2d.sdk.cubism.framework.id.CubismId
+import com.live2d.sdk.cubism.framework.id.Live2DId
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.motion.ACubismMotion
@@ -20,7 +20,7 @@ class CubismExpressionMotionManager(
     override val motionEntries: MutableList<ExpressionMotionQueueEntry> = mutableListOf()
 ) : AMotionManager() {
     data class ExpressionParameterValue(
-        val parameterId: CubismId,
+        val parameterId: Live2DId,
         var additiveValue: Float = 0f,
         var multiplyValue: Float = 0f,
         var overwriteValue: Float = 0f,

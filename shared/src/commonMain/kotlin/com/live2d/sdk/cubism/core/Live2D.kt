@@ -2,14 +2,14 @@ package com.live2d.sdk.cubism.core
 
 object Live2D {
     val coreVersion: CubismCoreVersion by lazy {
-        CubismCoreVersion(Live2DCubismCoreImpl.getVersion())
+        CubismCoreVersion(Live2DCoreImpl.getVersion())
     }
     val latestMocVersion: Int by lazy {
-        Live2DCubismCoreImpl.getLatestMocVersion()
+        Live2DCoreImpl.getLatestMocVersion()
     }
 
     fun coreLogFunction(logFunction: LogFunction) {
-        Live2DCubismCoreImpl.coreLogFunction(logFunction)
+        Live2DCoreImpl.coreLogFunction(logFunction)
     }
 
     object MocVersion {

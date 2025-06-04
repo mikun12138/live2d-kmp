@@ -1,15 +1,9 @@
-/*
- * Copyright(c) Live2D Inc. All rights reserved.
- *
- * Use of this source code is governed by the Live2D Open Software license
- * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
- */
-package com.live2d.sdk.cubism.framework.effect
+package com.live2d.sdk.cubism.framework.pose
 
-import com.live2d.sdk.cubism.framework.id.CubismId
-import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.data.PoseJson
-import com.live2d.sdk.cubism.framework.id.CubismIdManager
+import com.live2d.sdk.cubism.framework.id.Live2DId
+import com.live2d.sdk.cubism.framework.id.Live2DIdManager
+import com.live2d.sdk.cubism.framework.model.Live2DModel
 import kotlinx.serialization.json.Json
 
 /**
@@ -17,7 +11,7 @@ import kotlinx.serialization.json.Json
  */
 class CubismPose {
     constructor(pose3json: ByteArray) {
-        Json.decodeFromString<PoseJson>(String(pose3json)).let { json ->
+        Json.Default.decodeFromString<PoseJson>(String(pose3json)).let { json ->
 
             // Set the fade time.
             fadeTimeSeconds = json.fadeInTime?.let {
@@ -32,13 +26,13 @@ class CubismPose {
             fun setupPartGroup(partInfo: PoseJson.PartInfo): PartData {
 
                 val partData = PartData(
-                    partId = CubismIdManager.id(partInfo.id)
+                    partId = Live2DIdManager.id(partInfo.id)
                 )
 
                 for (linkedPart in partInfo.link) {
                     partData.linkedParameter.add(
                         PartData(
-                            partId = CubismIdManager.id(linkedPart)
+                            partId = Live2DIdManager.id(linkedPart)
                         )
                     )
                 }
@@ -54,7 +48,7 @@ class CubismPose {
     }
 
     data class PartData(
-        var partId: CubismId? = null,
+        var partId: Live2DId? = null,
         var parameterIndex: Int = 0,
         var partIndex: Int = 0,
         var linkedParameter: MutableList<PartData> = mutableListOf(),

@@ -14,7 +14,7 @@ class CubismMoc {
             }
         }
 
-        val mocHandle: Long = Live2DCubismCoreImpl.instantiateMoc(mocBinary)
+        val mocHandle: Long = Live2DCoreImpl.instantiateMoc(mocBinary)
         if (mocHandle == 0L) {
             error("moc data is Invalid.")
         } else {
@@ -23,13 +23,13 @@ class CubismMoc {
     }
 
     fun hasMocConsistency(mocBinary: ByteArray): Boolean {
-        val isValid: Int = Live2DCubismCoreImpl.hasMocConsistency(mocBinary)
+        val isValid: Int = Live2DCoreImpl.hasMocConsistency(mocBinary)
         return isValid != 0
     }
 
     fun instantiateModel(): CubismModel {
         return CubismModel(
-            Live2DCubismCoreImpl.instantiateModel(nativeHandle)
+            Live2DCoreImpl.instantiateModel(nativeHandle)
         )
     }
 }

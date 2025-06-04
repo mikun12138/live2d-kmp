@@ -10,7 +10,7 @@ import com.live2d.sdk.cubism.framework.math.CubismMath
 import com.live2d.sdk.cubism.framework.math.CubismVector2
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.data.PhysicsJson
-import com.live2d.sdk.cubism.framework.id.CubismIdManager
+import com.live2d.sdk.cubism.framework.id.Live2DIdManager
 import kotlinx.serialization.json.Json
 import kotlin.math.pow
 
@@ -600,7 +600,7 @@ class CubismPhysics {
             input.source.targetType = CubismPhysicsInternal.CubismPhysicsTargetType.PARAMETER
 
             input.source.Id =
-                CubismIdManager.id(json.physicsSettings[settingIndex].input[inputIndex].source.id)
+                Live2DIdManager.id(json.physicsSettings[settingIndex].input[inputIndex].source.id)
 
             physicsRig.inputs.add(input)
         }
@@ -621,7 +621,7 @@ class CubismPhysics {
             output.weight = json.physicsSettings[settingIndex].output[outputIndex].weight
             output.destination.targetType = CubismPhysicsInternal.CubismPhysicsTargetType.PARAMETER
 
-            output.destination.Id = CubismIdManager.id(
+            output.destination.Id = Live2DIdManager.id(
                 json.physicsSettings[settingIndex].output[outputIndex].destination.id
             )
 

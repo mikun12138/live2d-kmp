@@ -12,8 +12,7 @@ import com.live2d.sdk.cubism.core.CubismDrawableView
 import com.live2d.sdk.cubism.core.CubismModel
 import com.live2d.sdk.cubism.core.CubismParameterView
 import com.live2d.sdk.cubism.core.CubismPartView
-import com.live2d.sdk.cubism.core.Live2DCubismCoreImpl
-import com.live2d.sdk.cubism.framework.id.CubismId
+import com.live2d.sdk.cubism.framework.id.Live2DId
 import com.live2d.sdk.cubism.framework.rendering.CubismBlendMode
 import com.live2d.sdk.cubism.framework.rendering.CubismTextureColor
 
@@ -57,21 +56,8 @@ class Live2DModel {
                 }
             }
         }
-
-//        model.partViews.let { partViews ->
-//            userPartMultiplyColors = List(partViews.size) {
-//                PartColorData(mutiplyColor)
-//            }
-//            userPartScreenColors = List(partViews.size) {
-//                PartColorData(screenColor)
-//            }
-//        }
-
     }
 
-    /**
-     * Inner class for handling texture colors in RGBA
-     */
     data class DrawableColorData(
         var color: CubismTextureColor,
         var isOverwritten: Boolean = false,
@@ -95,133 +81,12 @@ class Live2DModel {
         model.resetDrawableDynamicFlags()
     }
 
-    val canvasWidthPixel: Float
-        get() {
-            return model.canvasInfo.sizeInPixels[0]
-        }
-
-    val canvasHeightPixel: Float
-        get() {
-            return model.canvasInfo.sizeInPixels[1]
-        }
-
-    val pixelPerUnit: Float
-        get() {
-            return model.canvasInfo.pixelsPerUnit
-        }
-
-    val canvasWidth: Float
-        get() {
-            return model.canvasInfo.sizeInPixels[0] / model.canvasInfo.pixelsPerUnit
-        }
-
-    val canvasHeight: Float
-        get() {
-            return model.canvasInfo.sizeInPixels[1] / model.canvasInfo.pixelsPerUnit
-        }
-
-
-    private val modelColor = CubismTextureColor()
-
-    fun getModelColorWithOpacity(opacity: Float): CubismTextureColor {
-        return CubismTextureColor(
-            modelColor.r,
-            modelColor.g,
-            modelColor.b,
-            modelColor.a * opacity,
-        ).apply {
-
-//            if (this@CubismRenderer.isPremultipliedAlpha) {
-//                this.r *= this.a
-//                this.g *= this.a
-//                this.b *= this.a
-//            }
-        }
-    }
-
-    fun getPartIndex(partId: CubismId): Int {
-        val partView: CubismPartView? = model.findPartView(partId.value)
-        if (partView != null) {
-            return partView.index
-        }
-
-        // If the part does not exist in the model, it searches for it in the non-existent part ID list and returns its index.
-        if (notExistPartIds.containsKey(partId)) {
-            return notExistPartIds.get(partId)!!
-        }
-
-        // If the part does not exist in the non-existent part ID list, add newly the element.
-        val partIndex = model.partViews.size + notExistPartIds.size
-        notExistPartIds.put(partId, partIndex)
-        notExistPartIndices.add(partIndex)
-
-        val tmp = FloatArray(notExistPartIndices.size)
-        System.arraycopy(notExistPartOpacities, 0, tmp, 0, notExistPartIndices.size - 1)
-        tmp[notExistPartIndices.size - 1] = 0.0f
-        notExistPartOpacities = FloatArray(notExistPartIndices.size)
-        System.arraycopy(tmp, 0, notExistPartOpacities, 0, notExistPartIndices.size)
-
-        return partIndex
-    }
-
-    val partCount: Int
-        get() = model.partViews.size
-
-    fun setPartOpacity(partId: CubismId, opacity: Float) {
-        // Speeding up the process, this can get partIndex. However, it is not necessary when setting externally because it is not frequently called.
-        val index = getPartIndex(partId)
-
-        if (index < 0) {
-            // Skip processes because there is no part.
-            return
-        }
-
-        setPartOpacity(index, opacity)
-    }
-
-    fun setPartOpacity(partIndex: Int, opacity: Float) {
-        if (notExistPartIndices.contains(partIndex)) {
-            val index = notExistPartIndices.indexOf(partIndex)
-            notExistPartOpacities[index] = opacity
-            return
-        }
-
-        // Detect whether partIndex is not out of bounds index
-        assert(0 <= partIndex && partIndex < this.partCount)
-
-        model.partViews[partIndex].opacity = opacity
-    }
-
-    fun getPartOpacity(partId: CubismId): Float {
-        // Speeding up the process, this can get partIndex. However, it is not necessary when setting externally because it is not frequently called.
-        val index = getPartIndex(partId)
-
-        if (index < 0) {
-            // Skip processes because there is no part
-            return 0f
-        }
-
-        return getPartOpacity(index)
-    }
-
-    fun getPartOpacity(partIndex: Int): Float {
-        if (notExistPartIndices.contains(partIndex)) {
-            // If the part ID does not exist in the model, returns the opacity from non-existence parts list.
-            val index = notExistPartIndices.indexOf(partIndex)
-            return notExistPartOpacities[index]
-        }
-
-        // Detect whether partIndex is not out of bounds index
-        assert(0 <= partIndex && partIndex < this.partCount)
-
-        return model.partViews[partIndex].opacity
-    }
 
     /* ---------- *
      * PARAMETERS *
      * ---------- */
 
-    fun getParameterIndex(parameterId: CubismId): Int {
+    fun getParameterIndex(parameterId: Live2DId): Int {
         val parameterView: CubismParameterView? = model.findParameterView(parameterId.value)
         if (parameterView != null) {
             return parameterView.index
@@ -250,37 +115,19 @@ class Live2DModel {
     val parameterCount: Int
         get() = model.parameterViews.size
 
-    /**
-     * Get the maximum value of parameters.
-     *
-     * @param parameterIndex parameter index
-     * @return the maximum value of parameter
-     */
-    fun getParameterMaximumValue(parameterIndex: Int): Float {
-        return model.parameterViews[parameterIndex].maximumValue
-    }
-
-    /**
-     * Get the minimum value of parameters.
-     *
-     * @param parameterIndex parameter index
-     * @return the minimum value of parameter
-     */
     fun getParameterMinimumValue(parameterIndex: Int): Float {
         return model.parameterViews[parameterIndex].minimumValue
     }
 
-    /**
-     * Get the default value of parameters.
-     *
-     * @param parameterIndex parameter index
-     * @return the default value of parameter
-     */
+    fun getParameterMaximumValue(parameterIndex: Int): Float {
+        return model.parameterViews[parameterIndex].maximumValue
+    }
+
     fun getParameterDefaultValue(parameterIndex: Int): Float {
         return model.parameterViews[parameterIndex].defaultValue
     }
 
-    fun getParameterValue(parameterId: CubismId): Float {
+    fun getParameterValue(parameterId: Live2DId): Float {
         // Speeding up the process, this can get partIndex. However, it is not necessary when setting externally because it is not frequently called.
         val parameterIndex = getParameterIndex(parameterId)
         return getParameterValue(parameterIndex)
@@ -299,7 +146,7 @@ class Live2DModel {
         return model.parameterViews[parameterIndex].value
     }
 
-    fun setParameterValue(parameterId: CubismId, value: Float, weight: Float = 1.0f) {
+    fun setParameterValue(parameterId: Live2DId, value: Float, weight: Float = 1.0f) {
         val index = getParameterIndex(parameterId)
         setParameterValue(index, value, weight)
     }
@@ -338,13 +185,11 @@ class Live2DModel {
         parameter.value = weightedParameterValue
     }
 
-    @JvmOverloads
-    fun addParameterValue(parameterId: CubismId, value: Float, weight: Float = 1.0f) {
+    fun addParameterValue(parameterId: Live2DId, value: Float, weight: Float = 1.0f) {
         val index = getParameterIndex(parameterId)
         addParameterValue(index, value, weight)
     }
 
-    @JvmOverloads
     fun addParameterValue(parameterIndex: Int, value: Float, weight: Float = 1.0f) {
         setParameterValue(
             parameterIndex,
@@ -352,18 +197,98 @@ class Live2DModel {
         )
     }
 
-    @JvmOverloads
-    fun multiplyParameterValue(parameterId: CubismId, value: Float, weight: Float = 1.0f) {
+    fun multiplyParameterValue(parameterId: Live2DId, value: Float, weight: Float = 1.0f) {
         val index = getParameterIndex(parameterId)
         multiplyParameterValue(index, value, weight)
     }
 
-    @JvmOverloads
     fun multiplyParameterValue(parameterIndex: Int, value: Float, weight: Float = 1.0f) {
         setParameterValue(
             parameterIndex,
             getParameterValue(parameterIndex) * (1.0f + (value - 1.0f) * weight)
         )
+    }
+
+    /* ----- *
+     * PARTS *
+     * ----- */
+
+    fun getPartIndex(partId: Live2DId): Int {
+        val partView: CubismPartView? = model.findPartView(partId.value)
+        if (partView != null) {
+            return partView.index
+        }
+
+        // If the part does not exist in the model, it searches for it in the non-existent part ID list and returns its index.
+        if (notExistPartIds.containsKey(partId)) {
+            return notExistPartIds.get(partId)!!
+        }
+
+        // If the part does not exist in the non-existent part ID list, add newly the element.
+        val partIndex = model.partViews.size + notExistPartIds.size
+        notExistPartIds.put(partId, partIndex)
+        notExistPartIndices.add(partIndex)
+
+        val tmp = FloatArray(notExistPartIndices.size)
+        System.arraycopy(notExistPartOpacities, 0, tmp, 0, notExistPartIndices.size - 1)
+        tmp[notExistPartIndices.size - 1] = 0.0f
+        notExistPartOpacities = FloatArray(notExistPartIndices.size)
+        System.arraycopy(tmp, 0, notExistPartOpacities, 0, notExistPartIndices.size)
+
+        return partIndex
+    }
+
+    val partCount: Int
+        get() = model.partViews.size
+
+    fun setPartOpacity(partId: Live2DId, opacity: Float) {
+        // Speeding up the process, this can get partIndex. However, it is not necessary when setting externally because it is not frequently called.
+        val index = getPartIndex(partId)
+
+        if (index < 0) {
+            // Skip processes because there is no part.
+            return
+        }
+
+        setPartOpacity(index, opacity)
+    }
+
+    fun setPartOpacity(partIndex: Int, opacity: Float) {
+        if (notExistPartIndices.contains(partIndex)) {
+            val index = notExistPartIndices.indexOf(partIndex)
+            notExistPartOpacities[index] = opacity
+            return
+        }
+
+        // Detect whether partIndex is not out of bounds index
+        assert(0 <= partIndex && partIndex < this.partCount)
+
+        model.partViews[partIndex].opacity = opacity
+    }
+
+    fun getPartOpacity(partId: Live2DId): Float {
+        // Speeding up the process, this can get partIndex. However, it is not necessary when setting externally because it is not frequently called.
+        val index = getPartIndex(partId)
+
+        if (index < 0) {
+            // Skip processes because there is no part
+            return 0f
+        }
+
+        return getPartOpacity(index)
+    }
+
+    fun getPartOpacity(partIndex: Int): Float {
+        if (notExistPartIndices.contains(partIndex)) {
+            // If the part ID does not exist in the model, returns the opacity from non-existence parts list.
+            val index = notExistPartIndices.indexOf(partIndex)
+            return notExistPartOpacities[index]
+        }
+
+        // Detect whether partIndex is not out of bounds index
+        assert(0 <= partIndex && partIndex < this.partCount)
+
+        return model.partViews[partIndex].opacity
     }
 
     /* --------- *
@@ -373,7 +298,7 @@ class Live2DModel {
     val drawableCount: Int
         get() = model.drawableViews.size
 
-    fun getDrawableIndex(drawableId: CubismId): Int {
+    fun getDrawableIndex(drawableId: Live2DId): Int {
         val drawableIndex: CubismDrawableView? = model.findDrawableView(drawableId.value)
         if (drawableIndex != null) {
             return drawableIndex.index
@@ -382,9 +307,6 @@ class Live2DModel {
         return -1
     }
 
-    /*
-        Drawable - ConstantFlag
-     */
     private fun getDrawableConstantFlag(
         drawableIndex: Int,
         flag: ConstantFlag,
@@ -394,29 +316,20 @@ class Live2DModel {
     }
 
     fun getDrawableBlendMode(drawableIndex: Int): CubismBlendMode {
-        val constantFlag = model.drawableViews[drawableIndex].constantFlag
-        return if (isBitSet(constantFlag, ConstantFlag.BLEND_ADDITIVE.value))
+        return if (getDrawableConstantFlag(drawableIndex, ConstantFlag.BLEND_ADDITIVE))
             CubismBlendMode.ADDITIVE
         else
-            if (isBitSet(constantFlag, ConstantFlag.BLEND_MULTIPLICATIVE.value))
+            if (getDrawableConstantFlag(drawableIndex, ConstantFlag.BLEND_MULTIPLICATIVE))
                 CubismBlendMode.MULTIPLICATIVE
             else
                 CubismBlendMode.NORMAL
     }
-
     fun getDrawableIsDoubleSided(drawableIndex: Int): Boolean {
         return getDrawableConstantFlag(drawableIndex, ConstantFlag.IS_DOUBLE_SIDED)
     }
-
     fun getDrawableInvertedMask(drawableIndex: Int): Boolean {
-        val constantFlag = model.drawableViews[drawableIndex].constantFlag
-
-        return isBitSet(constantFlag, ConstantFlag.IS_INVERTED_MASK.value)
+        return getDrawableConstantFlag(drawableIndex, ConstantFlag.IS_INVERTED_MASK)
     }
-
-    /*
-1        Drawable - DynamicFlag
-     */
 
     private fun getDrawableDynamicFlag(drawableIndex: Int, flag: DynamicFlag): Boolean {
         val dynamicFlag: Byte = model.drawableViews[drawableIndex].dynamicFlag
@@ -427,8 +340,23 @@ class Live2DModel {
         return getDrawableDynamicFlag(drawableIndex, DynamicFlag.IS_VISIBLE)
     }
 
+    fun getDrawableDynamicFlagVisibilityDidChange(drawableIndex: Int): Boolean {
+        return getDrawableDynamicFlag(drawableIndex, DynamicFlag.VISIBILITY_DID_CHANGE)
+    }
+    fun getDrawableDynamicFlagOpacityDidChange(drawableIndex: Int): Boolean {
+        return getDrawableDynamicFlag(drawableIndex, DynamicFlag.OPACITY_DID_CHANGE)
+    }
+    fun getDrawableDynamicFlagDrawOrderDidChange(drawableIndex: Int): Boolean {
+        return getDrawableDynamicFlag(drawableIndex, DynamicFlag.DRAW_ORDER_DID_CHANGE)
+    }
+    fun getDrawableDynamicFlagRenderOrderDidChange(drawableIndex: Int): Boolean {
+        return getDrawableDynamicFlag(drawableIndex, DynamicFlag.RENDER_ORDER_DID_CHANGE)
+    }
     fun getDrawableDynamicFlagVertexPositionsDidChange(drawableIndex: Int): Boolean {
         return getDrawableDynamicFlag(drawableIndex, DynamicFlag.VERTEX_POSITIONS_DID_CHANGE)
+    }
+    fun getDrawableDynamicFlagBlendColorDidChange(drawableIndex: Int): Boolean {
+        return getDrawableDynamicFlag(drawableIndex, DynamicFlag.BLEND_COLOR_DID_CHANGE)
     }
 
 
@@ -480,6 +408,55 @@ class Live2DModel {
         return model.drawableViews[drawableIndex].parentPartIndex
     }
 
+
+    /* ------ *
+     * CANVAS *
+     * ------ */
+
+    val canvasWidthPixel: Float
+        get() {
+            return model.canvasInfo.sizeInPixels[0]
+        }
+
+    val canvasHeightPixel: Float
+        get() {
+            return model.canvasInfo.sizeInPixels[1]
+        }
+
+    val canvasWidth: Float
+        get() {
+            return model.canvasInfo.sizeInPixels[0] / model.canvasInfo.pixelsPerUnit
+        }
+
+    val canvasHeight: Float
+        get() {
+            return model.canvasInfo.sizeInPixels[1] / model.canvasInfo.pixelsPerUnit
+        }
+
+    val pixelPerUnit: Float
+        get() {
+            return model.canvasInfo.pixelsPerUnit
+        }
+
+    private val modelColor = CubismTextureColor()
+
+    fun getModelColorWithOpacity(opacity: Float): CubismTextureColor {
+        return CubismTextureColor(
+            modelColor.r,
+            modelColor.g,
+            modelColor.b,
+            modelColor.a * opacity,
+        ).apply {
+
+//            if (this@CubismRenderer.isPremultipliedAlpha) {
+//                this.r *= this.a
+//                this.g *= this.a
+//                this.b *= this.a
+//            }
+        }
+    }
+
+
     fun loadParameters() {
         var parameterCount = this.parameterCount
         val savedParameterCount = savedParameters.size
@@ -517,12 +494,12 @@ class Live2DModel {
     /**
      * List of IDs for non-existent parameters
      */
-    private val notExistParameterIds: MutableMap<CubismId?, Int> = HashMap<CubismId?, Int>()
-    private val notExistParameterIndices: MutableList<Int?> = ArrayList<Int?>()
+    private val notExistParameterIds: MutableMap<Live2DId?, Int> = HashMap()
+    private val notExistParameterIndices: MutableList<Int?> = ArrayList()
     private var notExistParameterValues = FloatArray(1)
-    private val notExistPartIds: MutableMap<CubismId?, Int?> = HashMap<CubismId?, Int?>()
+    private val notExistPartIds: MutableMap<Live2DId?, Int?> = HashMap()
 
-    private val notExistPartIndices: MutableList<Int?> = ArrayList<Int?>()
+    private val notExistPartIndices: MutableList<Int?> = ArrayList()
     private var notExistPartOpacities = FloatArray(1)
 
     /**
@@ -533,9 +510,9 @@ class Live2DModel {
     // 不知道干什么的
     var modelOpacity: Float = 1.0f
 
-    private lateinit var userDrawableMultiplyColors: List<DrawableColorData>
-    private lateinit var userDrawableScreenColors: List<DrawableColorData>
-    private lateinit var userDrawableCullings: List<DrawableCullingData>
+    private var userDrawableMultiplyColors: List<DrawableColorData>
+    private var userDrawableScreenColors: List<DrawableColorData>
+    private var userDrawableCullings: List<DrawableCullingData>
 
     /**
      * Partとその子DrawableのListとのMap

@@ -64,7 +64,6 @@ abstract class ALive2DRenderer {
     lateinit var model: Live2DModel
     lateinit var offscreenSurfaces: Array<ACubismOffscreenSurface>
 
-    val textures: MutableMap<Int, Int> = HashMap(32)
 
     private var useHighPrecisionMask = false
 

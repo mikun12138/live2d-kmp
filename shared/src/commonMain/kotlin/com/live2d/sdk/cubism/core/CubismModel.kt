@@ -19,7 +19,7 @@ class CubismModel {
     internal constructor(nativeHandle: Long) {
         this.nativeHandle = nativeHandle
 
-        Live2DCubismCoreImpl.initializeJavaModelWithNativeModel(this)
+        Live2DCoreImpl.initializeJavaModelWithNativeModel(this)
 
         this.parameterViews = Array(this.parameters.count) {
             CubismParameterView(it, this.parameters)
@@ -35,14 +35,14 @@ class CubismModel {
 
     fun update() {
         this.throwIfAlreadyReleased()
-        Live2DCubismCoreImpl.syncToNativeModel(this)
-        Live2DCubismCoreImpl.updateModel(this.nativeHandle)
-        Live2DCubismCoreImpl.syncFromNativeModel(this)
+        Live2DCoreImpl.syncToNativeModel(this)
+        Live2DCoreImpl.updateModel(this.nativeHandle)
+        Live2DCoreImpl.syncFromNativeModel(this)
     }
 
     fun resetDrawableDynamicFlags() {
         this.throwIfAlreadyReleased()
-        Live2DCubismCoreImpl.resetDrawableDynamicFlags(this.nativeHandle)
+        Live2DCoreImpl.resetDrawableDynamicFlags(this.nativeHandle)
     }
 
 

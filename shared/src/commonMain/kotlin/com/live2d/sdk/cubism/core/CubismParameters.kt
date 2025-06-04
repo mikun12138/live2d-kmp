@@ -29,14 +29,6 @@ class CubismParameters(count: Int) {
         }
     }
 
-    private fun initializeFromJni(rawParameterTypes: IntArray) {
-        val length = rawParameterTypes.size
-
-        for (i in 0..<length) {
-            this.types[i] = ParameterType.Companion.toType(rawParameterTypes[i])
-        }
-    }
-
     enum class ParameterType(val number: Int) {
         NORMAL(0),
         BLEND_SHAPE(1);

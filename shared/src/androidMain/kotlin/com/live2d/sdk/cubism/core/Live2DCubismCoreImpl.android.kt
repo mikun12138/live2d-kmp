@@ -1,6 +1,6 @@
 package com.live2d.sdk.cubism.core
 
-actual object Live2DCubismCoreImpl {
+actual object Live2DCoreImpl {
 
     actual fun getVersion(): Int = 0
 
