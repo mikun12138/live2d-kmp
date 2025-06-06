@@ -13,7 +13,7 @@ import com.live2d.sdk.cubism.framework.type.csmRectF
 class Live2DClippingContext(
     val manager: ACubismClippingManager,
     val clippingIdList: IntArray,
-    val clippingIdCount: Int
+    val clippingIdCount: Int,
 ) {
     val clippedDrawableIndexList: MutableList<Int> = ArrayList()
 
@@ -23,9 +23,10 @@ class Live2DClippingContext(
 
     var isUsing = false
 
-    var layoutChannelIndex = 0
 
+    var bufferIndex = 0
     val layoutBounds: csmRectF = csmRectF()
+    var layoutChannelIndex = 0
 
     val allClippedDrawRect: csmRectF = csmRectF()
 
@@ -33,6 +34,5 @@ class Live2DClippingContext(
 
     val matrixForDraw: CubismMatrix44 = CubismMatrix44.create()
 
-    var bufferIndex = 0
 
 }

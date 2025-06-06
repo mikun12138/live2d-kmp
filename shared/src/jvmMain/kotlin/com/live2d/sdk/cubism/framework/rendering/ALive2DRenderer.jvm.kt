@@ -298,7 +298,7 @@ class Live2DRendererImpl : ALive2DRenderer() {
 
     }
 
-    fun getBoundTextureId(textureId: Int): Int {
-        return model.textures.get(textureId)?.id ?: -1
-    }
+//    fun getBoundTextureId(textureId: Int): Int {
+//        return model.textures.get(textureId)?.id ?: -1
+//    }
 }

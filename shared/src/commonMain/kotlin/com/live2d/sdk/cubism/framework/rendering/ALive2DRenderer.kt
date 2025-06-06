@@ -57,8 +57,6 @@ abstract class ALive2DRenderer {
 
     var isCulling = false
 
-    var isPremultipliedAlpha = false
-
     private var anisotropy = 0f
 
     lateinit var model: Live2DModel
