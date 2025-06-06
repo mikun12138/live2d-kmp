@@ -60,7 +60,8 @@ abstract class ACubismClippingManager : ILive2DClippingManager {
                     drawableMaskCounts[i]
                 )
 
-                clippingContextListForMask.add(cc)
+//                clippingContextListForMask.add(cc)
+                drawIndex_2_clippingContext.add(i to cc)
             }
 
             cc!!.addClippedDrawable(i)
@@ -197,8 +198,8 @@ abstract class ACubismClippingManager : ILive2DClippingManager {
 
         if (usingClipCount <= 0 || usingClipCount > useClippingMaskMaxCount) {
             // この場合は一つのマスクターゲットを毎回クリアして使用する
-            for (index in clippingContextListForMask.indices) {
-                val cc: Live2DClippingContext = clippingContextListForMask.get(index)!!
+            for ((index, cc) in drawIndex_2_clippingContext) {
+//                val cc: Live2DClippingContext = clippingContextListForMask.get(index)!!
 
                 cc.layoutChannelIndex = 0 // どうせ毎回消すので固定で良い
                 cc.layoutBounds.x = 0.0f
@@ -250,7 +251,7 @@ abstract class ACubismClippingManager : ILive2DClippingManager {
                     // 何もしない。
                 } else if (layoutCount == 1) {
                     // 全てをそのまま使う。
-                    val cc: Live2DClippingContext = clippingContextListForMask.get(curClipIndex++)!!
+                    val cc: Live2DClippingContext = drawIndex_2_clippingContext.get(curClipIndex++)!!.second
                     cc.layoutChannelIndex = channelIndex
                     val bounds: csmRectF = cc.layoutBounds
 
@@ -265,7 +266,7 @@ abstract class ACubismClippingManager : ILive2DClippingManager {
                         val xpos = i % 2
 
                         val cc: Live2DClippingContext =
-                            clippingContextListForMask.get(curClipIndex++)!!
+                            drawIndex_2_clippingContext.get(curClipIndex++)!!.second
                         cc.layoutChannelIndex = channelIndex
                         val bounds: csmRectF = cc.layoutBounds
 
@@ -284,7 +285,7 @@ abstract class ACubismClippingManager : ILive2DClippingManager {
                         val ypos = i / 2
 
                         val cc: Live2DClippingContext =
-                            clippingContextListForMask.get(curClipIndex++)!!
+                            drawIndex_2_clippingContext.get(curClipIndex++)!!.second
                         cc.layoutChannelIndex = channelIndex
                         val bounds: csmRectF = cc.layoutBounds
 
@@ -302,7 +303,7 @@ abstract class ACubismClippingManager : ILive2DClippingManager {
                         val ypos = i / 3
 
                         val cc: Live2DClippingContext =
-                            clippingContextListForMask.get(curClipIndex++)!!
+                            drawIndex_2_clippingContext.get(curClipIndex++)!!.second
                         cc.layoutChannelIndex = channelIndex
                         val bounds: csmRectF = cc.layoutBounds
 
@@ -329,7 +330,7 @@ abstract class ACubismClippingManager : ILive2DClippingManager {
                     // もちろん描画結果はろくなことにならない。
                     for (i in 0..<layoutCount) {
                         val cc: Live2DClippingContext =
-                            clippingContextListForMask.get(curClipIndex++)!!
+                            drawIndex_2_clippingContext.get(curClipIndex++)!!.second
                         cc.layoutChannelIndex = 0
 
                         val bounds: csmRectF = cc.layoutBounds
@@ -347,8 +348,8 @@ abstract class ACubismClippingManager : ILive2DClippingManager {
 
     fun findSameClip(drawableMasks: IntArray, drawableMaskCounts: Int): Live2DClippingContext? {
         // 作成済みClippingContextと一致するか確認
-        for (i in clippingContextListForMask.indices) {
-            val clipContext: Live2DClippingContext = clippingContextListForMask.get(i)!!
+        for ((_, clipContext) in drawIndex_2_clippingContext) {
+//            val clipContext: Live2DClippingContext = clippingContextListForMask.get(i)!!
 
             val count: Int = clipContext.clippingIdCount
             if (count != drawableMaskCounts) {
@@ -471,9 +472,10 @@ abstract class ACubismClippingManager : ILive2DClippingManager {
         )
     )
 
+    val drawIndex_2_clippingContext: MutableList<Pair<Int, Live2DClippingContext>> = mutableListOf()
+//    val clippingContext_2_drawIndexList: MutableList<Pair<Live2DClippingContext, List<Int>>> = mutableListOf()
 
-    val clippingContextListForMask: MutableList<Live2DClippingContext> = mutableListOf()
-
+//    val clippingContextListForMask: MutableList<Live2DClippingContext> = mutableListOf()
 
     val clippingContextListForDraw: MutableList<Live2DClippingContext?> = mutableListOf()
 

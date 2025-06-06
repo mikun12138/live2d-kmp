@@ -111,7 +111,13 @@ class Live2DRendererImpl : ALive2DRenderer() {
             }
             // 用于draw的clippingContext
             val clipContext =
+                if (clippingManager != null) clippingManager.drawIndex_2_clippingContext.find { it.first == drawableIndex }?.second else null
+            val clipContext1 =
                 if (clippingManager != null) clippingManager.clippingContextListForDraw[drawableIndex] else null
+
+            if (clipContext !== clipContext1) {
+                println()
+            }
 
 /*
 
@@ -178,7 +184,7 @@ class Live2DRendererImpl : ALive2DRenderer() {
 
  */
 
-            clippingContextBufferForDraw = clipContext
+            clippingContextBufferForDraw = clipContext1
 
             isCulling = !model.getDrawableIsDoubleSided(drawableIndex)
 
