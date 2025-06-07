@@ -304,26 +304,32 @@ class DrawableContext(
         val index: Int,
     ) {
         val count = model.getDrawableVertexCount(index)
-        val positions: FloatBuffer =
-            model.getDrawableVertexPositions(index).let {
-                ByteBuffer.allocateDirect(it!!.size * Float.SIZE_BYTES)
-                    .order(ByteOrder.nativeOrder())
-                    .asFloatBuffer()
-            }
-        val texCoords: FloatBuffer =
-            model.getDrawableVertexUVs(index).let {
-                ByteBuffer.allocateDirect(it!!.size * Float.SIZE_BYTES)
-                    .order(ByteOrder.nativeOrder())
-                    .asFloatBuffer()
-            }
-        val indices: ShortBuffer =
-            model.getDrawableIndices(index).let {
-                ByteBuffer.allocateDirect(it!!.size * Short.SIZE_BYTES)
-                    .order(ByteOrder.nativeOrder())
-                    .asShortBuffer()
-            }
+        val positionCount = model.getDrawableVertexPositions(index)!!.size
+        lateinit var positions: FloatBuffer
+        val texCoordCount = model.getDrawableVertexUVs(index)!!.size
+        lateinit var texCoords: FloatBuffer
+        val indiceCount = model.getDrawableIndices(index)!!.size
+        lateinit var indices: ShortBuffer
 
         fun update() {
+            if (!::positions.isInitialized) {
+                positions =
+                    ByteBuffer.allocateDirect(texCoordCount * Float.SIZE_BYTES)
+                        .order(ByteOrder.nativeOrder())
+                        .asFloatBuffer()
+            }
+            if (!::texCoords.isInitialized) {
+                texCoords =
+                    ByteBuffer.allocateDirect(texCoordCount * Float.SIZE_BYTES)
+                        .order(ByteOrder.nativeOrder())
+                        .asFloatBuffer()
+            }
+            if (!::indices.isInitialized) {
+                indices =
+                    ByteBuffer.allocateDirect(indiceCount * Short.SIZE_BYTES)
+                        .order(ByteOrder.nativeOrder())
+                        .asShortBuffer()
+            }
             positions.clear()
                 .put(model.getDrawableVertexPositions(index))
                 .position(0)

@@ -10,7 +10,7 @@ object Live2DShader {
 
     private fun setupVertexArray(
         vertex: DrawableContext.Vertex,
-        vertexArray: Live2DRenderer.VertexArray
+        vertexArray: Live2DRenderer.VertexArray,
     ) {
         with(vertex) {
             glBindVertexArray(
@@ -21,31 +21,18 @@ object Live2DShader {
                     position
                  */
                 run {
-                    glBindBuffer(
-                        GL_ARRAY_BUFFER,
-                        vertexArray.vbo0
-                    )
-                    glBufferSubData(GL_ARRAY_BUFFER, 0, positions)
+
                 }
                 /*
                     uv
                  */
                 run {
-                    glBindBuffer(
-                        GL_ARRAY_BUFFER,
-                        vertexArray.vbo1
-                    )
-                    glBufferSubData(GL_ARRAY_BUFFER, 0,texCoords)
                 }
                 /*
                     indices
                  */
                 run {
-                    glBindBuffer(
-                        GL_ELEMENT_ARRAY_BUFFER,
-                        vertexArray.ebo
-                    )
-                    glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices)
+
                 }
             }
         }
