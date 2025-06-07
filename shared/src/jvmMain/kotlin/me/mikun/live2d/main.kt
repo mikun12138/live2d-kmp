@@ -58,7 +58,7 @@ fun live2dMain() {
         )
 
         val model = AAppModel()
-        model.init("Hiyori", "Hiyori" + ".model3.json")
+        model.init("F:/Hiyori", "Hiyori" + ".model3.json")
 
         val renderer = ALive2DRenderer.create(model.model, 1)
 

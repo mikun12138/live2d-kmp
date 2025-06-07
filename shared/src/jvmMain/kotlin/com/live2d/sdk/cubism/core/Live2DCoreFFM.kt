@@ -6,6 +6,10 @@ import java.lang.foreign.MemorySegment
 import java.lang.foreign.ValueLayout
 import kotlin.io.path.Path
 
+/*
+    v3
+    TODO:: update to v4
+ */
 
 /* ----- *
  * TYPES *
@@ -133,8 +137,9 @@ sealed class Live2DCubismCoreFFM : LibraryFFM {
 
     companion object {
         init {
+            // TODO:: 区分下架构
             System.load(
-                Path("F:/libs/Live2DCubismCore.dll").toString()
+                Path(System.getProperty("user.dir"), "app/resources/x86_64/Live2DCubismCore.dll").toString()
             )
         }
     }
