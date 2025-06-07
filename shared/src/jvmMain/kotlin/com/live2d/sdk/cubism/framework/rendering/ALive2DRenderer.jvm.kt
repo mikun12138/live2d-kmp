@@ -6,6 +6,7 @@ import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.type.csmRectF
 import org.lwjgl.opengl.GL46.*
+import org.lwjgl.system.MemoryUtil
 import kotlin.math.max
 import kotlin.math.min
 
@@ -19,6 +20,7 @@ actual fun ALive2DRenderer.Companion.create(
     )
 }
 
+
 class Live2DRenderer(
     model: Live2DModel,
     offScreenBufferCount: Int,
@@ -26,6 +28,59 @@ class Live2DRenderer(
     model,
     offScreenBufferCount,
 ) {
+
+    class VertexArray {
+        var vao: Int = -1
+        var vbo0: Int = -1
+        var vbo1: Int = -1
+        var ebo: Int = -1
+    }
+
+    val DrawableContext.Vertex.vertexArray: VertexArray
+        get() = drawableVertexArrayArray[index]
+    val drawableVertexArrayArray: Array<VertexArray> = Array(model.drawableCount) {
+        val drawableContext = drawableContextArray[it]
+        VertexArray().apply {
+            vao = glGenVertexArrays()
+
+            glBindVertexArray(vao)
+            drawableContext.vertex.positions.let { positions ->
+
+                glBindBuffer(GL_ARRAY_BUFFER, vbo0)
+                glBufferData(
+                    GL_ARRAY_BUFFER,
+                    positions.capacity() * Float.SIZE_BYTES.toLong(),
+                    GL_DYNAMIC_DRAW
+                )
+                glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0)
+                glEnableVertexAttribArray(0)
+            }
+
+            drawableContext.vertex.texCoords.let { texCoords ->
+                glBindBuffer(GL_ARRAY_BUFFER, vbo1)
+                glBufferData(
+                    GL_ARRAY_BUFFER,
+                    texCoords.capacity() * Float.SIZE_BYTES.toLong(),
+                    GL_DYNAMIC_DRAW
+                )
+                glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0)
+                glEnableVertexAttribArray(1)
+            }
+
+            drawableContext.vertex.indices.let { indices ->
+                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
+                glBufferData(
+                    GL_ELEMENT_ARRAY_BUFFER,
+                    indices.capacity() * Short.SIZE_BYTES.toLong(),
+                    GL_DYNAMIC_DRAW
+                )
+            }
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0)
+            glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0)
+            glBindVertexArray(0)
+        }
+    }
 
     /*
         lazy cache
@@ -92,6 +147,8 @@ class Live2DRenderer(
         )
     }
 
+    lateinit var currentClipContextForSetupMask: ClipContext
+
     override fun draw() {
         val sortedDrawableContextArray = drawableContextArray.sortedWith(
             compareBy { it.renderOrder }
@@ -101,8 +158,6 @@ class Live2DRenderer(
             drawMesh(drawableContext)
         }
     }
-
-    lateinit var currentClipContextForSetupMask: ClipContext
 
     fun drawMesh(
         drawableContext: DrawableContext,
