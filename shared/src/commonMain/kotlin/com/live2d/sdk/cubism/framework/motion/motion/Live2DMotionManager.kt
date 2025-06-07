@@ -1,22 +1,22 @@
 package com.live2d.sdk.cubism.framework.motion.motion
 
 import com.live2d.sdk.cubism.framework.model.Live2DModel
-import com.live2d.sdk.cubism.framework.motion.ACubismMotion
-import com.live2d.sdk.cubism.framework.motion.AMotionManager
-import com.live2d.sdk.cubism.framework.motion.AMotionQueueEntry
+import com.live2d.sdk.cubism.framework.motion.ALive2DMotion
+import com.live2d.sdk.cubism.framework.motion.ALive2DMotionManager
+import com.live2d.sdk.cubism.framework.motion.ALive2DMotionQueueEntry
 
 /**
  * Class for managing motion playback, used to play ACubismMotion subclasses such as CubismMotion motion.
  * * If another motion do startMotion() during playback, it will smoothly change to the new motion and the old motion will be suspended.
  * * Use multiple CubismMotionManager instances to play multiple motions at the same time, such as when motions for facial expressions and body motions are made separately.
  */
-class CubismMotionManager (
-    override val motionEntries: MutableList<MotionQueueEntry> = mutableListOf()
-) : AMotionManager() {
+class Live2DMotionManager (
+    override val motionEntries: MutableList<Live2DMotionQueueEntry> = mutableListOf()
+) : ALive2DMotionManager() {
 
-    override fun doStartMotion(motion: ACubismMotion) {
-        check(motion is CubismMotion)
-        motionEntries.add(MotionQueueEntry(this, motion))
+    override fun doStartMotion(motion: ALive2DMotion) {
+        check(motion is Live2DMotion)
+        motionEntries.add(Live2DMotionQueueEntry(this, motion))
     }
 
     override fun doUpdateMotion(model: Live2DModel, deltaTimeSeconds: Float) {
@@ -47,7 +47,7 @@ class CubismMotionManager (
                 // 後処理
                 // 終了時刻を過ぎたら終了フラグを立てる（CubismMotionQueueManager）
                 if (entry.endTimePoint > 0.0f && entry.endTimePoint < totalSeconds) {
-                    entry.state = AMotionQueueEntry.State.End // 終了
+                    entry.state = ALive2DMotionQueueEntry.State.End // 終了
                 }
                 return@forEachIndexed
             }

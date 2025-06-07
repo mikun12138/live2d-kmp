@@ -1,6 +1,5 @@
 package com.live2d.sdk.cubism.util
 
-// TODO:: change to abs class ?
 interface StateContext<C : StateContext<C, S>, S : IState<C, S>> {
     var state: S
         @Deprecated(message = "use Stateful.switchState(nextState)")

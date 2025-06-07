@@ -7,7 +7,8 @@ expect fun ALive2DTexture.Companion.create(
 ): ALive2DTexture
 
 abstract class ALive2DTexture(
-    val id: Int
+    val id: Int,
+    val isPremultipliedAlpha: Boolean,
 ) {
     companion object
 }

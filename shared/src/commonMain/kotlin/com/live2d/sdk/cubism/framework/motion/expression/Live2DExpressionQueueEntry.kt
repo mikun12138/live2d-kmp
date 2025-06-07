@@ -1,15 +1,15 @@
 package com.live2d.sdk.cubism.framework.motion.expression
 
 import com.live2d.sdk.cubism.framework.model.Live2DModel
-import com.live2d.sdk.cubism.framework.motion.AMotionQueueEntry
-import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotion.Companion.DEFAULT_ADDITIVE_VALUE
-import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotion.Companion.DEFAULT_MULTIPLY_VALUE
-import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotion.ExpressionBlendType
+import com.live2d.sdk.cubism.framework.motion.ALive2DMotionQueueEntry
+import com.live2d.sdk.cubism.framework.motion.expression.Live2DExpressionMotion.Companion.DEFAULT_ADDITIVE_VALUE
+import com.live2d.sdk.cubism.framework.motion.expression.Live2DExpressionMotion.Companion.DEFAULT_MULTIPLY_VALUE
+import com.live2d.sdk.cubism.framework.motion.expression.Live2DExpressionMotion.ExpressionBlendType
 
-class ExpressionMotionQueueEntry(
-    override val manager: CubismExpressionMotionManager,
-    override val motion: CubismExpressionMotion
-): AMotionQueueEntry(
+class Live2DExpressionQueueEntry(
+    override val manager: Live2DExpressionManager,
+    override val motion: Live2DExpressionMotion
+): ALive2DMotionQueueEntry(
     manager,
     motion
 ) {

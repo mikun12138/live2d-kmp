@@ -21,8 +21,6 @@ class Live2DModel {
     val model: CubismModel
 
     val textures: MutableMap<Int, ALive2DTexture> = HashMap(32)
-    var isPremultipliedAlpha = false
-
 
     constructor(model: CubismModel) {
         this.model = model

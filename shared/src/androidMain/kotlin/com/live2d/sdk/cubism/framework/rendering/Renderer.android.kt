@@ -2,9 +2,9 @@ package com.live2d.sdk.cubism.framework.rendering
 
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 
-actual fun Renderer.Companion.create(
+actual fun ALive2DRenderer.Companion.create(
     model: Live2DModel,
     offScreenBufferCount: Int,
-): Renderer {
+): ALive2DRenderer {
     TODO("Not yet implemented")
 }

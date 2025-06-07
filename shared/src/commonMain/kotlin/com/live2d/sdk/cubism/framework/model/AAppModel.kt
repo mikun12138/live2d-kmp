@@ -11,9 +11,9 @@ import com.live2d.sdk.cubism.framework.math.CubismTargetPoint
 import com.live2d.sdk.cubism.framework.model.AAppModel.MotionGroup.IDLE
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
 import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
-import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotionManager
-import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion
-import com.live2d.sdk.cubism.framework.motion.motion.CubismMotionManager
+import com.live2d.sdk.cubism.framework.motion.expression.Live2DExpressionManager
+import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotion
+import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotionManager
 import com.live2d.sdk.cubism.framework.rendering.ALive2DTexture
 import com.live2d.sdk.cubism.framework.rendering.create
 import kotlinx.serialization.json.Json
@@ -23,9 +23,10 @@ import kotlin.io.path.readBytes
 
 open class AAppModel : Live2DUserModel() {
 
-    var isUsingHighPrecisionMask: Boolean = false
-    protected var motionManager: CubismMotionManager = CubismMotionManager()
-    protected var expressionManager: CubismExpressionMotionManager = CubismExpressionMotionManager()
+    // TODO::
+//    var isUsingHighPrecisionMask: Boolean = false
+    protected var motionManager: Live2DMotionManager = Live2DMotionManager()
+    protected var expressionManager: Live2DExpressionManager = Live2DExpressionManager()
 
     // effects
     protected var breath: Live2DBreath? = null
@@ -42,7 +43,6 @@ open class AAppModel : Live2DUserModel() {
 
         setupTextures(dir, modelJson)
 
-// TODO::        initClip / mask()
     }
 
     private fun setupModel(dir: String, modelJson: ModelJson) {
@@ -252,7 +252,7 @@ open class AAppModel : Live2DUserModel() {
     }
 
     fun startMotion(
-        motion: CubismMotion,
+        motion: Live2DMotion,
         priority: MotionPriority,
         onBeganMotionHandler: IBeganMotionCallback = IBeganMotionCallback { },
         onFinishedMotionHandler: IFinishedMotionCallback = IFinishedMotionCallback { },

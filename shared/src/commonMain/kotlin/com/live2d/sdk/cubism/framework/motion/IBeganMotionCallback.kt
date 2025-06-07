@@ -9,4 +9,4 @@ package com.live2d.sdk.cubism.framework.motion
 /**
  * モーション再生開始コールバック
  */
-fun interface IBeganMotionCallback: (ACubismMotion) -> Unit
+fun interface IBeganMotionCallback: (ALive2DMotion) -> Unit

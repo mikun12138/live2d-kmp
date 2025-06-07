@@ -6,15 +6,14 @@
  */
 package com.live2d.sdk.cubism.framework.model
 
-import com.live2d.sdk.cubism.framework.pose.CubismPose
+import com.live2d.sdk.cubism.framework.pose.Live2DPose
 import com.live2d.sdk.cubism.framework.math.CubismModelMatrix
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
 import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
-import com.live2d.sdk.cubism.framework.motion.expression.CubismExpressionMotion
-import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion
-import com.live2d.sdk.cubism.framework.physics.CubismPhysics
-import com.live2d.sdk.cubism.framework.rendering.ALive2DTexture
-import com.live2d.sdk.cubism.framework.userdata.CubismModelUserData
+import com.live2d.sdk.cubism.framework.motion.expression.Live2DExpressionMotion
+import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotion
+import com.live2d.sdk.cubism.framework.physics.Live2DPhysics
+import com.live2d.sdk.cubism.framework.userdata.Live2DModelUserData
 import com.live2d.sdk.cubism.framework.utils.Live2DLogger
 
 abstract class Live2DUserModel protected constructor() {
@@ -94,7 +93,7 @@ abstract class Live2DUserModel protected constructor() {
 
     protected fun loadPose(buffer: ByteArray) {
         try {
-            pose = CubismPose(buffer)
+            pose = Live2DPose(buffer)
         } catch (e: Exception) {
             Live2DLogger.error("Failed to loadPose(). ${e.message}")
         }
@@ -104,9 +103,9 @@ abstract class Live2DUserModel protected constructor() {
         buffer: ByteArray,
         onFinishedMotionHandler: IFinishedMotionCallback = IFinishedMotionCallback { },
         onBeganMotionHandler: IBeganMotionCallback = IBeganMotionCallback { },
-    ): CubismMotion? {
+    ): Live2DMotion? {
         try {
-            return CubismMotion(buffer, onFinishedMotionHandler, onBeganMotionHandler)
+            return Live2DMotion(buffer, onFinishedMotionHandler, onBeganMotionHandler)
         } catch (e: Exception) {
             e.printStackTrace()
             Live2DLogger.error("Failed to loadMotion(). ${e.message}")
@@ -114,9 +113,9 @@ abstract class Live2DUserModel protected constructor() {
         }
     }
 
-    protected fun loadExpression(buffer: ByteArray): CubismExpressionMotion? {
+    protected fun loadExpression(buffer: ByteArray): Live2DExpressionMotion? {
         try {
-            return CubismExpressionMotion(buffer)
+            return Live2DExpressionMotion(buffer)
         } catch (e: Exception) {
             Live2DLogger.error("Failed to loadExpressionMotion(). ${e.message}")
             return null
@@ -125,7 +124,7 @@ abstract class Live2DUserModel protected constructor() {
 
     protected fun loadPhysics(buffer: ByteArray) {
         try {
-            physics = CubismPhysics(buffer)
+            physics = Live2DPhysics(buffer)
         } catch (e: Exception) {
             Live2DLogger.error("Failed to loadPhysics(). ${e.message}")
         }
@@ -133,7 +132,7 @@ abstract class Live2DUserModel protected constructor() {
 
     protected fun loadUserData(buffer: ByteArray) {
         try {
-            modelUserData = CubismModelUserData(buffer)
+            modelUserData = Live2DModelUserData(buffer)
         } catch (e: Exception) {
             Live2DLogger.error("Failed to loadUserData(). ${e.message}")
         }
@@ -159,10 +158,10 @@ abstract class Live2DUserModel protected constructor() {
     /*
         System
      */
-    protected var pose: CubismPose? = null
-    protected val name_2_motionList: MutableMap<String, MutableList<CubismMotion>> = mutableMapOf()
-    protected val name_2_expression: MutableMap<String, CubismExpressionMotion?> = mutableMapOf()
-    protected var physics: CubismPhysics? = null
-    protected var modelUserData: CubismModelUserData? = null
+    protected var pose: Live2DPose? = null
+    protected val name_2_motionList: MutableMap<String, MutableList<Live2DMotion>> = mutableMapOf()
+    protected val name_2_expression: MutableMap<String, Live2DExpressionMotion?> = mutableMapOf()
+    protected var physics: Live2DPhysics? = null
+    protected var modelUserData: Live2DModelUserData? = null
 
 }

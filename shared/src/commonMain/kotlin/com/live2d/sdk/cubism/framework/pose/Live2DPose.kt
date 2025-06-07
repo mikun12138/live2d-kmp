@@ -9,7 +9,7 @@ import kotlinx.serialization.json.Json
 /**
  * This class deals with parts opacity value and settings.
  */
-class CubismPose {
+class Live2DPose {
     constructor(pose3json: ByteArray) {
         Json.Default.decodeFromString<PoseJson>(String(pose3json)).let { json ->
 

@@ -1,23 +1,14 @@
 package me.mikun.live2d
 
 import com.live2d.sdk.cubism.framework.Live2DFramework
-import com.live2d.sdk.cubism.framework.Live2DFrameworkConfig
-import com.live2d.sdk.cubism.framework.data.ModelJson
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.AAppModel
 import com.live2d.sdk.cubism.framework.rendering.Live2DRendererProfile
-import com.live2d.sdk.cubism.framework.rendering.Live2DTexture
-import com.live2d.sdk.cubism.framework.rendering.Renderer
+import com.live2d.sdk.cubism.framework.rendering.ALive2DRenderer
 import com.live2d.sdk.cubism.framework.rendering.create
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL46.*
-import org.lwjgl.stb.STBImage
-import org.lwjgl.system.MemoryStack
-import org.lwjgl.system.MemoryUtil
-import java.nio.ByteBuffer
-import kotlin.io.path.Path
-import kotlin.io.path.readBytes
 
 fun live2dMain() {
     if (!glfwInit()) {
@@ -69,7 +60,7 @@ fun live2dMain() {
         val model = AAppModel()
         model.init("Hiyori", "Hiyori" + ".model3.json")
 
-        val renderer = Renderer.create(model.model, 1)
+        val renderer = ALive2DRenderer.create(model.model, 1)
 
         while (!glfwWindowShouldClose(handle)) {
             glClearColor(
@@ -103,70 +94,6 @@ fun live2dMain() {
 
             glfwSwapBuffers(handle)
             glfwPollEvents()
-        }
-    }
-}
-
-fun loadTexture(bytes: ByteBuffer): Int {
-    return MemoryStack.stackPush().use { stack ->
-        val width = stack.mallocInt(1)
-        val height = stack.mallocInt(1)
-        val channels = stack.mallocInt(1)
-        STBImage.stbi_load_from_memory(
-            bytes,
-            width,
-            height,
-            channels,
-            4
-        ).let { buffer ->
-            glGenTextures().apply {
-                glBindTexture(
-                    GL_TEXTURE_2D,
-                    this
-                )
-                glTexParameteri(
-                    GL_TEXTURE_2D,
-                    GL_TEXTURE_MIN_FILTER,
-                    GL_NEAREST
-                )
-                glTexParameteri(
-                    GL_TEXTURE_2D,
-                    GL_TEXTURE_MAG_FILTER,
-                    GL_NEAREST
-                )
-                glTexParameteri(
-                    GL_TEXTURE_2D,
-                    GL_TEXTURE_WRAP_S,
-                    GL_CLAMP_TO_BORDER
-                )
-                glTexParameteri(
-                    GL_TEXTURE_2D,
-                    GL_TEXTURE_WRAP_T,
-                    GL_CLAMP_TO_BORDER
-                )
-                glTexParameterfv(
-                    GL_TEXTURE_2D,
-                    GL_TEXTURE_BORDER_COLOR,
-                    floatArrayOf(
-                        0.0f,
-                        0.0f,
-                        0.0f,
-                        0.0f
-                    )
-                )
-                glTexImage2D(
-                    GL_TEXTURE_2D,
-                    0,
-                    GL_RGBA,
-                    width.get(),
-                    height.get(),
-                    0,
-                    GL_RGBA,
-                    GL_UNSIGNED_BYTE,
-                    buffer
-                )
-                glGenerateMipmap(GL_TEXTURE_2D)
-            }
         }
     }
 }
