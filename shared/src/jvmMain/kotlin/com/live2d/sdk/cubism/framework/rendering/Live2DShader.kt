@@ -9,7 +9,7 @@ import org.lwjgl.opengl.GL46.*
 object Live2DShader {
 
     fun drawSimple(
-        renderer: ALive2DRenderer,
+        renderer: Live2DRenderer,
         drawableContext: DrawableContext,
     ) {
         with(
@@ -19,38 +19,45 @@ object Live2DShader {
             }
         ) {
             glUseProgram(shaderProgram.id)
-            /*
-                position
-             */
-            run {
-                attribute(Attribute.POSITION).let {
-                    glEnableVertexAttribArray(it)
-                    glVertexAttribPointer(
-                        it,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        drawableContext.vertex.positions
-                    )
+
+            with(drawableContext.vertex) {
+                glBindVertexArray(
+                    renderer.drawableVertexArrayArray[index].vao
+                )
+                run {
+                    /*
+                        position
+                     */
+                    run {
+                        glBindBuffer(
+                            GL_ARRAY_BUFFER,
+                            renderer.drawableVertexArrayArray[index].vbo0
+                        )
+                        glBufferSubData(GL_ARRAY_BUFFER, 0, positions)
+                    }
+                    /*
+                        uv
+                     */
+                    run {
+                        glBindBuffer(
+                            GL_ARRAY_BUFFER,
+                            renderer.drawableVertexArrayArray[index].vbo1
+                        )
+                        glBufferSubData(GL_ARRAY_BUFFER, 0,texCoords)
+                    }
+                    /*
+                        indices
+                     */
+                    run {
+                        glBindBuffer(
+                            GL_ELEMENT_ARRAY_BUFFER,
+                            renderer.drawableVertexArrayArray[index].ebo
+                        )
+                        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices)
+                    }
                 }
             }
-            /*
-                uv
-             */
-            run {
-                attribute(Attribute.TEXCOORD).let {
-                    glEnableVertexAttribArray(it)
-                    glVertexAttribPointer(
-                        it,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        drawableContext.vertex.texCoords
-                    )
-                }
-            }
+
             /*
                 modelMatrix (其实是mvp
              */
@@ -151,7 +158,7 @@ object Live2DShader {
     }
 
     fun drawMasked(
-        renderer: ALive2DRenderer,
+        renderer: Live2DRenderer,
         drawableContext: DrawableContext,
     ) {
         with(
@@ -169,43 +176,48 @@ object Live2DShader {
             }
         ) {
             glUseProgram(shaderProgram.id)
-            /*
-                position
-             */
-            run {
-                attribute(Attribute.POSITION).let {
-                    glEnableVertexAttribArray(it)
-                    glVertexAttribPointer(
-                        it,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        drawableContext.vertex.positions
-                    )
+            with(drawableContext.vertex) {
+                glBindVertexArray(
+                    renderer.drawableVertexArrayArray[index].vao
+                )
+                run {
+                    /*
+                        position
+                     */
+                    run {
+                        glBindBuffer(
+                            GL_ARRAY_BUFFER,
+                            renderer.drawableVertexArrayArray[index].vbo0
+                        )
+                        glBufferSubData(GL_ARRAY_BUFFER, 0, positions)
+                    }
+                    /*
+                        uv
+                     */
+                    run {
+                        glBindBuffer(
+                            GL_ARRAY_BUFFER,
+                            renderer.drawableVertexArrayArray[index].vbo1
+                        )
+                        glBufferSubData(GL_ARRAY_BUFFER, 0,texCoords)
+                    }
+                    /*
+                        indices
+                     */
+                    run {
+                        glBindBuffer(
+                            GL_ELEMENT_ARRAY_BUFFER,
+                            renderer.drawableVertexArrayArray[index].ebo
+                        )
+                        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices)
+                    }
                 }
             }
-            /*
-                uv
-             */
-            run {
-                attribute(Attribute.TEXCOORD).let {
-                    glEnableVertexAttribArray(it)
-                    glVertexAttribPointer(
-                        it,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        drawableContext.vertex.texCoords
-                    )
-                }
-            }
-            glActiveTexture(GL_TEXTURE1)
 
             /*
                 texture1
              */
+            glActiveTexture(GL_TEXTURE1)
             glBindTexture(
                 GL_TEXTURE_2D,
                 renderer.offscreenSurfaces[drawableContext.clipContext!!.bufferIndex].colorBuffer[0]
@@ -338,42 +350,47 @@ object Live2DShader {
     }
 
     fun setupMask(
-        renderer: ALive2DRenderer,
+        renderer: Live2DRenderer,
         drawableContext: DrawableContext,
-        clipContext: ClipContext
+        clipContext: ClipContext,
     ) {
         with(CubismShaderSet.SETUP_MASK) {
             glUseProgram(shaderProgram.id)
-            /*
-                position
-             */
-            run {
-                attribute(Attribute.POSITION).let {
-                    glEnableVertexAttribArray(it)
-                    glVertexAttribPointer(
-                        it,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        drawableContext.vertex.positions
-                    )
-                }
-            }
-            /*
-                uv
-             */
-            run {
-                attribute(Attribute.TEXCOORD).let {
-                    glEnableVertexAttribArray(it)
-                    glVertexAttribPointer(
-                        it,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        drawableContext.vertex.texCoords
-                    )
+            with(drawableContext.vertex) {
+                glBindVertexArray(
+                    renderer.drawableVertexArrayArray[index].vao
+                )
+                run {
+                    /*
+                        position
+                     */
+                    run {
+                        glBindBuffer(
+                            GL_ARRAY_BUFFER,
+                            renderer.drawableVertexArrayArray[index].vbo0
+                        )
+                        glBufferSubData(GL_ARRAY_BUFFER, 0, positions)
+                    }
+                    /*
+                        uv
+                     */
+                    run {
+                        glBindBuffer(
+                            GL_ARRAY_BUFFER,
+                            renderer.drawableVertexArrayArray[index].vbo1
+                        )
+                        glBufferSubData(GL_ARRAY_BUFFER, 0,texCoords)
+                    }
+                    /*
+                        indices
+                     */
+                    run {
+                        glBindBuffer(
+                            GL_ELEMENT_ARRAY_BUFFER,
+                            renderer.drawableVertexArrayArray[index].ebo
+                        )
+                        glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices)
+                    }
                 }
             }
             /*

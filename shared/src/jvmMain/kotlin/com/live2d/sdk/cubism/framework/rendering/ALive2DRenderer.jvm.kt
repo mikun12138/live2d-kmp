@@ -36,8 +36,6 @@ class Live2DRenderer(
         var ebo: Int = -1
     }
 
-    val DrawableContext.Vertex.vertexArray: VertexArray
-        get() = drawableVertexArrayArray[index]
     val drawableVertexArrayArray: Array<VertexArray> = Array(model.drawableCount) {
         val drawableContext = drawableContextArray[it]
         VertexArray().apply {
@@ -45,7 +43,7 @@ class Live2DRenderer(
 
             glBindVertexArray(vao)
             drawableContext.vertex.positions.let { positions ->
-
+                vbo0 = glGenBuffers()
                 glBindBuffer(GL_ARRAY_BUFFER, vbo0)
                 glBufferData(
                     GL_ARRAY_BUFFER,
@@ -57,6 +55,7 @@ class Live2DRenderer(
             }
 
             drawableContext.vertex.texCoords.let { texCoords ->
+                vbo1 = glGenBuffers()
                 glBindBuffer(GL_ARRAY_BUFFER, vbo1)
                 glBufferData(
                     GL_ARRAY_BUFFER,
@@ -68,6 +67,7 @@ class Live2DRenderer(
             }
 
             drawableContext.vertex.indices.let { indices ->
+                ebo = glGenBuffers()
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
                 glBufferData(
                     GL_ELEMENT_ARRAY_BUFFER,
@@ -208,7 +208,9 @@ class Live2DRenderer(
 
         glDrawElements(
             GL_TRIANGLES,
-            drawableContext.vertex.indices
+            drawableContext.vertex.indices.capacity(),
+            GL_UNSIGNED_SHORT,
+            0
         )
     }
 }
