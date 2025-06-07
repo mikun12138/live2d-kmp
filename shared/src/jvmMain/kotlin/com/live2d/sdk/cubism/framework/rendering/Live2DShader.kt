@@ -6,7 +6,6 @@ import com.live2d.sdk.cubism.framework.type.right
 import com.live2d.sdk.cubism.framework.type.csmRectF
 import org.lwjgl.opengl.GL46.*
 
-
 object Live2DShader {
 
     fun setupShaderProgramForDraw(

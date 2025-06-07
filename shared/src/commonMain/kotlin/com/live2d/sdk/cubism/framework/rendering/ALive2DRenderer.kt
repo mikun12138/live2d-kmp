@@ -62,7 +62,6 @@ abstract class ALive2DRenderer {
     lateinit var model: Live2DModel
     lateinit var offscreenSurfaces: Array<ACubismOffscreenSurface>
 
-
     private var useHighPrecisionMask = false
 
     private val tmpModelColor = CubismTextureColor()

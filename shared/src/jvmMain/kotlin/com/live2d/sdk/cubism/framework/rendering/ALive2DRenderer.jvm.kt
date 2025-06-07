@@ -9,18 +9,8 @@ actual fun ALive2DRenderer.Companion.create(): ALive2DRenderer {
 }
 
 class Live2DRendererImpl : ALive2DRenderer() {
-
-
-    private var areTexturesChanged = true
-
-    private lateinit var sortedDrawableIndexArray: IntArray
-
     private lateinit var clippingManager: ACubismClippingManager
 
-
-    /**
-     * Drawable情報のキャッシュ変数
-     */
     var drawableInfoCachesHolder: CubismDrawableInfoCachesHolder? = null
 
     override fun doInit(
@@ -53,30 +43,17 @@ class Live2DRendererImpl : ALive2DRenderer() {
             }
         }
 
-        sortedDrawableIndexArray = IntArray(size = model.drawableCount)
     }
 
     override fun saveProfile() {
         Live2DRendererProfile.save()
     }
 
-    /**
-     * 绘制model
-     */
     override fun doDrawModel() {
-        preDraw()
+//        preDraw()
         if (clippingManager != null) {
 
             run {
-//                repeat(clippingManager.getRenderTextureCount()) {
-//                    val offscreenSurface: ACubismOffscreenSurface = offscreenSurfaces[it]
-//
-//                    if (!offscreenSurface.isSameSize(clippingManager.getClippingMaskBufferSize())) {
-//                        offscreenSurface.createOffscreenSurface(
-//                            clippingManager.getClippingMaskBufferSize()
-//                        )
-//                    }
-//                }
 
 //            if (isUsingHighPrecisionMask) {
                 if (false) {
@@ -94,7 +71,9 @@ class Live2DRendererImpl : ALive2DRenderer() {
         }
 
 
-        preDraw()
+//        preDraw()
+
+        val sortedDrawableIndexArray = IntArray(size = model.drawableCount)
 
         // sort index by drawing order
         repeat(model.drawableCount) {
@@ -114,10 +93,6 @@ class Live2DRendererImpl : ALive2DRenderer() {
                 if (clippingManager != null) clippingManager.drawIndex_2_clippingContext.find { it.first == drawableIndex }?.second else null
             val clipContext1 =
                 if (clippingManager != null) clippingManager.clippingContextListForDraw[drawableIndex] else null
-
-            if (clipContext !== clipContext1) {
-                println()
-            }
 
 /*
 
@@ -204,6 +179,7 @@ class Live2DRendererImpl : ALive2DRenderer() {
         model: Live2DModel,
         clipDrawIndex: Int,
     ) {
+        preDraw()
         // If the texture referenced by the model is not bound, skip drawing.
         if (model.textures[model.getDrawableTextureIndex(clipDrawIndex)] == null) {
             return;
