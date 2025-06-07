@@ -7,6 +7,7 @@ import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.AAppModel
 import com.live2d.sdk.cubism.framework.rendering.ALive2DRenderer
 import com.live2d.sdk.cubism.framework.rendering.Live2DTexture
+import com.live2d.sdk.cubism.framework.rendering.Renderer
 import com.live2d.sdk.cubism.framework.rendering.create
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
@@ -65,10 +66,9 @@ fun live2dMain() {
             GL_ONE_MINUS_SRC_ALPHA
         )
 
-        val renderer = ALive2DRenderer.create()
         val model = AAppModel()
         model.init("Hiyori", "Hiyori" + ".model3.json")
-        renderer.init(model.model, 1)
+        val renderer = Renderer.create(model.model, 1)
 
         while (!glfwWindowShouldClose(handle)) {
             glClearColor(
@@ -96,8 +96,7 @@ fun live2dMain() {
             )
 
             model.update(Timer.deltaF)
-            renderer.mvpMatrix44.setMatrix(matrix)
-            renderer.drawModel()
+            renderer.frame(matrix)
 
             glfwSwapBuffers(handle)
             glfwPollEvents()

@@ -1,5 +1,6 @@
 package com.live2d.sdk.cubism.framework.rendering
 
+import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.math.CubismVector2
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.type.csmRectF
@@ -38,8 +39,8 @@ abstract class Renderer {
             val drawableMask = model.getDrawableMask(index)!!
             if (drawableMask.isNotEmpty()) {
                 clipContext_2_drawableIndexList.keys.find {
-                    it.maskIdArray.size == drawableMask.size
-                            && it.maskIdArray.all { drawableMask.contains(it) }
+                    it.maskIndexArray.size == drawableMask.size
+                            && it.maskIndexArray.all { drawableMask.contains(it) }
                 } ?: run {
                     ClipContext(drawableMask).also {
                         clipContext_2_drawableIndexList.put(it, mutableListOf())
@@ -53,22 +54,23 @@ abstract class Renderer {
         }
     }
 
-    fun frame() {
+    fun frame(mvp: CubismMatrix44) {
         genMasks()
-        draw()
+        draw(mvp)
     }
 
     abstract fun genMasks()
 
-    fun draw() {
+    private fun draw(mvp: CubismMatrix44) {
         val sortedDrawableContextArray = drawableContextArray.sortedWith(
             compareBy { it.renderOrder }
         )
 
+        selectShader
+
         sortedDrawableContextArray.forEach { drawableContext ->
             drawableContext.update()
-
-
+            drawMesh(drawableContext)
         }
     }
 
@@ -89,19 +91,24 @@ class DrawableContext(
 
     val textureIndex = model.getDrawableTextureIndex(this@DrawableContext.index)
 
+
     val isCulling = !model.getDrawableIsDoubleSided(this@DrawableContext.index)
 
-    var isVisible: Boolean = false
+    var isVisible = false
+    var vertexPositionDidChange = false
+
     lateinit var clipContext: ClipContext
 
     fun update() {
         isVisible = model.getDrawableDynamicFlagIsVisible(this@DrawableContext.index)
+        vertexPositionDidChange = model.getDrawableDynamicFlagVertexPositionsDidChange(index)
     }
 
     class Vertex(
         val model: Live2DModel,
         val index: Int,
     ) {
+        val count = model.getDrawableVertexCount(index)
         val positions: FloatBuffer =
             model.getDrawableVertexPositions(index).let {
                 ByteBuffer.allocateDirect(it!!.size * Float.SIZE_BYTES)
@@ -137,13 +144,18 @@ class DrawableContext(
 }
 
 class ClipContext(
-    val maskIdArray: IntArray,
+    val maskIndexArray: IntArray,
 ) {
 
-    val bufferIndex = 0
+    var bufferIndex = 0
     val layoutBounds: csmRectF = csmRectF()
     var layoutChannelIndex = 0
 
-//    val allClippedDrawRect: csmRectF = csmRectF()
+    val allClippedDrawRect: csmRectF = csmRectF()
+
+    val matrixForMask: CubismMatrix44 = CubismMatrix44.create()
+
+    val matrixForDraw: CubismMatrix44 = CubismMatrix44.create()
+
 
 }
