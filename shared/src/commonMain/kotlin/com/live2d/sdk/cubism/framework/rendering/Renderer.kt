@@ -26,7 +26,6 @@ abstract class Renderer : StateContext<Renderer, State> {
 
     var mvp: CubismMatrix44 = CubismMatrix44.create()
 
-
     val drawableContextArray: Array<DrawableContext>
     val offscreenSurfaces: Array<ACubismOffscreenSurface>
 
@@ -131,6 +130,9 @@ class DrawableContext(
     lateinit var multiplyColor: CubismTextureColor
     lateinit var screenColor: CubismTextureColor
 
+    /*
+        不为空说明该物件有蒙版
+     */
     var clipContext: ClipContext? = null
 
     fun update() {
@@ -155,7 +157,6 @@ class DrawableContext(
                 it[3],
             )
         }
-
 
     }
 
@@ -204,8 +205,6 @@ class DrawableContext(
 class ClipContext(
     val maskIndexArray: IntArray,
 ) {
-
-
     var bufferIndex = 0
     val layoutBounds: csmRectF = csmRectF()
     var layoutChannelIndex = 0

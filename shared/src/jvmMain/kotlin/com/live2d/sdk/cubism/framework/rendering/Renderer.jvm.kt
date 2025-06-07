@@ -284,24 +284,6 @@ class RendererImpl(
         val usingClipCount = clipContext_2_drawableIndexList.keys.count {
             calcClippedDrawTotalBounds(it)
         }.takeIf { it > 0 } ?: return
-//        var usingClipCount = 0
-//        for (clipContext in clipContext_2_drawableIndexList.keys) {
-//
-//            // Calculate the rectangle that encloses the entire group of drawing objects that use this clip.
-//            calcClippedDrawTotalBounds(
-//                model,
-//                clipContext
-//            )
-//
-//            if (clipContext.isUsing) {
-//                // Count as in use.
-//                usingClipCount++
-//            }
-//        }
-//
-//        if (usingClipCount <= 0) {
-//            return
-//        }
 
         glViewport(
             0,
@@ -313,10 +295,6 @@ class RendererImpl(
         currentMaskBuffer = offscreenSurfaces[0]
         // マスク描画処理
         currentMaskBuffer.beginDraw()
-
-        // バッファをクリアする
-//        renderer.preDraw()
-
 
         // Determine the layout of each mask.
         setupLayoutBounds(usingClipCount)
@@ -352,8 +330,6 @@ class RendererImpl(
                 // マスク用RenderTextureをactiveにセット。
                 currentMaskBuffer.beginDraw()
 
-                // バッファをクリアする。
-//                renderer.preDraw()
             }
 
 
@@ -386,7 +362,7 @@ class RendererImpl(
             for (maskIndex in clipContext.maskIndexArray) {
                 val drawableContext = drawableContextArray[maskIndex]
 
-//                if (!drawableContext.vertexPositionDidChange) continue
+                if (!drawableContext.vertexPositionDidChange) continue
 
                 // マスクがクリアされていないなら処理する。
                 if (!clearedMaskBufferFlags[clipContext.bufferIndex]) {
