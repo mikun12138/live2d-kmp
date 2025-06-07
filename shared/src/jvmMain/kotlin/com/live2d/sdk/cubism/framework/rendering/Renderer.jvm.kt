@@ -229,56 +229,9 @@ class RendererImpl(
         }
     }
 
-    fun createMatrixForMask(
-        isRightHanded: Boolean,
-        layoutBoundsOnTex01: csmRectF,
-        scaleX: Float,
-        scaleY: Float,
-    ) {
-        CubismMatrix44.create().apply {
-            loadIdentity()
-            // Layout0..1を、-1..1に変換
-            translateRelative(-1.0f, -1.0f)
-            scaleRelative(2.0f, 2.0f)
-
-            // view to Layout0..1
-            translateRelative(
-                layoutBoundsOnTex01.x,
-                layoutBoundsOnTex01.y
-            )
-            scaleRelative(scaleX, scaleY)
-            translateRelative(
-                -tmpBoundsOnModel.x,
-                -tmpBoundsOnModel.y
-            )
-        }.also {
-            tmpMatrixForMask.setMatrix(it)
-        }
-
-        CubismMatrix44.create().apply {
-            loadIdentity()
-
-            translateRelative(
-                layoutBoundsOnTex01.x,
-                layoutBoundsOnTex01.y * (if (isRightHanded) -1.0f else 1.0f)
-            )
-            scaleRelative(scaleX, scaleY * (if (isRightHanded) -1.0f else 1.0f))
-            translateRelative(
-                -tmpBoundsOnModel.x,
-                -tmpBoundsOnModel.y
-            )
-        }.also {
-            tmpMatrixForDraw.setMatrix(it)
-        }
-    }
 
     var clearedMaskBufferFlags = BooleanArray(0)
     private lateinit var currentMaskBuffer: ACubismOffscreenSurface
-    var tmpBoundsOnModel: csmRectF = csmRectF()
-
-    var tmpMatrixForMask: CubismMatrix44 = CubismMatrix44.create()
-
-    var tmpMatrixForDraw: CubismMatrix44 = CubismMatrix44.create()
 
     override fun setupMask() {
         val usingClipCount = clipContext_2_drawableIndexList.keys.count {
@@ -311,15 +264,6 @@ class RendererImpl(
         // Actually generate the masks.
         // Determine how to layout and draw all the masks, and store them in ClipContext and ClippedDrawContext.
         for (clipContext in clipContext_2_drawableIndexList.keys) {
-
-            // The enclosing rectangle in logical coordinates of all drawing objects that use this mask.
-            val allClippedDrawRect: csmRectF = clipContext.allClippedDrawRect
-            // Fit the mask in here.
-            val layoutBoundsOnTex01: csmRectF = clipContext.layoutBounds
-
-            val margin = 0.05f
-
-            // clipContextに設定したオフスクリーンサーフェスをインデックスで取得
             val clipContextOffscreenSurface = offscreenSurfaces[clipContext.bufferIndex]
 
             // 現在のオフスクリーンサーフェスがclipContextのものと異なる場合
@@ -332,31 +276,8 @@ class RendererImpl(
 
             }
 
-
-            // Use a rectangle on the model coordinates with margins as appropriate.
-            tmpBoundsOnModel = allClippedDrawRect.copy()
-
-            tmpBoundsOnModel.expand(
-                allClippedDrawRect.width * margin,
-                allClippedDrawRect.height * margin
-            )
-
-            // ######## It is best to keep the size to a minimum, rather than using the entire allocated space.
-            // Find the formula for the shader. If rotation is not taken into account, the formula is as follows.
-            // movePeriod' = movePeriod * scaleX + offX     [[ movePeriod' = (movePeriod - tmpBoundsOnModel.movePeriod)*scale + layoutBoundsOnTex01.movePeriod ]]
-            val scaleX = layoutBoundsOnTex01.width / tmpBoundsOnModel.width
-            val scaleY = layoutBoundsOnTex01.height / tmpBoundsOnModel.height
-
-            // Calculate the matrix to be used for mask generation.
-            createMatrixForMask(
-                false,
-                layoutBoundsOnTex01,
-                scaleX,
-                scaleY
-            )
-
-            clipContext.matrixForMask.setMatrix(tmpMatrixForMask)
-            clipContext.matrixForDraw.setMatrix(tmpMatrixForDraw)
+            clipContext.createMatrixForMask()
+            clipContext.createMatrixForDraw()
 
             // 実際の描画を行う。
             for (maskIndex in clipContext.maskIndexArray) {
@@ -401,7 +322,6 @@ class RendererImpl(
     }
 
     lateinit var currentClipContextForSetupMask: ClipContext
-
 
 
     override fun drawMesh(
@@ -467,4 +387,50 @@ class RendererImpl(
 
     }
 
+}
+
+fun ClipContext.createMatrixForMask() {
+    CubismMatrix44.create().apply {
+        loadIdentity()
+        // Layout0..1を、-1..1に変換
+        translateRelative(-1.0f, -1.0f)
+        scaleRelative(2.0f, 2.0f)
+
+        // view to Layout0..1
+        translateRelative(
+            layoutBounds.x,
+            layoutBounds.y
+        )
+        scaleRelative(
+            layoutBounds.width / allClippedDrawRect.width,
+            layoutBounds.height / allClippedDrawRect.height
+        )
+        translateRelative(
+            -allClippedDrawRect.x,
+            -allClippedDrawRect.y
+        )
+    }.also {
+        matrixForMask.setMatrix(it)
+    }
+}
+
+fun ClipContext.createMatrixForDraw() {
+    CubismMatrix44.create().apply {
+        loadIdentity()
+
+        translateRelative(
+            layoutBounds.x,
+            layoutBounds.y
+        )
+        scaleRelative(
+            layoutBounds.width / allClippedDrawRect.width,
+            layoutBounds.height / allClippedDrawRect.height
+        )
+        translateRelative(
+            -allClippedDrawRect.x,
+            -allClippedDrawRect.y
+        )
+    }.also {
+        matrixForDraw.setMatrix(it)
+    }
 }

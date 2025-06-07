@@ -6,8 +6,8 @@ expect fun ACubismOffscreenSurface.Companion.create(): ACubismOffscreenSurface
 
 abstract class ACubismOffscreenSurface {
 
-     abstract fun beginDraw()
-     abstract fun endDraw()
+    abstract fun beginDraw()
+    abstract fun endDraw()
 
     abstract fun createOffscreenSurface(displayBufferSize: CubismVector2)
 

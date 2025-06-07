@@ -6,8 +6,6 @@
  */
 package com.live2d.sdk.cubism.framework.rendering
 
-import com.live2d.sdk.cubism.framework.model.Live2DModel
-
 
 interface ILive2DClippingManager {
     companion object {
@@ -27,11 +25,4 @@ interface ILive2DClippingManager {
          */
         var CLIPPING_MASK_MAX_COUNT_ON_MULTI_RENDER_TEXTURE: Int = 32
     }
-//    fun setupMatrixForHighPrecision(model: Model, isRightHanded: Boolean)
-
-    fun setupClippingContext(
-        model: Live2DModel,
-        renderer: ALive2DRenderer
-    )
-
 }

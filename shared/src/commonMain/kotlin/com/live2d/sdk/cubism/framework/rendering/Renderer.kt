@@ -20,15 +20,12 @@ expect fun Renderer.Companion.create(
 
 abstract class Renderer : StateContext<Renderer, State> {
     override var state: State = State.SETUP_MASK
+    val drawableContextArray: Array<DrawableContext>
 
     val textures: MutableMap<Int, ALive2DTexture>
     val isPremultipliedAlpha: Boolean
-
     var mvp: CubismMatrix44 = CubismMatrix44.create()
-
-    val drawableContextArray: Array<DrawableContext>
     val offscreenSurfaces: Array<ACubismOffscreenSurface>
-
     val clipContext_2_drawableIndexList: MutableMap<ClipContext, MutableList<Int>> = mutableMapOf()
 
     constructor(
@@ -243,5 +240,18 @@ class ClipContext(
             )
         )
     }
-
 }
+
+enum class CubismBlendMode {
+    NORMAL,  // 通常
+    ADDITIVE,  // 加算
+    MULTIPLICATIVE,  // 乗算
+    MASK // マスク
+}
+
+data class CubismTextureColor(
+    val r: Float = 1.0f,
+    val g: Float = 1.0f,
+    val b: Float = 1.0f,
+    val a: Float = 1.0f,
+)

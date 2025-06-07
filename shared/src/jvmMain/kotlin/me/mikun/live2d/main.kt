@@ -5,7 +5,6 @@ import com.live2d.sdk.cubism.framework.Live2DFrameworkConfig
 import com.live2d.sdk.cubism.framework.data.ModelJson
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.AAppModel
-import com.live2d.sdk.cubism.framework.rendering.ALive2DRenderer
 import com.live2d.sdk.cubism.framework.rendering.Live2DRendererProfile
 import com.live2d.sdk.cubism.framework.rendering.Live2DTexture
 import com.live2d.sdk.cubism.framework.rendering.Renderer
