@@ -10,15 +10,15 @@ package com.live2d.sdk.cubism.framework.motion.expression
 import com.live2d.sdk.cubism.framework.id.Live2DId
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
 import com.live2d.sdk.cubism.framework.model.Live2DModel
-import com.live2d.sdk.cubism.framework.motion.ACubismMotion
-import com.live2d.sdk.cubism.framework.motion.AMotionManager
-import com.live2d.sdk.cubism.framework.motion.AMotionQueueEntry
+import com.live2d.sdk.cubism.framework.motion.ALive2DMotion
+import com.live2d.sdk.cubism.framework.motion.ALive2DMotionManager
+import com.live2d.sdk.cubism.framework.motion.ALive2DMotionQueueEntry
 import com.live2d.sdk.cubism.util.switchStateTo
 import kotlin.math.min
 
-class CubismExpressionMotionManager(
-    override val motionEntries: MutableList<ExpressionMotionQueueEntry> = mutableListOf()
-) : AMotionManager() {
+class Live2DExpressionManager(
+    override val motionEntries: MutableList<Live2DExpressionQueueEntry> = mutableListOf()
+) : ALive2DMotionManager() {
     data class ExpressionParameterValue(
         val parameterId: Live2DId,
         var additiveValue: Float = 0f,
@@ -27,9 +27,9 @@ class CubismExpressionMotionManager(
     )
 
 
-    override fun doStartMotion(motion: ACubismMotion) {
-        check(motion is CubismExpressionMotion)
-        motionEntries.add(ExpressionMotionQueueEntry(this, motion))
+    override fun doStartMotion(motion: ALive2DMotion) {
+        check(motion is Live2DExpressionMotion)
+        motionEntries.add(Live2DExpressionQueueEntry(this, motion))
     }
 
     override fun doUpdateMotion(model: Live2DModel, deltaTimeSeconds: Float) {
@@ -46,14 +46,14 @@ class CubismExpressionMotionManager(
             if (entry.state.inInit()) {
 
                 // 再生中のExpressionが参照しているパラメータをすべてリストアップ
-                for (parameter in (entry.motion as CubismExpressionMotion).parameters) {
+                for (parameter in (entry.motion as Live2DExpressionMotion).parameters) {
                     expressionParameterValues.find { it.parameterId == parameter.parameterId }
                         ?: run {
                             // パラメータがリストに存在しないなら新規追加
                             val item = ExpressionParameterValue(
                                 parameterId = parameter.parameterId,
-                                additiveValue = CubismExpressionMotion.DEFAULT_ADDITIVE_VALUE,
-                                multiplyValue = CubismExpressionMotion.DEFAULT_MULTIPLY_VALUE,
+                                additiveValue = Live2DExpressionMotion.DEFAULT_ADDITIVE_VALUE,
+                                multiplyValue = Live2DExpressionMotion.DEFAULT_MULTIPLY_VALUE,
                                 overwriteValue = model.getParameterValue(parameter.parameterId),
                             )
                             expressionParameterValues.add(item)
@@ -89,7 +89,7 @@ class CubismExpressionMotionManager(
         if (!motionEntries.isEmpty()) {
             if (motionEntries.last().calFadeWeight(totalSeconds) >= 1.0f) {
                 motionEntries.subList(0, motionEntries.lastIndex).forEach { entry ->
-                    entry switchStateTo AMotionQueueEntry.State.End
+                    entry switchStateTo ALive2DMotionQueueEntry.State.End
                 }
             }
         }
@@ -106,8 +106,8 @@ class CubismExpressionMotionManager(
                 (value.overwriteValue + value.additiveValue) * value.multiplyValue, // 先加算后乘算
                 min(expressionWeight, 1.0f)
             )
-            value.additiveValue = CubismExpressionMotion.DEFAULT_ADDITIVE_VALUE
-            value.multiplyValue = CubismExpressionMotion.DEFAULT_MULTIPLY_VALUE
+            value.additiveValue = Live2DExpressionMotion.DEFAULT_ADDITIVE_VALUE
+            value.multiplyValue = Live2DExpressionMotion.DEFAULT_MULTIPLY_VALUE
         }
     }
 

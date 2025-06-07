@@ -9,12 +9,12 @@ import org.lwjgl.opengl.GL46.*
 object Live2DShader {
 
     fun drawSimple(
-        renderer: Renderer,
+        renderer: ALive2DRenderer,
         drawableContext: DrawableContext,
     ) {
         with(
             when {
-                renderer.isPremultipliedAlpha -> CubismShaderSet.MASKED_INVERTED_PREMULTIPLIED_ALPHA
+                drawableContext.texture.isPremultipliedAlpha -> CubismShaderSet.MASKED_INVERTED_PREMULTIPLIED_ALPHA
                 else -> CubismShaderSet.SIMPLE
             }
         ) {
@@ -68,7 +68,7 @@ object Live2DShader {
                 glActiveTexture(GL_TEXTURE0)
                 glBindTexture(
                     GL_TEXTURE_2D,
-                    renderer.textures[drawableContext.textureIndex]!!.id
+                    drawableContext.texture.id
                 )
                 glUniform1i(
                     uniform(Uniform.TEXTURE0),
@@ -151,13 +151,13 @@ object Live2DShader {
     }
 
     fun drawMasked(
-        renderer: Renderer,
+        renderer: ALive2DRenderer,
         drawableContext: DrawableContext,
     ) {
         with(
             run {
                 val isInvertedMask = drawableContext.isInvertedMask
-                val isPremultipliedAlpha = renderer.isPremultipliedAlpha
+                val isPremultipliedAlpha = drawableContext.texture.isPremultipliedAlpha
 
                 return@run when {
                     !isInvertedMask && !isPremultipliedAlpha -> CubismShaderSet.MASKED
@@ -256,7 +256,7 @@ object Live2DShader {
                 glActiveTexture(GL_TEXTURE0)
                 glBindTexture(
                     GL_TEXTURE_2D,
-                    renderer.textures[drawableContext.textureIndex]!!.id
+                    drawableContext.texture.id
                 )
                 glUniform1i(
                     uniform(Uniform.TEXTURE0),
@@ -550,7 +550,7 @@ object Live2DShader {
 //    }
 
     fun setupMask(
-        renderer: Renderer,
+        renderer: ALive2DRenderer,
         drawableContext: DrawableContext,
         clipContext: ClipContext
     ) {
@@ -606,7 +606,7 @@ object Live2DShader {
                 glActiveTexture(GL_TEXTURE0)
                 glBindTexture(
                     GL_TEXTURE_2D,
-                    renderer.textures[drawableContext.textureIndex]!!.id
+                    drawableContext.texture.id
                 )
                 glUniform1i(
                     uniform(Uniform.TEXTURE0),

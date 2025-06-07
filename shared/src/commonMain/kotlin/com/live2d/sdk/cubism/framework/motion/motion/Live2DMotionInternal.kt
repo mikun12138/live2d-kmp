@@ -1,18 +1,11 @@
-/*
- * Copyright(c) Live2D Inc. All rights reserved.
- *
- * Use of this source code is governed by the Live2D Open Software license
- * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
- */
-package com.live2d.sdk.cubism.framework.motion
+package com.live2d.sdk.cubism.framework.motion.motion
 
 import com.live2d.sdk.cubism.framework.id.Live2DId
-import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion
 
 /**
  * Internal data used by the CubismMotion class.
  */
-class CubismMotionInternal {
+class Live2DMotionInternal {
     /**
      * Type of motion curve.
      */
@@ -73,7 +66,7 @@ class CubismMotionInternal {
         /**
          * used evaluation function
          */
-        var evaluator: CsmMotionSegmentEvaluationFunction = CubismMotion.LinearEvaluator
+        var evaluator: CsmMotionSegmentEvaluationFunction = Live2DMotion.LinearEvaluator
 
         /**
          * index to the first segment

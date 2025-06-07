@@ -15,11 +15,11 @@ import com.live2d.sdk.cubism.util.switchStateTo
  *
  * If another motion is done "StartMotion()" during playback, the motion changes smoothly to the new motion and the old motion is interrupted. When multiple motions are played back simultaneously (For example, separate motions for facial expressions, body motions, etc.), multiple CubismMotionQueueManager instances are used.
  */
-abstract class AMotionManager(
-    open val motionEntries: MutableList<out AMotionQueueEntry> = mutableListOf(),
+abstract class ALive2DMotionManager(
+    open val motionEntries: MutableList<out ALive2DMotionQueueEntry> = mutableListOf(),
 ) {
 
-    fun startMotionPriority(motion: ACubismMotion, priority: Int) {
+    fun startMotionPriority(motion: ALive2DMotion, priority: Int) {
         if (priority == reservePriority) {
             reservePriority = 0 // 予約を解除
         }
@@ -34,11 +34,11 @@ abstract class AMotionManager(
      * @param motion 開始するモーション
      * @return 開始したモーションの識別番号を返す。個別のモーションが終了したか否かを判定するisFinished()の引数として使用する。開始できない場合は「-1」を返す。
      */
-    fun startMotion(motion: ACubismMotion) {
+    fun startMotion(motion: ALive2DMotion) {
         doStartMotion(motion)
     }
 
-    protected abstract fun doStartMotion(motion: ACubismMotion)
+    protected abstract fun doStartMotion(motion: ALive2DMotion)
 
     fun updateMotion(model: Live2DModel, deltaTimeSeconds: Float): Boolean {
         totalSeconds += deltaTimeSeconds
@@ -46,7 +46,7 @@ abstract class AMotionManager(
 
         motionEntries.lastOrNull()?.takeIf { it.state.inInit() }?.let {
             motionEntries.dropLast(1).forEach { entry ->
-                entry switchStateTo AMotionQueueEntry.State.FadeOut
+                entry switchStateTo ALive2DMotionQueueEntry.State.FadeOut
             }
         }
 

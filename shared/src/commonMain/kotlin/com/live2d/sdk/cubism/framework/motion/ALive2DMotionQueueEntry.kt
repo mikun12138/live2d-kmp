@@ -15,13 +15,12 @@ import com.live2d.sdk.cubism.util.switchStateTo
  * Manager class for each motion being played by CubismMotionQueueManager.
  */
 
-// TODO:: level 0, make children for expression and motion
-abstract class AMotionQueueEntry(
-    open val manager: AMotionManager,
-    open val motion: ACubismMotion,
+abstract class ALive2DMotionQueueEntry(
+    open val manager: ALive2DMotionManager,
+    open val motion: ALive2DMotion,
 
     override var state: State = State.Init,
-) : StateContext<AMotionQueueEntry, AMotionQueueEntry.State> {
+) : StateContext<ALive2DMotionQueueEntry, ALive2DMotionQueueEntry.State> {
 
     fun init(
         totalSeconds: Float,
@@ -76,9 +75,9 @@ abstract class AMotionQueueEntry(
 
 
     enum class State(
-        override val onEnter: (AMotionQueueEntry, State) -> Unit = { _, _ -> },
-        override val onExit: (AMotionQueueEntry, State) -> Unit = { _, _ -> },
-    ) : IState<AMotionQueueEntry, State> {
+        override val onEnter: (ALive2DMotionQueueEntry, State) -> Unit = { _, _ -> },
+        override val onExit: (ALive2DMotionQueueEntry, State) -> Unit = { _, _ -> },
+    ) : IState<ALive2DMotionQueueEntry, State> {
         Init,
         FadeIn,
         Playing,

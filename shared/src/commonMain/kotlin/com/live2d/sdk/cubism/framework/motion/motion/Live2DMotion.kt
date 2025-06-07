@@ -4,10 +4,10 @@ import com.live2d.sdk.cubism.framework.data.MotionJson
 import com.live2d.sdk.cubism.framework.id.Live2DId
 import com.live2d.sdk.cubism.framework.id.Live2DIdManager
 import com.live2d.sdk.cubism.framework.math.CubismMath
-import com.live2d.sdk.cubism.framework.motion.ACubismMotion
-import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal
-import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal.CubismMotionPoint
-import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal.CubismMotionSegmentType
+import com.live2d.sdk.cubism.framework.motion.ALive2DMotion
+import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotionInternal
+import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotionInternal.CubismMotionPoint
+import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotionInternal.CubismMotionSegmentType
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
 import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
 import kotlinx.serialization.json.Json
@@ -18,7 +18,7 @@ import kotlin.math.max
 /**
  * Motion class.
  */
-class CubismMotion : ACubismMotion {
+class Live2DMotion : ALive2DMotion {
 
     constructor(
         buffer: ByteArray,
@@ -34,20 +34,20 @@ class CubismMotion : ACubismMotion {
     private fun parse(motionJson: ByteArray) {
         val json = Json.decodeFromString<MotionJson>(String(motionJson))
 
-        motionData = CubismMotionInternal.CubismMotionData(
+        motionData = Live2DMotionInternal.CubismMotionData(
             duration = json.meta.duration,
             loop = json.meta.loop,
             curveCount = json.meta.curveCount,
             userDataCount = json.meta.userDataCount,
             fps = json.meta.fps,
-            curves = ArrayList<CubismMotionInternal.CubismMotionCurve>(json.meta.curveCount).apply {
+            curves = ArrayList<Live2DMotionInternal.CubismMotionCurve>(json.meta.curveCount).apply {
                 repeat(json.meta.curveCount) {
-                    add(CubismMotionInternal.CubismMotionCurve())
+                    add(Live2DMotionInternal.CubismMotionCurve())
                 }
             },
-            segments = ArrayList<CubismMotionInternal.CubismMotionSegment>(json.meta.totalSegmentCount).apply {
+            segments = ArrayList<Live2DMotionInternal.CubismMotionSegment>(json.meta.totalSegmentCount).apply {
                 repeat(json.meta.totalSegmentCount) {
-                    add(CubismMotionInternal.CubismMotionSegment())
+                    add(Live2DMotionInternal.CubismMotionSegment())
                 }
             },
             points = ArrayList<CubismMotionPoint>(json.meta.totalPointCount).apply {
@@ -55,9 +55,9 @@ class CubismMotion : ACubismMotion {
                     add(CubismMotionPoint())
                 }
             },
-            events = ArrayList<CubismMotionInternal.CubismMotionEvent>(json.meta.userDataCount).apply {
+            events = ArrayList<Live2DMotionInternal.CubismMotionEvent>(json.meta.userDataCount).apply {
                 repeat(json.meta.userDataCount) {
-                    add(CubismMotionInternal.CubismMotionEvent())
+                    add(Live2DMotionInternal.CubismMotionEvent())
                 }
             }
         )
@@ -82,7 +82,7 @@ class CubismMotion : ACubismMotion {
         for (curveIndex in 0..<motionData.curveCount) {
             motionData.curves[curveIndex].let { curve ->
                 // Register target type.
-                curve.type = CubismMotionInternal.CubismMotionCurveTarget.Companion.byName(
+                curve.type = Live2DMotionInternal.CubismMotionCurveTarget.Companion.byName(
                     json.curves[curveIndex].target
                 )
 
@@ -281,7 +281,7 @@ class CubismMotion : ACubismMotion {
     }
 
     fun evaluateCurve(
-        curve: CubismMotionInternal.CubismMotionCurve,
+        curve: Live2DMotionInternal.CubismMotionCurve,
         time: Float,
         isCorrection: Boolean,
         endTime: Float,
@@ -363,7 +363,7 @@ class CubismMotion : ACubismMotion {
     }
 
     private fun correctEndPoint(
-        motionData: CubismMotionInternal.CubismMotionData,
+        motionData: Live2DMotionInternal.CubismMotionData,
         segmentIndex: Int,
         beginIndex: Int,
         endIndex: Int,
@@ -402,7 +402,7 @@ class CubismMotion : ACubismMotion {
         }
     }
 
-    object LinearEvaluator : CubismMotionInternal.CsmMotionSegmentEvaluationFunction {
+    object LinearEvaluator : Live2DMotionInternal.CsmMotionSegmentEvaluationFunction {
         override fun evaluate(points: List<CubismMotionPoint>, time: Float): Float {
             val p0 = points[0]
             val p1 = points[1]
@@ -416,7 +416,7 @@ class CubismMotion : ACubismMotion {
         }
     }
 
-    object BezierEvaluator : CubismMotionInternal.CsmMotionSegmentEvaluationFunction {
+    object BezierEvaluator : Live2DMotionInternal.CsmMotionSegmentEvaluationFunction {
         override fun evaluate(points: List<CubismMotionPoint>, time: Float): Float {
             val p0 = points[0]
             val p1 = points[1]
@@ -440,7 +440,7 @@ class CubismMotion : ACubismMotion {
     }
 
     object BezierEvaluatorCardanoInterpretation :
-        CubismMotionInternal.CsmMotionSegmentEvaluationFunction {
+        Live2DMotionInternal.CsmMotionSegmentEvaluationFunction {
         override fun evaluate(points: List<CubismMotionPoint>, time: Float): Float {
             val p0 = points[0]
             val p1 = points[1]
@@ -470,31 +470,31 @@ class CubismMotion : ACubismMotion {
         }
     }
 
-    object SteppedEvaluator : CubismMotionInternal.CsmMotionSegmentEvaluationFunction {
+    object SteppedEvaluator : Live2DMotionInternal.CsmMotionSegmentEvaluationFunction {
         override fun evaluate(points: List<CubismMotionPoint>, time: Float): Float {
             return points[0].value
         }
     }
 
-    object InverseSteppedEvaluator : CubismMotionInternal.CsmMotionSegmentEvaluationFunction {
+    object InverseSteppedEvaluator : Live2DMotionInternal.CsmMotionSegmentEvaluationFunction {
         override fun evaluate(points: List<CubismMotionPoint>, time: Float): Float {
             return points[1].value
         }
     }
 
-    fun existFadeIn(curve: CubismMotionInternal.CubismMotionCurve): Boolean {
+    fun existFadeIn(curve: Live2DMotionInternal.CubismMotionCurve): Boolean {
         return curve.fadeInTime >= 0.0f
     }
 
-    fun existFadeOut(curve: CubismMotionInternal.CubismMotionCurve): Boolean {
+    fun existFadeOut(curve: Live2DMotionInternal.CubismMotionCurve): Boolean {
         return curve.fadeOutTime >= 0.0f
     }
 
-    fun existFade(curve: CubismMotionInternal.CubismMotionCurve): Boolean {
+    fun existFade(curve: Live2DMotionInternal.CubismMotionCurve): Boolean {
         return existFadeIn(curve) || existFadeOut(curve)
     }
 
-    lateinit var motionData: CubismMotionInternal.CubismMotionData
+    lateinit var motionData: Live2DMotionInternal.CubismMotionData
 
     /**
      * Enable/Disable loop

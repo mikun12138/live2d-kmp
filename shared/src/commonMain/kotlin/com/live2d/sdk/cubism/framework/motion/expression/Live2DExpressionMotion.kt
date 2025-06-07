@@ -7,7 +7,7 @@
 package com.live2d.sdk.cubism.framework.motion.expression
 
 import com.live2d.sdk.cubism.framework.id.Live2DId
-import com.live2d.sdk.cubism.framework.motion.ACubismMotion
+import com.live2d.sdk.cubism.framework.motion.ALive2DMotion
 import com.live2d.sdk.cubism.framework.data.ExpressionJson
 import com.live2d.sdk.cubism.framework.id.Live2DIdManager
 import kotlinx.serialization.json.Json
@@ -15,7 +15,7 @@ import kotlinx.serialization.json.Json
 /**
  * A motion class for facial expressions.
  */
-class CubismExpressionMotion : ACubismMotion {
+class Live2DExpressionMotion : ALive2DMotion {
 
     constructor(buffer: ByteArray) {
         parse(buffer)

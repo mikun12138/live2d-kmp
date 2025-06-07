@@ -71,6 +71,7 @@ class Live2DTexture : ALive2DTexture {
                     glGenerateMipmap(GL_TEXTURE_2D)
                 }
             }
-        }
+        },
+        isPremultipliedAlpha = false
     )
 }

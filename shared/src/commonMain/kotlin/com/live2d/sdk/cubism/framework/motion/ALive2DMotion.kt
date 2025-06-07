@@ -6,7 +6,7 @@
  */
 package com.live2d.sdk.cubism.framework.motion
 
-abstract class ACubismMotion {
+abstract class ALive2DMotion {
 
 //    fun updateParameters(
 //        model: CubismModel,

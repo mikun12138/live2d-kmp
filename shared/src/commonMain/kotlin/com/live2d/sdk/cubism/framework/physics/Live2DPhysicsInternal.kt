@@ -12,7 +12,7 @@ import com.live2d.sdk.cubism.framework.math.CubismVector2
 /**
  * Internal data of CubismPhysics.
  */
-class CubismPhysicsInternal {
+class Live2DPhysicsInternal {
     /**
      * Types of physics operations to be applied.
      */

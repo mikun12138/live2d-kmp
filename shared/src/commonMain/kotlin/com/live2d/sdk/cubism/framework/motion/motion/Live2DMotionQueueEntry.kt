@@ -3,17 +3,17 @@ package com.live2d.sdk.cubism.framework.motion.motion
 import com.live2d.sdk.cubism.framework.id.Live2DIdManager
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
 import com.live2d.sdk.cubism.framework.model.Live2DModel
-import com.live2d.sdk.cubism.framework.motion.AMotionQueueEntry
-import com.live2d.sdk.cubism.framework.motion.CubismMotionInternal.CubismMotionCurveTarget
-import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion.Companion.EffectID
-import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion.Companion.MotionBehavior
-import com.live2d.sdk.cubism.framework.motion.motion.CubismMotion.Companion.OpacityID
+import com.live2d.sdk.cubism.framework.motion.ALive2DMotionQueueEntry
+import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotionInternal.CubismMotionCurveTarget
+import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotion.Companion.EffectID
+import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotion.Companion.MotionBehavior
+import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotion.Companion.OpacityID
 import com.live2d.sdk.cubism.util.switchStateTo
 
-class MotionQueueEntry(
-    override val manager: CubismMotionManager,
-    override val motion: CubismMotion,
-) : AMotionQueueEntry(
+class Live2DMotionQueueEntry(
+    override val manager: Live2DMotionManager,
+    override val motion: Live2DMotion,
+) : ALive2DMotionQueueEntry(
     manager,
     motion
 ) {

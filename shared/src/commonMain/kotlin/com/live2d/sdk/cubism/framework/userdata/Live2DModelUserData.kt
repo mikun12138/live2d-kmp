@@ -8,7 +8,7 @@ import kotlinx.serialization.json.Json
 /**
  * This class is a manager of user data. It can load, manage user data.
  */
-class CubismModelUserData {
+class Live2DModelUserData {
     constructor(buffer: ByteArray) {
         parse(buffer)
     }

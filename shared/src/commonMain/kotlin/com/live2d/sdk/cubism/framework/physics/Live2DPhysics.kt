@@ -17,7 +17,7 @@ import kotlin.math.pow
 /**
  * Physics operation class.
  */
-class CubismPhysics {
+class Live2DPhysics {
     constructor(buffer: ByteArray) {
         parse(buffer)
         physicsRig.gravity.y = 0.0f
@@ -69,7 +69,7 @@ class CubismPhysics {
         var i: Int
         var settingIndex: Int
         var particleIndex: Int
-        var currentSetting: CubismPhysicsInternal.CubismPhysicsSubRig
+        var currentSetting: Live2DPhysicsInternal.CubismPhysicsSubRig
 
         val parameterValues = model.model.parameters.values
         val parameterMaximumValues = model.model.parameters.maximumValues
@@ -101,7 +101,7 @@ class CubismPhysics {
             // Load input parameters.
             i = 0
             while (i < currentSetting.inputCount) {
-                val currentInput: CubismPhysicsInternal.CubismPhysicsInput = physicsRig.inputs.get(baseInputIndex + i)
+                val currentInput: Live2DPhysicsInternal.CubismPhysicsInput = physicsRig.inputs.get(baseInputIndex + i)
 
                 weight = currentInput.weight / MAXIMUM_WEIGHT
 
@@ -153,7 +153,7 @@ class CubismPhysics {
             // Update output parameters.
             i = 0
             while (i < currentSetting.outputCount) {
-                val currentOutput: CubismPhysicsInternal.CubismPhysicsOutput = physicsRig.outputs.get(baseOutputIndex + i)
+                val currentOutput: Live2DPhysicsInternal.CubismPhysicsOutput = physicsRig.outputs.get(baseOutputIndex + i)
 
                 particleIndex = currentOutput.vertexIndex
 
@@ -262,8 +262,8 @@ class CubismPhysics {
         var outputValue: Float
 //        var i: Int
         var particleIndex: Int
-        val inputs: MutableList<CubismPhysicsInternal.CubismPhysicsInput> = physicsRig.inputs
-        val outputs: MutableList<CubismPhysicsInternal.CubismPhysicsOutput> = physicsRig.outputs
+        val inputs: MutableList<Live2DPhysicsInternal.CubismPhysicsInput> = physicsRig.inputs
+        val outputs: MutableList<Live2DPhysicsInternal.CubismPhysicsOutput> = physicsRig.outputs
 
         if (0.0f >= deltaTimeSeconds) {
             return
@@ -303,8 +303,8 @@ class CubismPhysics {
 
 //        var currentSetting: CubismPhysicsInternal.CubismPhysicsSubRig
 //        var currentInput: CubismPhysicsInternal.CubismPhysicsInput
-        var currentOutput: CubismPhysicsInternal.CubismPhysicsOutput
-        var currentParticle: CubismPhysicsInternal.CubismPhysicsParticle
+        var currentOutput: Live2DPhysicsInternal.CubismPhysicsOutput
+        var currentParticle: Live2DPhysicsInternal.CubismPhysicsParticle
 
 //        var settingIndex: Int
         while (currentRemainTime >= physicsDeltaTime) {
@@ -333,7 +333,7 @@ class CubismPhysics {
                 totalTranslation.setZero()
 
                 val currentSetting = physicsRig.settings[settingIndex]
-                val particles: MutableList<CubismPhysicsInternal.CubismPhysicsParticle> =
+                val particles: MutableList<Live2DPhysicsInternal.CubismPhysicsParticle> =
                     physicsRig.particles
 
                 val baseInputIndex: Int = currentSetting.baseInputIndex
@@ -488,7 +488,7 @@ class CubismPhysics {
      * @param physicsJson a buffer where physics3.json is loaded.
      */
     private fun parse(physicsJson: ByteArray) {
-        physicsRig = CubismPhysicsInternal.CubismPhysicsRig()
+        physicsRig = Live2DPhysicsInternal.CubismPhysicsRig()
 
         val json = Json.decodeFromString<PhysicsJson>(String(physicsJson))
 
@@ -524,7 +524,7 @@ class CubismPhysics {
         var particleIndex = 0
 
         for (i in 0..<physicsRig.subRigCount) {
-            val setting = CubismPhysicsInternal.CubismPhysicsSubRig()
+            val setting = Live2DPhysicsInternal.CubismPhysicsSubRig()
 
             // Setting
             setting.baseInputIndex = inputIndex
@@ -549,7 +549,7 @@ class CubismPhysics {
 
     private fun parseSetting(
         json: PhysicsJson,
-        setting: CubismPhysicsInternal.CubismPhysicsSubRig,
+        setting: Live2DPhysicsInternal.CubismPhysicsSubRig,
         settingIndex: Int
     ) {
         setting.normalizationPosition.minimumValue =
@@ -575,7 +575,7 @@ class CubismPhysics {
 
     private fun parseInputs(json: PhysicsJson, settingIndex: Int, inputCount: Int) {
         for (inputIndex in 0..<inputCount) {
-            val input = CubismPhysicsInternal.CubismPhysicsInput()
+            val input = Live2DPhysicsInternal.CubismPhysicsInput()
 
             input.sourceParameterIndex = -1
             input.weight = json.physicsSettings[settingIndex].input[inputIndex].weight.toFloat()
@@ -584,20 +584,20 @@ class CubismPhysics {
             val tag: String = json.physicsSettings[settingIndex].input[inputIndex].type
 
             if (tag == PhysicsTypeTag.X.tag) {
-                input.type = CubismPhysicsInternal.CubismPhysicsSource.X
+                input.type = Live2DPhysicsInternal.CubismPhysicsSource.X
                 input.getNormalizedParameterValue =
-                    CubismPhysicsFunctions.GetInputTranslationXFromNormalizedParameterValue()
+                    Live2DPhysicsFunctions.GetInputTranslationXFromNormalizedParameterValue()
             } else if (tag == PhysicsTypeTag.Y.tag) {
-                input.type = CubismPhysicsInternal.CubismPhysicsSource.Y
+                input.type = Live2DPhysicsInternal.CubismPhysicsSource.Y
                 input.getNormalizedParameterValue =
-                    CubismPhysicsFunctions.GetInputTranslationYFromNormalizedParameterValue()
+                    Live2DPhysicsFunctions.GetInputTranslationYFromNormalizedParameterValue()
             } else if (tag == PhysicsTypeTag.ANGLE.tag) {
-                input.type = CubismPhysicsInternal.CubismPhysicsSource.ANGLE
+                input.type = Live2DPhysicsInternal.CubismPhysicsSource.ANGLE
                 input.getNormalizedParameterValue =
-                    CubismPhysicsFunctions.GetInputAngleFromNormalizedParameterValue()
+                    Live2DPhysicsFunctions.GetInputAngleFromNormalizedParameterValue()
             }
 
-            input.source.targetType = CubismPhysicsInternal.CubismPhysicsTargetType.PARAMETER
+            input.source.targetType = Live2DPhysicsInternal.CubismPhysicsTargetType.PARAMETER
 
             input.source.Id =
                 Live2DIdManager.id(json.physicsSettings[settingIndex].input[inputIndex].source.id)
@@ -613,13 +613,13 @@ class CubismPhysics {
         previousRigOutputs.add(PhysicsOutput(FloatArray(count)))
 
         for (outputIndex in 0..<outputCount) {
-            val output = CubismPhysicsInternal.CubismPhysicsOutput()
+            val output = Live2DPhysicsInternal.CubismPhysicsOutput()
 
             output.destinationParameterIndex = -1
             output.vertexIndex = json.physicsSettings[settingIndex].output[outputIndex].vertexIndex
             output.angleScale = json.physicsSettings[settingIndex].output[outputIndex].scale
             output.weight = json.physicsSettings[settingIndex].output[outputIndex].weight
-            output.destination.targetType = CubismPhysicsInternal.CubismPhysicsTargetType.PARAMETER
+            output.destination.targetType = Live2DPhysicsInternal.CubismPhysicsTargetType.PARAMETER
 
             output.destination.Id = Live2DIdManager.id(
                 json.physicsSettings[settingIndex].output[outputIndex].destination.id
@@ -627,17 +627,17 @@ class CubismPhysics {
 
             val tag: String = json.physicsSettings[settingIndex].output[outputIndex].type
             if (tag == PhysicsTypeTag.X.tag) {
-                output.type = CubismPhysicsInternal.CubismPhysicsSource.X
-                output.getValue = CubismPhysicsFunctions.GetOutputTranslationX()
-                output.getScale = CubismPhysicsFunctions.GetOutputScaleTranslationX()
+                output.type = Live2DPhysicsInternal.CubismPhysicsSource.X
+                output.getValue = Live2DPhysicsFunctions.GetOutputTranslationX()
+                output.getScale = Live2DPhysicsFunctions.GetOutputScaleTranslationX()
             } else if (tag == PhysicsTypeTag.Y.tag) {
-                output.type = CubismPhysicsInternal.CubismPhysicsSource.Y
-                output.getValue = CubismPhysicsFunctions.GetOutputTranslationY()
-                output.getScale = CubismPhysicsFunctions.GetOutputScaleTranslationY()
+                output.type = Live2DPhysicsInternal.CubismPhysicsSource.Y
+                output.getValue = Live2DPhysicsFunctions.GetOutputTranslationY()
+                output.getScale = Live2DPhysicsFunctions.GetOutputScaleTranslationY()
             } else if (tag == PhysicsTypeTag.ANGLE.tag) {
-                output.type = CubismPhysicsInternal.CubismPhysicsSource.ANGLE
-                output.getValue = CubismPhysicsFunctions.GetOutputAngle()
-                output.getScale = CubismPhysicsFunctions.GetOutputScaleAngle()
+                output.type = Live2DPhysicsInternal.CubismPhysicsSource.ANGLE
+                output.getValue = Live2DPhysicsFunctions.GetOutputAngle()
+                output.getScale = Live2DPhysicsFunctions.GetOutputScaleAngle()
             }
 
             output.reflect = json.physicsSettings[settingIndex].output[outputIndex].reflect
@@ -648,7 +648,7 @@ class CubismPhysics {
 
     private fun parseParticles(json: PhysicsJson, settingIndex: Int, particleCount: Int) {
         for (particleIndex in 0..<particleCount) {
-            val particle = CubismPhysicsInternal.CubismPhysicsParticle()
+            val particle = Live2DPhysicsInternal.CubismPhysicsParticle()
 
             particle.mobility = json.physicsSettings[settingIndex].vertices[particleIndex].mobility
             particle.delay = json.physicsSettings[settingIndex].vertices[particleIndex].delay
@@ -669,10 +669,10 @@ class CubismPhysics {
      */
     private fun initialize() {
         for (settingIndex in 0..<physicsRig.subRigCount) {
-            val currentSetting: CubismPhysicsInternal.CubismPhysicsSubRig = physicsRig.settings.get(settingIndex)
+            val currentSetting: Live2DPhysicsInternal.CubismPhysicsSubRig = physicsRig.settings.get(settingIndex)
 
             val baseIndex: Int = currentSetting.baseParticleIndex
-            val baseParticle: CubismPhysicsInternal.CubismPhysicsParticle = physicsRig.particles.get(baseIndex)
+            val baseParticle: Live2DPhysicsInternal.CubismPhysicsParticle = physicsRig.particles.get(baseIndex)
 
             // Initialize the top of particle
             baseParticle.initialPosition = CubismVector2()
@@ -683,7 +683,7 @@ class CubismPhysics {
 
             // Initialize particles
             for (i in 1..<currentSetting.particleCount) {
-                val currentParticle: CubismPhysicsInternal.CubismPhysicsParticle = physicsRig.particles.get(baseIndex + i)
+                val currentParticle: Live2DPhysicsInternal.CubismPhysicsParticle = physicsRig.particles.get(baseIndex + i)
 
                 val radius: CubismVector2 = CubismVector2(0.0f, currentParticle.radius)
 
@@ -709,8 +709,8 @@ class CubismPhysics {
      */
     private fun interpolate(model: Live2DModel, weight: Float) {
         for (settingIndex in 0..<physicsRig.subRigCount) {
-            val currentSetting: CubismPhysicsInternal.CubismPhysicsSubRig = physicsRig.settings.get(settingIndex)
-            val outputs: MutableList<CubismPhysicsInternal.CubismPhysicsOutput> = physicsRig.outputs
+            val currentSetting: Live2DPhysicsInternal.CubismPhysicsSubRig = physicsRig.settings.get(settingIndex)
+            val outputs: MutableList<Live2DPhysicsInternal.CubismPhysicsOutput> = physicsRig.outputs
             val baseOutputIndex: Int = currentSetting.baseOutputIndex
 
             val parameterValues = model.model.parameters.values
@@ -720,7 +720,7 @@ class CubismPhysics {
             tmpValue[0] = 0.0f
 
             for (i in 0..<currentSetting.outputCount) {
-                val currentOutput: CubismPhysicsInternal.CubismPhysicsOutput = outputs.get(baseOutputIndex + i)
+                val currentOutput: Live2DPhysicsInternal.CubismPhysicsOutput = outputs.get(baseOutputIndex + i)
 
                 if (currentOutput.destinationParameterIndex === -1) {
                     continue
@@ -761,12 +761,12 @@ class CubismPhysics {
         transition: CubismVector2,
         settingIndex: Int
     ): Float {
-        val currentSetting: CubismPhysicsInternal.CubismPhysicsSubRig = physicsRig.settings.get(settingIndex)
+        val currentSetting: Live2DPhysicsInternal.CubismPhysicsSubRig = physicsRig.settings.get(settingIndex)
 
         val totalAngle = FloatArray(1)
 
         for (i in 0..<currentSetting.inputCount) {
-            val currentInput: CubismPhysicsInternal.CubismPhysicsInput =
+            val currentInput: Live2DPhysicsInternal.CubismPhysicsInput =
                 physicsRig.inputs.get(currentSetting.baseInputIndex + i)
             val weight: Float = currentInput.weight / MAXIMUM_WEIGHT
 
@@ -802,7 +802,7 @@ class CubismPhysics {
     /**
      * Physics operation data
      */
-    private lateinit var physicsRig: CubismPhysicsInternal.CubismPhysicsRig
+    private lateinit var physicsRig: Live2DPhysicsInternal.CubismPhysicsRig
 
     /**
      * Options of physics operation
@@ -849,7 +849,7 @@ class CubismPhysics {
          * @param airResistance Air resistance
          */
         private fun updateParticles(
-            strand: MutableList<CubismPhysicsInternal.CubismPhysicsParticle>,
+            strand: MutableList<Live2DPhysicsInternal.CubismPhysicsParticle>,
             baseParticleIndex: Int,
             strandCount: Int,
             totalTranslation: CubismVector2,
@@ -869,8 +869,8 @@ class CubismPhysics {
             CubismMath.radianToDirection(totalRadian, currentGravity).normalize()
 
             for (i in 1..<strandCount) {
-                val currentParticle: CubismPhysicsInternal.CubismPhysicsParticle = strand.get(baseParticleIndex + i)
-                val previousParticle: CubismPhysicsInternal.CubismPhysicsParticle = strand.get(baseParticleIndex + i - 1)
+                val currentParticle: Live2DPhysicsInternal.CubismPhysicsParticle = strand.get(baseParticleIndex + i)
+                val previousParticle: Live2DPhysicsInternal.CubismPhysicsParticle = strand.get(baseParticleIndex + i - 1)
 
                 currentParticle.lastPosition.set(
                     currentParticle.position.x,
@@ -957,7 +957,7 @@ class CubismPhysics {
         private val currentGravity: CubismVector2 = CubismVector2()
 
         private fun updateParticlesForStabilization(
-            strand: MutableList<CubismPhysicsInternal.CubismPhysicsParticle>,
+            strand: MutableList<Live2DPhysicsInternal.CubismPhysicsParticle>,
             baseParticleIndex: Int,
             strandCount: Int,
             totalTranslation: CubismVector2,
@@ -975,7 +975,7 @@ class CubismPhysics {
 
             i = 1
             while (i < strandCount) {
-                val particle: CubismPhysicsInternal.CubismPhysicsParticle = strand.get(baseParticleIndex + i)
+                val particle: Live2DPhysicsInternal.CubismPhysicsParticle = strand.get(baseParticleIndex + i)
                 CubismVector2.multiply(
                     currentGravityForStablization,
                     particle.acceleration,
@@ -1018,7 +1018,7 @@ class CubismPhysics {
             parameterValueMinimum: Float,
             parameterValueMaximum: Float,
             translation: Float,
-            output: CubismPhysicsInternal.CubismPhysicsOutput
+            output: Live2DPhysicsInternal.CubismPhysicsOutput
         ) {
             val outputScale: Float
             var value: Float
