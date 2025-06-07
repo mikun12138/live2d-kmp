@@ -286,19 +286,8 @@ class CubismMotion : ACubismMotion {
         isCorrection: Boolean,
         endTime: Float,
     ): Float {
-        if (curve.id.value == "ParamLeg") {
-            println("time: " + time)
-            println("isCorrection: " + isCorrection)
-            println("endTime: " + endTime)
-            println()
-        }
-
         var target = -1
         val totalSegmentCount = curve.baseSegmentIndex + curve.segmentCount
-        if (curve.id.value == "ParamLeg") {
-            println("baseSegmentIndex: " + curve.baseSegmentIndex)
-            println("segmentCount: " + curve.segmentCount)
-        }
 
         var pointPosition = 0
         for (i in curve.baseSegmentIndex..<totalSegmentCount) {

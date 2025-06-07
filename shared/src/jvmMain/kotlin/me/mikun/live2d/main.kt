@@ -6,6 +6,7 @@ import com.live2d.sdk.cubism.framework.data.ModelJson
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.AAppModel
 import com.live2d.sdk.cubism.framework.rendering.ALive2DRenderer
+import com.live2d.sdk.cubism.framework.rendering.Live2DRendererProfile
 import com.live2d.sdk.cubism.framework.rendering.Live2DTexture
 import com.live2d.sdk.cubism.framework.rendering.Renderer
 import com.live2d.sdk.cubism.framework.rendering.create
@@ -68,6 +69,7 @@ fun live2dMain() {
 
         val model = AAppModel()
         model.init("Hiyori", "Hiyori" + ".model3.json")
+
         val renderer = Renderer.create(model.model, 1)
 
         while (!glfwWindowShouldClose(handle)) {
@@ -96,7 +98,9 @@ fun live2dMain() {
             )
 
             model.update(Timer.deltaF)
+            Live2DRendererProfile.save()
             renderer.frame(matrix)
+            Live2DRendererProfile.restore()
 
             glfwSwapBuffers(handle)
             glfwPollEvents()

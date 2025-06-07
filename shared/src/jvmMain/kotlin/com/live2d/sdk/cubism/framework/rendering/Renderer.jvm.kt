@@ -280,7 +280,7 @@ class RendererImpl(
 
     var tmpMatrixForDraw: CubismMatrix44 = CubismMatrix44.create()
 
-    override fun genMasks() {
+    override fun setupMask() {
         val usingClipCount = clipContext_2_drawableIndexList.keys.count {
             calcClippedDrawTotalBounds(it)
         }.takeIf { it > 0 } ?: return
@@ -303,13 +303,16 @@ class RendererImpl(
 //            return
 //        }
 
-
         glViewport(
             0,
             0,
             512,
             512,
         )
+        // 後の計算のためにインデックスの最初をセットする。
+        currentMaskBuffer = offscreenSurfaces[0]
+        // マスク描画処理
+        currentMaskBuffer.beginDraw()
 
         // バッファをクリアする
 //        renderer.preDraw()
@@ -383,7 +386,7 @@ class RendererImpl(
             for (maskIndex in clipContext.maskIndexArray) {
                 val drawableContext = drawableContextArray[maskIndex]
 
-                if (drawableContext.vertexPositionDidChange) continue
+//                if (!drawableContext.vertexPositionDidChange) continue
 
                 // マスクがクリアされていないなら処理する。
                 if (!clearedMaskBufferFlags[clipContext.bufferIndex]) {
@@ -398,7 +401,7 @@ class RendererImpl(
                     glClear(GL_COLOR_BUFFER_BIT)
                     clearedMaskBufferFlags[clipContext.bufferIndex] = true
                 }
-
+                currentClipContextForSetupMask = clipContext
                 drawMesh(
                     drawableContext
                 )
@@ -410,6 +413,9 @@ class RendererImpl(
         // Return the drawing target
         currentMaskBuffer.endDraw()
 
+        Live2DRendererProfile.lastViewport.forEach {
+            println(it)
+        }
         glViewport(
             Live2DRendererProfile.lastViewport[0],
             Live2DRendererProfile.lastViewport[1],
@@ -417,6 +423,10 @@ class RendererImpl(
             Live2DRendererProfile.lastViewport[3],
         )
     }
+
+    lateinit var currentClipContextForSetupMask: ClipContext
+
+
 
     override fun drawMesh(
         drawableContext: DrawableContext,
@@ -443,7 +453,6 @@ class RendererImpl(
             0
         )
 
-
         if (drawableContext.isCulling) {
             glEnable(GL_CULL_FACE)
         } else {
@@ -451,7 +460,30 @@ class RendererImpl(
         }
         glFrontFace(GL_CCW)
 
+        when (state) {
+            State.SETUP_MASK -> {
+                Live2DShader.setupMask(
+                    this,
+                    drawableContext,
+                    currentClipContextForSetupMask
+                )
+            }
 
+            State.DRAW -> {
+                drawableContext.clipContext?.let {
+
+                    Live2DShader.drawMasked(
+                        this,
+                        drawableContext
+                    )
+                } ?: run {
+                    Live2DShader.drawSimple(
+                        this,
+                        drawableContext
+                    )
+                }
+            }
+        }
         glDrawElements(
             GL_TRIANGLES,
             drawableContext.vertex.indices

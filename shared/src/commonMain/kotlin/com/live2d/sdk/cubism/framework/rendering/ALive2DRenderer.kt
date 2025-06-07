@@ -10,7 +10,7 @@ import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 
 
-expect fun ALive2DRenderer.Companion.create(): ALive2DRenderer
+//expect fun ALive2DRenderer.Companion.create(): ALive2DRenderer
 
 abstract class ALive2DRenderer {
 

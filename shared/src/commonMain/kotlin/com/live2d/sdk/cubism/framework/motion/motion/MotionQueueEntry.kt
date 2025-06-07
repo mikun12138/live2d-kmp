@@ -184,13 +184,6 @@ class MotionQueueEntry(
                     } else {
                         // Apply each fading.
                         v = sourceValue + (value - sourceValue) * fadeWeight
-                        if (curve.id.value == "ParamLeg") {
-                            println("sourceValue: " + sourceValue);
-                            println("value: " + value);
-                            println("fadeWeight: " + fadeWeight);
-                            println(curve.id.value + ": " + v);
-                            println()
-                        }
                     }
                     model.setParameterValue(parameterIndex, v)
                 }
