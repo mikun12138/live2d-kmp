@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.desktop.tasks.AbstractComposeDesktopTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -6,7 +7,6 @@ plugins {
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.compose.compiler)
-
 }
 
 kotlin {
@@ -77,11 +77,82 @@ compose.desktop {
         mainClass = "me.mikun.sandbox.MainKt"
 
         nativeDistributions {
+            includeAllModules = true
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "me.mikun.sandbox"
+            packageName = "sandbox"
             packageVersion = "1.0.0"
+            windows {
+                appResourcesRootDir.set(project.layout.buildDirectory.dir("libs/allRes"))
+            }
         }
     }
 }
+
+tasks.withType<AbstractComposeDesktopTask> {
+    dependsOn("downloadLive2DCore")
+}
+
+val allResDirWindows = layout.buildDirectory.dir("libs/allRes/windows")
+val resDirMoc = allResDirWindows.get().dir("moc")
+val resDirLib = allResDirWindows.get().dir("lib")
+
+tasks.register("downloadLive2DCore") {
+    group = "build setup"
+
+    val downloadUrl = "https://cubism.live2d.com/sdk-native/bin/CubismSdkForNative-5-r.4.zip"
+
+    val downloadTempDir = layout.buildDirectory.dir("libs/live2DCore/temp")
+    val archiveFile = downloadTempDir.get().file("CubismSdkForNative-5-r.4.zip").asFile
+
+    doLast {
+        if (!archiveFile.exists()) {
+            downloadTempDir.get().asFile.mkdirs()
+
+            // download
+            logger.lifecycle("downloading \"https://cubism.live2d.com/sdk-native/bin/CubismSdkForNative-5-r.4.zip\"")
+            uri(downloadUrl).toURL().openStream().use { input ->
+                archiveFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+        }
+
+        // unzip
+        copy {
+            from(
+                zipTree(archiveFile)
+            )
+            into(
+                downloadTempDir
+            )
+        }
+
+        /*
+            windows
+         */
+
+        // dll
+        copy {
+            from(
+                downloadTempDir.get().dir("CubismSdkForNative-5-r.4/Core/dll/windows")
+            )
+            into(
+                resDirLib
+            )
+        }
+
+        // res
+        copy {
+            from(
+                downloadTempDir.get().dir("CubismSdkForNative-5-r.4/Samples/Resources")
+            )
+            into(
+                resDirMoc
+            )
+        }
+
+    }
+}
+
 
 

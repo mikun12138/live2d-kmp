@@ -8,8 +8,38 @@ import org.lwjgl.opengl.GL46.*
 
 object Live2DShader {
 
+    private fun setupVertexArray(
+        vertex: DrawableContext.Vertex,
+        vertexArray: Live2DRenderer.VertexArray,
+    ) {
+        with(vertex) {
+            glBindVertexArray(
+                vertexArray.vao
+            )
+            run {
+                /*
+                    position
+                 */
+                run {
+
+                }
+                /*
+                    uv
+                 */
+                run {
+                }
+                /*
+                    indices
+                 */
+                run {
+
+                }
+            }
+        }
+    }
+
     fun drawSimple(
-        renderer: ALive2DRenderer,
+        renderer: Live2DRenderer,
         drawableContext: DrawableContext,
     ) {
         with(
@@ -19,38 +49,12 @@ object Live2DShader {
             }
         ) {
             glUseProgram(shaderProgram.id)
-            /*
-                position
-             */
-            run {
-                attribute(Attribute.POSITION).let {
-                    glEnableVertexAttribArray(it)
-                    glVertexAttribPointer(
-                        it,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        drawableContext.vertex.positions
-                    )
-                }
-            }
-            /*
-                uv
-             */
-            run {
-                attribute(Attribute.TEXCOORD).let {
-                    glEnableVertexAttribArray(it)
-                    glVertexAttribPointer(
-                        it,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        drawableContext.vertex.texCoords
-                    )
-                }
-            }
+
+            setupVertexArray(
+                drawableContext.vertex,
+                renderer.drawableVertexArrayArray[drawableContext.vertex.index]
+            )
+
             /*
                 modelMatrix (其实是mvp
              */
@@ -151,7 +155,7 @@ object Live2DShader {
     }
 
     fun drawMasked(
-        renderer: ALive2DRenderer,
+        renderer: Live2DRenderer,
         drawableContext: DrawableContext,
     ) {
         with(
@@ -169,43 +173,15 @@ object Live2DShader {
             }
         ) {
             glUseProgram(shaderProgram.id)
-            /*
-                position
-             */
-            run {
-                attribute(Attribute.POSITION).let {
-                    glEnableVertexAttribArray(it)
-                    glVertexAttribPointer(
-                        it,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        drawableContext.vertex.positions
-                    )
-                }
-            }
-            /*
-                uv
-             */
-            run {
-                attribute(Attribute.TEXCOORD).let {
-                    glEnableVertexAttribArray(it)
-                    glVertexAttribPointer(
-                        it,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        drawableContext.vertex.texCoords
-                    )
-                }
-            }
-            glActiveTexture(GL_TEXTURE1)
+            setupVertexArray(
+                drawableContext.vertex,
+                renderer.drawableVertexArrayArray[drawableContext.vertex.index]
+            )
 
             /*
                 texture1
              */
+            glActiveTexture(GL_TEXTURE1)
             glBindTexture(
                 GL_TEXTURE_2D,
                 renderer.offscreenSurfaces[drawableContext.clipContext!!.bufferIndex].colorBuffer[0]
@@ -337,257 +313,17 @@ object Live2DShader {
         }
     }
 
-//    fun setupShaderProgramForDraw(
-//        renderer: Live2DRendererImpl,
-//        model: Live2DModel,
-//        index: Int,
-//    ) {
-//        val isMasked = model.getDrawableMask(index)!!.isNotEmpty()
-//        val isInvertedMask = model.getDrawableInvertedMask(index)
-//        val isPremultipliedAlpha = model.isPremultipliedAlpha
-//        with(
-//            when {
-//                !isMasked && !isPremultipliedAlpha -> CubismShaderSet.SIMPLE
-//                isMasked && !isInvertedMask && !isPremultipliedAlpha -> CubismShaderSet.MASKED
-//                isMasked && isInvertedMask && !isPremultipliedAlpha -> CubismShaderSet.MASKED_INVERTED
-//                !isMasked && isPremultipliedAlpha -> CubismShaderSet.PREMULTIPLIED_ALPHA
-//                isMasked && !isInvertedMask && isPremultipliedAlpha -> CubismShaderSet.MASKED_PREMULTIPLIED_ALPHA
-//                isMasked && isInvertedMask && isPremultipliedAlpha -> CubismShaderSet.MASKED_INVERTED_PREMULTIPLIED_ALPHA
-//                else -> error("wrong shader setting!")
-//            }
-//        ) {
-//            glUseProgram(shaderProgram.id)
-//
-//            renderer.drawableInfoCachesHolder.let { drawableInfoCachesHolder ->
-//                /*
-//                    position
-//                 */
-//                drawableInfoCachesHolder?.setUpVertexArray(
-//                    index,
-//                    model.getDrawableVertexPositions(index)!!
-//                )?.also { vertexBuffer ->
-//                    attribute(Attribute.POSITION).let {
-//                        glEnableVertexAttribArray(it)
-//                        glVertexAttribPointer(
-//                            it,
-//                            2,
-//                            GL_FLOAT,
-//                            false,
-//                            Float.SIZE_BYTES * 2,
-//                            vertexBuffer
-//                        )
-//                    }
-//                }
-//
-//                /*
-//                    uv
-//                 */
-//                drawableInfoCachesHolder?.setUpUvArray(
-//                    index,
-//                    model.getDrawableVertexUVs(index)!!
-//                )?.also { uvBuffer ->
-//                    attribute(Attribute.TEXCOORD).let {
-//                        glEnableVertexAttribArray(it)
-//                        glVertexAttribPointer(
-//                            it,
-//                            2,
-//                            GL_FLOAT,
-//                            false,
-//                            Float.SIZE_BYTES * 2,
-//                            uvBuffer
-//                        )
-//                    }
-//                }
-//            }
-//
-//            if (isMasked) {
-//                glActiveTexture(GL_TEXTURE1)
-//
-//                // OffscreenSurfaceに描かれたテクスチャ
-//                val tex: Int =
-//                    renderer.offscreenSurfaces[renderer.clippingContextBufferForDraw!!.bufferIndex].colorBuffer[0]
-//
-//                /*
-//                    texture1
-//                 */
-//                glBindTexture(
-//                    GL_TEXTURE_2D,
-//                    tex
-//                )
-//                glUniform1i(
-//                    uniform(Uniform.TEXTURE1),
-//                    1
-//                )
-//
-//                /*
-//                    clipMatrix
-//                 */
-//                // set up a matrix to convert View-coordinates to ClippingContext coordinates
-//                glUniformMatrix4fv(
-//                    uniform(Uniform.CLIP_MATRIX),
-//                    false,
-//                    renderer.clippingContextBufferForDraw!!.matrixForDraw.tr,
-//                )
-//
-//                /*
-//                    colorChannel
-//                 */
-//                // Set used color channel.
-//                val channelIndex: Int = renderer.clippingContextBufferForDraw!!.layoutChannelIndex
-//                val colorChannel: CubismTextureColor = renderer
-//                    .clippingContextBufferForDraw!!
-//                    .manager
-//                    .channelColors[channelIndex]
-//                glUniform4f(
-//                    uniform(Uniform.CHANNEL_FLAG),
-//                    colorChannel.r,
-//                    colorChannel.g,
-//                    colorChannel.b,
-//                    colorChannel.a
-//                )
-//            }
-//
-//            /*
-//                modelMatrix (其实是mvp
-//             */
-//            run {
-//                val matrix44 = renderer.mvpMatrix44
-//                glUniformMatrix4fv(
-//                    uniform(Uniform.MATRIX),
-//                    false,
-//                    matrix44.tr,
-//                )
-//            }
-//
-//            /*
-//                texture0
-//             */
-//            run {
-//                glActiveTexture(GL_TEXTURE0)
-//                glBindTexture(
-//                    GL_TEXTURE_2D,
-//                    model.textures[model.getDrawableTextureIndex(index)]!!.id
-//                )
-//                glUniform1i(
-//                    uniform(Uniform.TEXTURE0),
-//                    0
-//                )
-//            }
-//
-//            /*
-//                baseColor multiplyColor screenColor
-//             */
-//            run {
-//                val baseColor = renderer.model.getModelColorWithOpacity(
-//                    model.getDrawableOpacity(index)
-//                )
-//                glUniform4f(
-//                    uniform(Uniform.BASE_COLOR),
-//                    baseColor.r,
-//                    baseColor.g,
-//                    baseColor.b,
-//                    baseColor.a
-//                )
-//            }
-//            run {
-//                val multiplyColor = model.model.drawableViews[index].multiplyColors!!
-//                glUniform4f(
-//                    uniform(Uniform.MULTIPLY_COLOR),
-//                    multiplyColor[0],
-//                    multiplyColor[1],
-//                    multiplyColor[2],
-//                    multiplyColor[3]
-//                )
-//            }
-//            run {
-//                val screenColor = model.model.drawableViews[index].screenColors!!
-//                glUniform4f(
-//                    uniform(Uniform.SCREEN_COLOR),
-//                    screenColor[0],
-//                    screenColor[1],
-//                    screenColor[2],
-//                    screenColor[3]
-//                )
-//            }
-//
-//            var srcColor = 0
-//            var dstColor = 0
-//            var srcAlpha = 0
-//            var dstAlpha = 0
-//
-//            when (model.getDrawableBlendMode(index)) {
-//                CubismBlendMode.ADDITIVE -> {
-//                    srcColor = GL_ONE
-//                    dstColor = GL_ONE
-//                    srcAlpha = GL_ZERO
-//                    dstAlpha = GL_ONE
-//                }
-//
-//                CubismBlendMode.MULTIPLICATIVE -> {
-//                    srcColor = GL_DST_COLOR
-//                    dstColor = GL_ONE_MINUS_SRC_ALPHA
-//                    srcAlpha = GL_ZERO
-//                    dstAlpha = GL_ONE
-//
-//                }
-//
-//                else -> {
-//                    srcColor = GL_ONE
-//                    dstColor = GL_ONE_MINUS_SRC_ALPHA
-//                    srcAlpha = GL_ONE
-//                    dstAlpha = GL_ONE_MINUS_SRC_ALPHA
-//
-//                }
-//            }
-//
-//            glBlendFuncSeparate(
-//                srcColor,
-//                dstColor,
-//                srcAlpha,
-//                dstAlpha
-//            )
-//        }
-//    }
-
     fun setupMask(
-        renderer: ALive2DRenderer,
+        renderer: Live2DRenderer,
         drawableContext: DrawableContext,
-        clipContext: ClipContext
+        clipContext: ClipContext,
     ) {
         with(CubismShaderSet.SETUP_MASK) {
             glUseProgram(shaderProgram.id)
-            /*
-                position
-             */
-            run {
-                attribute(Attribute.POSITION).let {
-                    glEnableVertexAttribArray(it)
-                    glVertexAttribPointer(
-                        it,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        drawableContext.vertex.positions
-                    )
-                }
-            }
-            /*
-                uv
-             */
-            run {
-                attribute(Attribute.TEXCOORD).let {
-                    glEnableVertexAttribArray(it)
-                    glVertexAttribPointer(
-                        it,
-                        2,
-                        GL_FLOAT,
-                        false,
-                        Float.SIZE_BYTES * 2,
-                        drawableContext.vertex.texCoords
-                    )
-                }
-            }
+            setupVertexArray(
+                drawableContext.vertex,
+                renderer.drawableVertexArrayArray[drawableContext.vertex.index]
+            )
             /*
                 clipMatrix
             */
@@ -652,124 +388,6 @@ object Live2DShader {
         }
     }
 
-    //
-//    fun setupShaderProgramForMask(
-//        renderer: Live2DRendererImpl,
-//        model: Live2DModel,
-//        index: Int,
-//    ) {
-//        with(CubismShaderSet.SETUP_MASK) {
-//            glUseProgram(shaderProgram.id)
-//
-//            renderer.drawableInfoCachesHolder?.let { drawableInfoCachesHolder ->
-//                /*
-//                    position
-//                 */
-//                run {
-//                    drawableInfoCachesHolder.setUpVertexArray(
-//                        index,
-//                        model.getDrawableVertexPositions(index)!!
-//                    ).also { buffer ->
-//                        attribute(Attribute.POSITION).let {
-//                            glEnableVertexAttribArray(it)
-//                            glVertexAttribPointer(
-//                                it,
-//                                2,
-//                                GL_FLOAT,
-//                                false,
-//                                Float.SIZE_BYTES * 2,
-//                                buffer
-//                            )
-//                        }
-//                    }
-//                }
-//
-//                /*
-//                    uv
-//                 */
-//                run {
-//                    drawableInfoCachesHolder.setUpUvArray(
-//                        index,
-//                        model.getDrawableVertexUVs(index)!!
-//                    ).also { buffer ->
-//                        attribute(Attribute.TEXCOORD).let {
-//                            glEnableVertexAttribArray(it)
-//                            glVertexAttribPointer(
-//                                it,
-//                                2,
-//                                GL_FLOAT,
-//                                false,
-//                                Float.SIZE_BYTES * 2,
-//                                buffer
-//                            )
-//                        }
-//                    }
-//                }
-//            }
-//
-//            /*
-//                clipMatrix
-//             */
-//            glUniformMatrix4fv(
-//                uniform(Uniform.CLIP_MATRIX),
-//                false,
-//                renderer.clippingContextBufferForMask!!.matrixForMask.tr,
-//            )
-//
-//            /*
-//                texture0
-//             */
-//            run {
-//                glActiveTexture(GL_TEXTURE0)
-//                glBindTexture(
-//                    GL_TEXTURE_2D,
-//                    model.textures[model.getDrawableTextureIndex(index)]!!.id
-//                )
-//                glUniform1i(
-//                    uniform(Uniform.TEXTURE0),
-//                    0
-//                )
-//            }
-//
-//            /*
-//                channelFlag
-//             */
-//            run {
-//                val channelIndex = renderer.clippingContextBufferForMask!!.layoutChannelIndex
-//                val colorChannel =
-//                    renderer.clippingContextBufferForMask!!.manager.channelColors[channelIndex]
-//                glUniform4f(
-//                    uniform(Uniform.CHANNEL_FLAG),
-//                    colorChannel.r,
-//                    colorChannel.g,
-//                    colorChannel.b,
-//                    colorChannel.a
-//                )
-//            }
-//
-//            /*
-//                baseColor 这里是边界
-//             */
-//            run {
-//                val rect: csmRectF = renderer.clippingContextBufferForMask!!.layoutBounds
-//                glUniform4f(
-//                    uniform(Uniform.BASE_COLOR),
-//                    rect.x * 2.0f - 1.0f,
-//                    rect.y * 2.0f - 1.0f,
-//                    rect.right * 2.0f - 1.0f,
-//                    rect.bottom * 2.0f - 1.0f
-//                )
-//            }
-//
-//            glBlendFuncSeparate(
-//                GL_ZERO,
-//                GL_ONE_MINUS_SRC_COLOR,
-//                GL_ZERO,
-//                GL_ONE_MINUS_SRC_ALPHA
-//            )
-//        }
-//    }
-//
     enum class CubismShaderSet {
         SETUP_MASK(
             "live2d/setup_mask.vert", "live2d/setup_mask.frag",

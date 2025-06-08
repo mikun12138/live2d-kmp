@@ -1,0 +1,1 @@
+https://github.com/Live2D/CubismJavaFramework/blob/develop/LICENSE.md

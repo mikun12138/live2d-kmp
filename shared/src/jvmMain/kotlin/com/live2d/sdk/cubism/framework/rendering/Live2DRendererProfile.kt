@@ -105,14 +105,14 @@ object Live2DRendererProfile {
 
     fun save() {
         //-- push state --
-        glGetIntegerv(
-            GL_ARRAY_BUFFER_BINDING,
-            lastArrayBufferBinding,
-        );
-        glGetIntegerv(
-            GL_ELEMENT_ARRAY_BUFFER_BINDING,
-            lastElementArrayBufferBinding,
-        );
+//        glGetIntegerv(
+//            GL_ARRAY_BUFFER_BINDING,
+//            lastArrayBufferBinding,
+//        );
+//        glGetIntegerv(
+//            GL_ELEMENT_ARRAY_BUFFER_BINDING,
+//            lastElementArrayBufferBinding,
+//        );
         glGetIntegerv(
             GL_CURRENT_PROGRAM,
             lastProgram,
@@ -254,14 +254,14 @@ object Live2DRendererProfile {
 //        );
 
         // If the buffer was bound before, it needs to be destroyed.
-        glBindBuffer(
-            GL_ARRAY_BUFFER,
-            lastArrayBufferBinding[0]
-        );
-        glBindBuffer(
-            GL_ELEMENT_ARRAY_BUFFER,
-            lastElementArrayBufferBinding[0]
-        );
+//        glBindBuffer(
+//            GL_ARRAY_BUFFER,
+//            lastArrayBufferBinding[0]
+//        );
+//        glBindBuffer(
+//            GL_ELEMENT_ARRAY_BUFFER,
+//            lastElementArrayBufferBinding[0]
+//        );
 
         // Restore Texture Unit1.
         glActiveTexture(GL_TEXTURE1);

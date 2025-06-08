@@ -4,8 +4,13 @@ import java.lang.foreign.Arena
 import java.lang.foreign.FunctionDescriptor
 import java.lang.foreign.MemorySegment
 import java.lang.foreign.ValueLayout
+import java.nio.file.Path
 import kotlin.io.path.Path
 
+/*
+    v3
+    TODO:: update to v4
+ */
 
 /* ----- *
  * TYPES *
@@ -131,10 +136,14 @@ sealed class Live2DCubismCoreFFM : LibraryFFM {
         descriptor
     )
 
+    @Suppress("UnsafeDynamicallyLoadedCode")
     companion object {
-        init {
+        fun load(
+            pathString: String
+        ) {
+            // TODO:: 区分下架构
             System.load(
-                Path("F:/libs/Live2DCubismCore.dll").toString()
+                Path(pathString, "Live2DCubismCore.dll").toString()
             )
         }
     }
@@ -357,7 +366,7 @@ sealed class Live2DCubismCoreFFM : LibraryFFM {
     ), (Long, Int) -> Long {
         override fun invoke(
             mocHandle: Long,
-            size: Int
+            size: Int,
         ): Long {
             Arena.ofConfined().use {
                 return this.methodHandle.invokeExact(
@@ -371,6 +380,7 @@ sealed class Live2DCubismCoreFFM : LibraryFFM {
             }
         }
     }
+
     /**
      * Updates a model.
      *
@@ -416,7 +426,7 @@ sealed class Live2DCubismCoreFFM : LibraryFFM {
             modelHandle: Long,
             outSizeInPixels: MemorySegment,
             outOriginInPixels: MemorySegment,
-            outPixelsPerUnit: MemorySegment
+            outPixelsPerUnit: MemorySegment,
         ) {
             Arena.ofConfined().use {
                 return this.methodHandle.invokeExact(
