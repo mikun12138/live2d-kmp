@@ -41,6 +41,8 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization.json)
+
+            implementation("com.squareup.okio:okio:3.12.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -57,7 +59,6 @@ kotlin {
             implementation("org.lwjgl:lwjgl-opengl:${lwjglVersion}")
             implementation("org.lwjgl:lwjgl-stb:${lwjglVersion}")
 
-            // 添加对应平台的原生库（根据你的操作系统选择）
             runtimeOnly("org.lwjgl:lwjgl::$lwjglNatives")
             runtimeOnly("org.lwjgl:lwjgl-glfw::$lwjglNatives")
             runtimeOnly("org.lwjgl:lwjgl-opengl::$lwjglNatives")

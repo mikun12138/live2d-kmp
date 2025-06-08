@@ -1,22 +1,23 @@
 package com.live2d.sdk.cubism.framework.rendering
 
+import okio.Buffer
 import org.lwjgl.opengl.GL46.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 import java.nio.ByteBuffer
 
-actual fun ALive2DTexture.Companion.create(buffer: ByteBuffer): ALive2DTexture {
-    return Live2DTexture(buffer)
+actual fun ALive2DTexture.Companion.create(bytes: ByteArray): ALive2DTexture {
+    return Live2DTexture(bytes)
 }
 
 class Live2DTexture : ALive2DTexture {
-    constructor(buffer: ByteBuffer) : super(
+    constructor(bytes: ByteArray) : super(
         MemoryStack.stackPush().use { stack ->
             val width = stack.mallocInt(1)
             val height = stack.mallocInt(1)
             val channels = stack.mallocInt(1)
             STBImage.stbi_load_from_memory(
-                buffer,
+                ByteBuffer.allocateDirect(bytes.size).put(bytes).flip(),
                 width,
                 height,
                 channels,
