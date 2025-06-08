@@ -141,7 +141,7 @@ class Live2DMotionQueueEntry(
                             .takeIf { it >= 0 }
                             ?.let {
                                 value *= eyeBlinkValue
-                                motion.eyeBlinkOverrideFlags.set(it)
+                                motion.eyeBlinkOverrideFlags[it] = true
                             }
                     }
 
@@ -150,7 +150,7 @@ class Live2DMotionQueueEntry(
                             .takeIf { it >= 0 }
                             ?.let {
                                 value += lipSyncValue
-                                motion.lipSyncOverrideFlags.set(it)
+                                motion.lipSyncOverrideFlags[it] = true
                             }
                     }
 
@@ -193,7 +193,7 @@ class Live2DMotionQueueEntry(
                 motion.eyeBlinkParameterIds.forEachIndexed { index, id ->
 
                     // Blink does not apply when there is a motion overriding.
-                    if (motion.eyeBlinkOverrideFlags.get(index)) {
+                    if (motion.eyeBlinkOverrideFlags[index]) {
                         return@forEachIndexed
                     }
 
@@ -208,7 +208,7 @@ class Live2DMotionQueueEntry(
                 motion.lipSyncParameterIds.forEachIndexed { index, id ->
 
                     // Lip-sync does not apply when there is a motion overriding.
-                    if (motion.lipSyncOverrideFlags.get(index)) {
+                    if (motion.lipSyncOverrideFlags[index]) {
                         return@forEachIndexed
                     }
 

@@ -5,13 +5,11 @@ import com.live2d.sdk.cubism.framework.id.Live2DId
 import com.live2d.sdk.cubism.framework.id.Live2DIdManager
 import com.live2d.sdk.cubism.framework.math.CubismMath
 import com.live2d.sdk.cubism.framework.motion.ALive2DMotion
-import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotionInternal
 import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotionInternal.CubismMotionPoint
 import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotionInternal.CubismMotionSegmentType
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
 import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
 import kotlinx.serialization.json.Json
-import java.util.BitSet
 import kotlin.math.max
 
 
@@ -504,9 +502,8 @@ class Live2DMotion : ALive2DMotion {
 
     val eyeBlinkParameterIds: MutableList<Live2DId> = mutableListOf()
     val lipSyncParameterIds: MutableList<Live2DId> = mutableListOf()
-    // TODO::
-    val eyeBlinkOverrideFlags = BitSet(eyeBlinkParameterIds.size)
-    val lipSyncOverrideFlags = BitSet(lipSyncParameterIds.size)
+    val eyeBlinkOverrideFlags = BooleanArray(eyeBlinkParameterIds.size)
+    val lipSyncOverrideFlags = BooleanArray(lipSyncParameterIds.size)
 
     // event / userdata
     var beganMotionCallback: IBeganMotionCallback = IBeganMotionCallback { }
