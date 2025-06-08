@@ -10,7 +10,10 @@ import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL46.*
 
-fun live2dMain() {
+fun live2dMain(
+    resDirMoc: String,
+    mocName: String,
+) {
     if (!glfwInit()) {
         throw Error("Unable to initialize GLFW")
     }
@@ -58,7 +61,7 @@ fun live2dMain() {
         )
 
         val model = AAppModel()
-        model.init("F:/Hiyori", "Hiyori" + ".model3.json")
+        model.init(resDirMoc, "$mocName.model3.json")
 
         val renderer = ALive2DRenderer.create(model.model, 1)
 
