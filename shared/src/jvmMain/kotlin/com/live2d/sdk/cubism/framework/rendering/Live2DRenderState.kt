@@ -2,105 +2,157 @@ package com.live2d.sdk.cubism.framework.rendering
 
 import org.lwjgl.opengl.GL46.*
 
-object Live2DRendererProfile {
-    /**
+object Live2DRenderState {
+    fun pushViewPort(
+        x: Int,
+        y: Int,
+        width: Int,
+        height: Int,
+        block: () -> Unit,
+    ) {
+        val lastViewport = IntArray(4)
+
+        glGetIntegerv(
+            GL_VIEWPORT,
+            lastViewport,
+        )
+
+        glViewport(
+            x,
+            y,
+            width,
+            height,
+        )
+
+        block()
+
+        glViewport(
+            lastViewport[0],
+            lastViewport[1],
+            lastViewport[2],
+            lastViewport[3],
+        )
+    }
+
+    fun pushFrameBuffer(
+        block: () -> Unit
+    ) {
+        val lastFBO = IntArray(1)
+
+        glGetIntegerv(
+            GL_FRAMEBUFFER_BINDING,
+            lastFBO,
+        )
+
+        block()
+
+        glBindFramebuffer(
+            GL_FRAMEBUFFER,
+            lastFBO[0]
+        )
+    }
+
+    /*
+        TODO:: remove
+     */
+/*
+
+    *//**
      * FBO just before model drawing
-     */
-    val lastFBO: IntArray = IntArray(1)
+     *//*
 
-    /**
+    *//**
      * Viewport just before drawing the model
-     */
-    val lastViewport: IntArray = IntArray(4)
+     *//*
 
-    /**
+    *//**
      * Vertex buffer just before drawing the model
-     */
+     *//*
     private val lastArrayBufferBinding = IntArray(1)
 
-    /**
+    *//**
      * Element buffer just before drawing the model
-     */
+     *//*
     private val lastElementArrayBufferBinding = IntArray(1)
 
-    /**
+    *//**
      * Shader program buffer just before drawing the model
-     */
+     *//*
     private val lastProgram = IntArray(1)
 
-    /**
+    *//**
      * The active texture just before drawing the model
-     */
+     *//*
     private val lastActiveTexture = IntArray(1)
 
-    /**
+    *//**
      * Texture unit0 just before model drawing
-     */
+     *//*
     private val lastTexture0Binding2D = IntArray(1)
 
-    /**
+    *//**
      * Texture unit1 just before model drawing
-     */
+     *//*
     private val lastTexture1Binding2D = IntArray(1)
 
-    /**
+    *//**
      * GL_VERTEX_ATTRIB_ARRAY_ENABLED parameter just before model drawing
-     */
+     *//*
     private val lastVertexAttribArrayEnabled = Array<IntArray>(4) { IntArray(1) }
 
-    /**
+    *//**
      * GL_SCISSOR_TEST parameter just before drawing the model
-     */
+     *//*
     private var lastScissorTest = false
 
-    /**
+    *//**
      * GL_BLEND parameter just before model drawing
-     */
+     *//*
     private var lastBlend = false
 
-    /**
+    *//**
      * GL_STENCIL_TEST parameter just before drawing the model
-     */
+     *//*
     private var lastStencilTest = false
 
-    /**
+    *//**
      * GL_DEPTH_TEST parameter just before drawing the model
-     */
+     *//*
     private var lastDepthTest = false
 
-    /**
+    *//**
      * GL_CULL_FACE parameter just before drawing the model
-     */
+     *//*
     private var lastCullFace = false
 
-    /**
+    *//**
      * GL_FRONT_FACE parameter just before model drawing
-     */
+     *//*
     private val lastFrontFace = IntArray(1)
 
-    /**
+    *//**
      * GL_COLOR_WRITEMASK parameter just before model drawing
-     */
+     *//*
     private val lastColorMask = BooleanArray(4)
 
-    /**
+    *//**
      * GL_BLEND_SRC_RGB parameter just before model drawing
-     */
+     *//*
     private val lastBlendingSrcRGB = IntArray(1)
 
-    /**
+    *//**
      * GL_BLEND_DST_RGB parameter just before model drawing
-     */
+     *//*
     private val lastBlendingDstRGB = IntArray(1)
 
-    /**
+    *//**
      * GL_BLEND_SRC_ALPHA parameter just before model drawing
-     */
+     *//*
     private val lastBlendingSrcAlpha = IntArray(1)
 
-    /**
+    *//**
      * GL_BLEND_DST_ALPHA parameter just before model drawing
-     */
+     *//*
     private val lastBlendingDstAlpha = IntArray(1)
 
     fun save() {
@@ -193,14 +245,8 @@ object Live2DRendererProfile {
         );
 
         // Save the FBO and viewport just before drawing the model.
-        glGetIntegerv(
-            GL_FRAMEBUFFER_BINDING,
-            lastFBO,
-        );
-        glGetIntegerv(
-            GL_VIEWPORT,
-            lastViewport,
-        );
+
+
     }
 
     fun restore() {
@@ -288,15 +334,15 @@ object Live2DRendererProfile {
         );
     }
 
-    /**
+    *//**
      * Set enable/disable of OpenGL ES 2.0 features.
      *
      * @param index index of function to enable/disable
      * @param enabled If true, enable it.
-     */
+     *//*
     private fun setGlEnable(
         index: Int,
-        enabled: Boolean
+        enabled: Boolean,
     ) {
         if (enabled) {
             glEnable(index)
@@ -305,15 +351,15 @@ object Live2DRendererProfile {
         }
     }
 
-    /**
+    *//**
      * Set enable/disable for Vertex Attribute Array feature in OpenGL ES 2.0.
      *
      * @param index index of function to enable/disable
      * @param isEnabled If true, enable it.
-     */
+     *//*
     private fun setGlEnableVertexAttribArray(
         index: Int,
-        isEnabled: Int
+        isEnabled: Int,
     ) {
         // It true
         if (isEnabled != 0) {
@@ -322,5 +368,5 @@ object Live2DRendererProfile {
             glDisableVertexAttribArray(index)
         }
     }
-
+    */
 }

@@ -345,7 +345,7 @@ class DrawableContext(
 }
 
 /*
-    对应framebuffer中的一个区域
+    对应framebuffer中的一个区域中的一个通道
  */
 class ClipContext(
     val maskIndexArray: IntArray,

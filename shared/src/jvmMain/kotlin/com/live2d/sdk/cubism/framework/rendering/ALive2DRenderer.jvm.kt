@@ -5,7 +5,6 @@ import com.live2d.sdk.cubism.framework.Live2DFramework.VERTEX_STEP
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.type.csmRectF
-import org.lwjgl.opengl.GL11.glGetError
 import org.lwjgl.opengl.GL30.glMapBufferRange
 import org.lwjgl.opengl.GL44.GL_MAP_COHERENT_BIT
 import org.lwjgl.opengl.GL46.GL_ARRAY_BUFFER
@@ -14,7 +13,6 @@ import org.lwjgl.opengl.GL46.GL_CCW
 import org.lwjgl.opengl.GL46.GL_COLOR_BUFFER_BIT
 import org.lwjgl.opengl.GL46.GL_CULL_FACE
 import org.lwjgl.opengl.GL46.GL_DEPTH_TEST
-import org.lwjgl.opengl.GL46.GL_DYNAMIC_DRAW
 import org.lwjgl.opengl.GL46.GL_ELEMENT_ARRAY_BUFFER
 import org.lwjgl.opengl.GL46.GL_FLOAT
 import org.lwjgl.opengl.GL46.GL_MAP_PERSISTENT_BIT
@@ -25,7 +23,6 @@ import org.lwjgl.opengl.GL46.GL_TRIANGLES
 import org.lwjgl.opengl.GL46.GL_UNSIGNED_SHORT
 import org.lwjgl.opengl.GL46.glBindBuffer
 import org.lwjgl.opengl.GL46.glBindVertexArray
-import org.lwjgl.opengl.GL46.glBufferData
 import org.lwjgl.opengl.GL46.glBufferStorage
 import org.lwjgl.opengl.GL46.glClear
 import org.lwjgl.opengl.GL46.glClearColor
@@ -39,7 +36,6 @@ import org.lwjgl.opengl.GL46.glGenBuffers
 import org.lwjgl.opengl.GL46.glGenVertexArrays
 import org.lwjgl.opengl.GL46.glVertexAttribPointer
 import org.lwjgl.opengl.GL46.glViewport
-import java.nio.ByteBuffer
 import kotlin.math.max
 import kotlin.math.min
 
@@ -141,61 +137,59 @@ class Live2DRenderer(
     }
 
     override fun setupMask() {
-
-        glViewport(
+        Live2DRenderState.pushViewPort(
             0,
             0,
             512,
             512,
-        )
-        clipContext_2_drawableContextList.forEach { (clipContext, drawableContextList) ->
-            run {
-                check(
-                    clipContext.calcClippedDrawTotalBounds(
-                        drawableContextList
-                    )
-                )
+        ) {
+            Live2DRenderState.pushFrameBuffer {
 
-                clipContext.createMatrixForMask()
-                clipContext.createMatrixForDraw()
-            }
-        }
-
-        clipContextList.groupBy { it.bufferIndex }
-            .forEach { (bufferIndex, clipContextList) ->
-                offscreenSurfaces[bufferIndex].let {
-                    it.beginDraw()
-
-                    glClearColor(
-                        1.0f,
-                        1.0f,
-                        1.0f,
-                        1.0f
-                    )
-                    glClear(GL_COLOR_BUFFER_BIT)
-
-                    clipContextList.forEach { clipContext ->
-                        for (maskIndex in clipContext.maskIndexArray) {
-                            val drawableContext = drawableContextArray[maskIndex]
-
-                            if (!drawableContext.vertexPositionDidChange) continue
-
-                            currentClipContextForSetupMask = clipContext
-                            drawMesh(
-                                drawableContext
+                clipContext_2_drawableContextList.forEach { (clipContext, drawableContextList) ->
+                    run {
+                        check(
+                            clipContext.calcClippedDrawTotalBounds(
+                                drawableContextList
                             )
+                        )
+
+                        clipContext.createMatrixForMask()
+                        clipContext.createMatrixForDraw()
+                    }
+                }
+
+                clipContextList.groupBy { it.bufferIndex }
+                    .forEach { (bufferIndex, clipContextList) ->
+                        offscreenSurfaces[bufferIndex].let {
+                            it.draw {
+                                glClearColor(
+                                    1.0f,
+                                    1.0f,
+                                    1.0f,
+                                    1.0f
+                                )
+                                glClear(GL_COLOR_BUFFER_BIT)
+
+                                clipContextList.forEach { clipContext ->
+                                    for (maskIndex in clipContext.maskIndexArray) {
+                                        val drawableContext = drawableContextArray[maskIndex]
+
+                                        if (!drawableContext.vertexPositionDidChange) continue
+
+                                        currentClipContextForSetupMask = clipContext
+                                        drawMesh(
+                                            drawableContext
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
-                    it.endDraw()
-                }
             }
 
-        glViewport(
-            Live2DRendererProfile.lastViewport[0],
-            Live2DRendererProfile.lastViewport[1],
-            Live2DRendererProfile.lastViewport[2],
-            Live2DRendererProfile.lastViewport[3],
-        )
+
+        }
+
     }
 
     lateinit var currentClipContextForSetupMask: ClipContext

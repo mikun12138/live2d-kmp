@@ -9,31 +9,20 @@ actual fun ACubismOffscreenSurface.Companion.create(): ACubismOffscreenSurface {
 }
 
 class CubismOffscreenSurface : ACubismOffscreenSurface() {
-    override fun beginDraw() {
+    override fun beginDraw(): Boolean {
         if (renderTexture == null) {
-            return
+            return false
         }
-
-        glGetIntegerv(
-            GL_FRAMEBUFFER_BINDING,
-            oldFBO
-        )
 
         glBindFramebuffer(
             GL_FRAMEBUFFER,
             renderTexture!![0]
-        );
+        )
+        return true
     }
 
     override fun endDraw() {
-        if (renderTexture == null) {
-            return
-        }
 
-        glBindFramebuffer(
-            GL_FRAMEBUFFER,
-            oldFBO[0]
-        );
     }
 
     fun clear(
@@ -100,28 +89,20 @@ class CubismOffscreenSurface : ACubismOffscreenSurface() {
             0
         );
 
-        val tmpFBO = IntArray(1)
-        glGetIntegerv(
-            GL_FRAMEBUFFER_BINDING,
-            tmpFBO
-        )
-
-        ret[0] = glGenFramebuffers();
-        glBindFramebuffer(
-            GL_FRAMEBUFFER,
-            ret[0]
-        );
-        glFramebufferTexture2D(
-            GL_FRAMEBUFFER,
-            GL_COLOR_ATTACHMENT0,
-            GL_TEXTURE_2D,
-            this.colorBuffer[0],
-            0
-        );
-        glBindFramebuffer(
-            GL_FRAMEBUFFER,
-            tmpFBO[0]
-        );
+        Live2DRenderState.pushFrameBuffer {
+            ret[0] = glGenFramebuffers();
+            glBindFramebuffer(
+                GL_FRAMEBUFFER,
+                ret[0]
+            );
+            glFramebufferTexture2D(
+                GL_FRAMEBUFFER,
+                GL_COLOR_ATTACHMENT0,
+                GL_TEXTURE_2D,
+                this.colorBuffer[0],
+                0
+            )
+        }
 
         this.renderTexture = IntArray(size = 1)
         this.renderTexture?.let { it[0] = ret[0] }

@@ -6,7 +6,20 @@ expect fun ACubismOffscreenSurface.Companion.create(): ACubismOffscreenSurface
 
 abstract class ACubismOffscreenSurface {
 
-    abstract fun beginDraw()
+    fun draw(
+        block: () -> Unit
+    ) {
+        beginDraw().takeIf { it }?.let {
+
+            block()
+
+            endDraw()
+        }
+    }
+    /**
+     * return false if failed to bind framebuffer
+     */
+     abstract fun beginDraw(): Boolean
     abstract fun endDraw()
 
     abstract fun createOffscreenSurface(displayBufferSize: CubismVector2)

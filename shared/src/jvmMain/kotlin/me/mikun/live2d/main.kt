@@ -3,7 +3,7 @@ package me.mikun.live2d
 import com.live2d.sdk.cubism.framework.Live2DFramework
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.AAppModel
-import com.live2d.sdk.cubism.framework.rendering.Live2DRendererProfile
+import com.live2d.sdk.cubism.framework.rendering.Live2DRenderState
 import com.live2d.sdk.cubism.framework.rendering.ALive2DRenderer
 import com.live2d.sdk.cubism.framework.rendering.create
 import org.lwjgl.glfw.GLFW.*
@@ -92,9 +92,7 @@ fun live2dMain(
             )
 
             model.update(Timer.deltaF)
-            Live2DRendererProfile.save()
             renderer.frame(matrix)
-            Live2DRendererProfile.restore()
 
             glfwSwapBuffers(handle)
             glfwPollEvents()
