@@ -82,17 +82,24 @@ compose.desktop {
             packageName = "sandbox"
             packageVersion = "1.0.0"
             windows {
-                appResourcesRootDir.set(project.layout.buildDirectory.dir("libs/live2DCore"))
+                appResourcesRootDir.set(project.layout.buildDirectory.dir("libs/allRes"))
             }
         }
     }
 }
 
-tasks.register<DefaultTask>("downloadLive2DCore") {
+tasks.withType<AbstractComposeDesktopTask> {
+    dependsOn("downloadLive2DCore")
+}
+
+val allResDirWindows = layout.buildDirectory.dir("libs/allRes/windows")
+val resDirMoc = allResDirWindows.get().dir("moc")
+val resDirLib = allResDirWindows.get().dir("lib")
+
+tasks.register("downloadLive2DCore") {
     group = "build setup"
 
     val downloadUrl = "https://cubism.live2d.com/sdk-native/bin/CubismSdkForNative-5-r.4.zip"
-    val outputDir = layout.buildDirectory.dir("libs/live2DCore")
 
     val downloadTempDir = layout.buildDirectory.dir("libs/live2DCore/temp")
     val archiveFile = downloadTempDir.get().file("CubismSdkForNative-5-r.4.zip").asFile
@@ -112,15 +119,36 @@ tasks.register<DefaultTask>("downloadLive2DCore") {
 
         // unzip
         copy {
-            from(zipTree(archiveFile))
-            into(downloadTempDir)
+            from(
+                zipTree(archiveFile)
+            )
+            into(
+                downloadTempDir
+            )
         }
 
+        /*
+            windows
+         */
+
+        // dll
         copy {
             from(
-                downloadTempDir.get().dir("CubismSdkForNative-5-r.4/Core/dll")
+                downloadTempDir.get().dir("CubismSdkForNative-5-r.4/Core/dll/windows")
             )
-            into(outputDir)
+            into(
+                resDirLib
+            )
+        }
+
+        // res
+        copy {
+            from(
+                downloadTempDir.get().dir("CubismSdkForNative-5-r.4/Samples/Resources")
+            )
+            into(
+                resDirMoc
+            )
         }
 
     }
