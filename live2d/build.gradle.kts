@@ -4,7 +4,12 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     kotlin("plugin.serialization") version "2.1.20"
+
+    id("com.vanniktech.maven.publish") version "0.32.0"
 }
+
+group = "me.mikun"
+version = "0.0.1"
 
 kotlin {
     androidTarget {

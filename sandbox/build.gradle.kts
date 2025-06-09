@@ -45,7 +45,7 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.runtime)
 
-            implementation(projects.shared)
+//            implementation(projects.)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
