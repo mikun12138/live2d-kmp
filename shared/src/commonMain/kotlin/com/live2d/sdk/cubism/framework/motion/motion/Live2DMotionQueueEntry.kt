@@ -8,7 +8,7 @@ import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotionInternal.Cubism
 import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotion.Companion.EffectID
 import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotion.Companion.MotionBehavior
 import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotion.Companion.OpacityID
-import com.live2d.sdk.cubism.util.switchStateTo
+import com.live2d.sdk.cubism.framework.utils.switchStateTo
 
 class Live2DMotionQueueEntry(
     override val manager: Live2DMotionManager,

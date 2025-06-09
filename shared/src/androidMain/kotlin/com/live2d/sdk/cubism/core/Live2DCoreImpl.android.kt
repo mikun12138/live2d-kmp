@@ -2,54 +2,61 @@ package com.live2d.sdk.cubism.core
 
 actual object Live2DCoreImpl {
 
-    actual fun getVersion(): Int = 0
+    actual fun getVersion(): Int {
+        TODO()
+    }
 
     actual fun getLatestMocVersion(): Int {
-        TODO("Not yet implemented")
+        TODO()
     }
 
     actual fun getMocVersion(mocData: ByteArray): Int {
-        TODO("Not yet implemented")
+        TODO()
     }
 
     actual fun hasMocConsistency(mocData: ByteArray): Int {
-        TODO("Not yet implemented")
+        TODO()
     }
 
     actual fun instantiateMoc(mocData: ByteArray): Long {
-        TODO("Not yet implemented")
+        TODO()
     }
 
     actual fun destroyMoc(mocHandle: Long) {
-        TODO("Not yet implemented")
+        TODO()
     }
 
     actual fun instantiateModel(mocHandle: Long): Long {
-        TODO("Not yet implemented")
+        TODO()
     }
 
     actual fun destroyModel(modelHandle: Long) {
-        TODO("Not yet implemented")
+        TODO()
     }
 
     actual fun updateModel(modelHandle: Long) {
-        TODO("Not yet implemented")
+        TODO()
     }
 
     actual fun resetDrawableDynamicFlags(modelHandle: Long) {
-        TODO("Not yet implemented")
+        TODO()
     }
 
+
     actual fun syncToNativeModel(model: CubismModel) {
-        TODO("Not yet implemented")
+        TODO()
     }
 
     actual fun syncFromNativeModel(model: CubismModel) {
-        TODO("Not yet implemented")
+        TODO()
     }
 
     actual fun initializeJavaModelWithNativeModel(model: CubismModel) {
-        TODO("Not yet implemented")
+        TODO()
     }
-}
 
+    actual fun coreLogFunction(logFunction: LogFunction) {
+        TODO()
+    }
+
+}

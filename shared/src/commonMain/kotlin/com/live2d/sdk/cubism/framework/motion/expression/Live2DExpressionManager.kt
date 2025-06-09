@@ -13,7 +13,7 @@ import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.motion.ALive2DMotion
 import com.live2d.sdk.cubism.framework.motion.ALive2DMotionManager
 import com.live2d.sdk.cubism.framework.motion.ALive2DMotionQueueEntry
-import com.live2d.sdk.cubism.util.switchStateTo
+import com.live2d.sdk.cubism.framework.utils.switchStateTo
 import kotlin.math.min
 
 class Live2DExpressionManager(

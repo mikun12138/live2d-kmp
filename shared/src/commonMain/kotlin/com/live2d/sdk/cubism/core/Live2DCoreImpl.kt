@@ -30,7 +30,5 @@ expect object Live2DCoreImpl {
 
     fun coreLogFunction(logFunction: LogFunction)
 
-
-
 }
 

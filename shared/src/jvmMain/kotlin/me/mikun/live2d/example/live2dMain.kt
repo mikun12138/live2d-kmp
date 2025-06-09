@@ -1,4 +1,4 @@
-package me.mikun.live2d
+package me.mikun.live2d.example
 
 import com.live2d.sdk.cubism.framework.Live2DFramework
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
@@ -25,8 +25,8 @@ fun live2dMain(
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6)
 
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE)
-//    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
+//    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE)
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE)
 
     val handle = glfwCreateWindow(1920, 1080, "hello world", 0, 0).takeIf {
         it != 0L

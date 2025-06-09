@@ -7,9 +7,9 @@
 package com.live2d.sdk.cubism.framework.motion
 
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
-import com.live2d.sdk.cubism.util.IState
-import com.live2d.sdk.cubism.util.StateContext
-import com.live2d.sdk.cubism.util.switchStateTo
+import com.live2d.sdk.cubism.framework.utils.IState
+import com.live2d.sdk.cubism.framework.utils.StateContext
+import com.live2d.sdk.cubism.framework.utils.switchStateTo
 
 /**
  * Manager class for each motion being played by CubismMotionQueueManager.

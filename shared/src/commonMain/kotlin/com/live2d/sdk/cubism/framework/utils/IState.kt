@@ -1,4 +1,4 @@
-package com.live2d.sdk.cubism.util
+package com.live2d.sdk.cubism.framework.utils
 
 interface StateContext<C : StateContext<C, S>, S : IState<C, S>> {
     var state: S

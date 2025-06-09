@@ -35,7 +35,8 @@ import org.lwjgl.opengl.GL46.glFrontFace
 import org.lwjgl.opengl.GL46.glGenBuffers
 import org.lwjgl.opengl.GL46.glGenVertexArrays
 import org.lwjgl.opengl.GL46.glVertexAttribPointer
-import org.lwjgl.opengl.GL46.glViewport
+import java.nio.FloatBuffer
+import java.nio.ShortBuffer
 import kotlin.math.max
 import kotlin.math.min
 
@@ -60,9 +61,12 @@ class Live2DRenderer(
 
     class VertexArray {
         var vao: Int = -1
-        var vbo0: Int = -1
-        var vbo1: Int = -1
+        var vboPosition: Int = -1
+        lateinit var positionsBuffer: FloatBuffer
+        var vboTexCoord: Int = -1
+        lateinit var texCoordsBuffer: FloatBuffer
         var ebo: Int = -1
+        var indicesBuffer: ShortBuffer? = null
     }
 
     val drawableVertexArrayArray: Array<VertexArray> = Array(model.drawableCount) {
@@ -72,17 +76,17 @@ class Live2DRenderer(
 
             glBindVertexArray(vao)
             drawableContext.vertex.apply {
-                vbo0 = glGenBuffers()
-                glBindBuffer(GL_ARRAY_BUFFER, vbo0)
+                vboPosition = glGenBuffers()
+                glBindBuffer(GL_ARRAY_BUFFER, vboPosition)
                 glBufferStorage(
                     GL_ARRAY_BUFFER,
-                    positionCount * Float.SIZE_BYTES.toLong(),
+                    positionsArray.size * Float.SIZE_BYTES.toLong(),
                     GL_MAP_WRITE_BIT or GL_MAP_PERSISTENT_BIT or GL_MAP_COHERENT_BIT
                 )
-                positions = glMapBufferRange(
+                positionsBuffer = glMapBufferRange(
                     GL_ARRAY_BUFFER,
                     0,
-                    positionCount * Float.SIZE_BYTES.toLong(),
+                    positionsArray.size * Float.SIZE_BYTES.toLong(),
                     GL_MAP_WRITE_BIT or GL_MAP_PERSISTENT_BIT or GL_MAP_COHERENT_BIT
                 )!!.asFloatBuffer()
                 glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0)
@@ -90,17 +94,17 @@ class Live2DRenderer(
             }
 
             drawableContext.vertex.apply {
-                vbo1 = glGenBuffers()
-                glBindBuffer(GL_ARRAY_BUFFER, vbo1)
+                vboTexCoord = glGenBuffers()
+                glBindBuffer(GL_ARRAY_BUFFER, vboTexCoord)
                 glBufferStorage(
                     GL_ARRAY_BUFFER,
-                    texCoordCount * Float.SIZE_BYTES.toLong(),
+                    texCoordsArray.size * Float.SIZE_BYTES.toLong(),
                     GL_MAP_WRITE_BIT or GL_MAP_PERSISTENT_BIT or GL_MAP_COHERENT_BIT
                 )
-                texCoords = glMapBufferRange(
+                texCoordsBuffer = glMapBufferRange(
                     GL_ARRAY_BUFFER,
                     0,
-                    texCoordCount * Float.SIZE_BYTES.toLong(),
+                    texCoordsArray.size * Float.SIZE_BYTES.toLong(),
                     GL_MAP_WRITE_BIT or GL_MAP_PERSISTENT_BIT or GL_MAP_COHERENT_BIT
                 )!!.asFloatBuffer()
                 glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0)
@@ -110,16 +114,16 @@ class Live2DRenderer(
             drawableContext.vertex.apply {
                 ebo = glGenBuffers()
                 glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
-                if (indiceCount > 0) {
+                if (indicesArray.isNotEmpty()) {
                     glBufferStorage(
                         GL_ELEMENT_ARRAY_BUFFER,
-                        (indiceCount * Short.SIZE_BYTES).toLong(),
+                        (indicesArray.size * Short.SIZE_BYTES).toLong(),
                         GL_MAP_WRITE_BIT or GL_MAP_PERSISTENT_BIT or GL_MAP_COHERENT_BIT
                     )
-                    indices = glMapBufferRange(
+                    indicesBuffer = glMapBufferRange(
                         GL_ELEMENT_ARRAY_BUFFER,
                         0,
-                        indiceCount * Short.SIZE_BYTES.toLong(),
+                        indicesArray.size * Short.SIZE_BYTES.toLong(),
                         GL_MAP_WRITE_BIT or GL_MAP_PERSISTENT_BIT or GL_MAP_COHERENT_BIT
                     )!!.asShortBuffer()
                 }
@@ -137,6 +141,27 @@ class Live2DRenderer(
     }
 
     override fun setupMask() {
+        drawableVertexArrayArray.forEachIndexed { index, vertexArray ->
+            with(drawableContextArray[index].vertex) {
+                vertexArray.positionsBuffer
+                    .clear()
+                vertexArray.positionsBuffer
+                    .put(positionsArray)
+                    .position(0)
+
+                vertexArray.texCoordsBuffer
+                    .clear()
+                vertexArray.texCoordsBuffer
+                    .put(texCoordsArray)
+                    .position(0)
+
+                vertexArray.indicesBuffer
+                    ?.clear()
+                vertexArray.indicesBuffer
+                    ?.put(indicesArray)
+                    ?.position(0)
+            }
+        }
         Live2DRenderState.pushViewPort(
             0,
             0,
@@ -252,7 +277,7 @@ class Live2DRenderer(
         glFrontFace(GL_CCW)
         glDrawElements(
             GL_TRIANGLES,
-            drawableContext.vertex.indiceCount,
+            drawableContext.vertex.indicesArray.size,
             GL_UNSIGNED_SHORT,
             0
         )
@@ -323,8 +348,8 @@ fun ClipContext.calcClippedDrawTotalBounds(
         val loop = drawableContext.vertex.count * VERTEX_STEP
         var pi = VERTEX_OFFSET
         while (pi < loop) {
-            val x = drawableContext.vertex.positions[pi]
-            val y = drawableContext.vertex.positions[pi + 1]
+            val x = drawableContext.vertex.positionsArray[pi]
+            val y = drawableContext.vertex.positionsArray[pi + 1]
             minX = min(minX, x)
             maxX = max(maxX, x)
             minY = min(minY, y)

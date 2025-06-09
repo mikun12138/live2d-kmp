@@ -6,5 +6,6 @@ actual fun ALive2DRenderer.Companion.create(
     model: Live2DModel,
     offScreenBufferCount: Int,
 ): ALive2DRenderer {
-    TODO("Not yet implemented")
+    TODO()
 }
+

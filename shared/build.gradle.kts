@@ -41,8 +41,6 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization.json)
-
-            implementation("com.squareup.okio:okio:3.12.0")
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

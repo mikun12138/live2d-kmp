@@ -5,13 +5,9 @@ import com.live2d.sdk.cubism.framework.math.CubismVector2
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.rendering.ALive2DRenderer.State
 import com.live2d.sdk.cubism.framework.type.csmRectF
-import com.live2d.sdk.cubism.util.IState
-import com.live2d.sdk.cubism.util.StateContext
-import com.live2d.sdk.cubism.util.switchStateTo
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.FloatBuffer
-import java.nio.ShortBuffer
+import com.live2d.sdk.cubism.framework.utils.IState
+import com.live2d.sdk.cubism.framework.utils.StateContext
+import com.live2d.sdk.cubism.framework.utils.switchStateTo
 
 expect fun ALive2DRenderer.Companion.create(
     model: Live2DModel,
@@ -248,7 +244,8 @@ abstract class ALive2DRenderer : StateContext<ALive2DRenderer, State> {
 
 }
 
-class DrawableContext(
+// TODO:: expert DrawableContext.create() 然后平台实现?
+class DrawableContext constructor(
     val model: Live2DModel,
     val index: Int,
 ) {
@@ -304,41 +301,14 @@ class DrawableContext(
         val index: Int,
     ) {
         val count = model.getDrawableVertexCount(index)
-        val positionCount = model.getDrawableVertexPositions(index)!!.size
-        lateinit var positions: FloatBuffer
-        val texCoordCount = model.getDrawableVertexUVs(index)!!.size
-        lateinit var texCoords: FloatBuffer
-        val indiceCount = model.getDrawableIndices(index)!!.size
-        lateinit var indices: ShortBuffer
+        var positionsArray: FloatArray = model.getDrawableVertexPositions(index)!!
+        var texCoordsArray: FloatArray = model.getDrawableVertexUVs(index)!!
+        var indicesArray: ShortArray = model.getDrawableIndices(index)!!
 
         fun update() {
-            if (!::positions.isInitialized) {
-                positions =
-                    ByteBuffer.allocateDirect(texCoordCount * Float.SIZE_BYTES)
-                        .order(ByteOrder.nativeOrder())
-                        .asFloatBuffer()
-            }
-            if (!::texCoords.isInitialized) {
-                texCoords =
-                    ByteBuffer.allocateDirect(texCoordCount * Float.SIZE_BYTES)
-                        .order(ByteOrder.nativeOrder())
-                        .asFloatBuffer()
-            }
-            if (!::indices.isInitialized) {
-                indices =
-                    ByteBuffer.allocateDirect(indiceCount * Short.SIZE_BYTES)
-                        .order(ByteOrder.nativeOrder())
-                        .asShortBuffer()
-            }
-            positions.clear()
-                .put(model.getDrawableVertexPositions(index))
-                .position(0)
-            texCoords.clear()
-                .put(model.getDrawableVertexUVs(index))
-                .position(0)
-            indices.clear()
-                .put(model.getDrawableIndices(index))
-                .position(0)
+            positionsArray = model.getDrawableVertexPositions(index)!!
+            texCoordsArray = model.getDrawableVertexUVs(index)!!
+            indicesArray =  model.getDrawableIndices(index)!!
         }
     }
 

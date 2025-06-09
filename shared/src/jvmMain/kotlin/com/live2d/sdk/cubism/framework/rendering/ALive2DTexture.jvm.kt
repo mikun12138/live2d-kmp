@@ -1,6 +1,5 @@
 package com.live2d.sdk.cubism.framework.rendering
 
-import okio.Buffer
 import org.lwjgl.opengl.GL46.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack

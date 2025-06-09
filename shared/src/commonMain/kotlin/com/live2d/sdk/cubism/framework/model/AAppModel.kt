@@ -17,8 +17,6 @@ import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotionManager
 import com.live2d.sdk.cubism.framework.rendering.ALive2DTexture
 import com.live2d.sdk.cubism.framework.rendering.create
 import kotlinx.serialization.json.Json
-import okio.Buffer
-import java.nio.ByteBuffer
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
@@ -43,7 +41,6 @@ open class AAppModel : Live2DUserModel() {
         setupModel(dir, modelJson)
 
         setupTextures(dir, modelJson)
-
     }
 
     private fun setupModel(dir: String, modelJson: ModelJson) {
