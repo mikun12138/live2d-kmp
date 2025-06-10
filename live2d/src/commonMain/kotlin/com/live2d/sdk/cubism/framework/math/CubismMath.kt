@@ -6,7 +6,7 @@
  */
 package com.live2d.sdk.cubism.framework.math
 
-import com.live2d.sdk.cubism.framework.utils.Live2DLogger
+import me.mikun.live2d.framework.utils.Live2DLogger
 import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.atan2

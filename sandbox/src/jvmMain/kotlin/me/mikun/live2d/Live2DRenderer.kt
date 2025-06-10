@@ -1,15 +1,15 @@
 package me.mikun.live2d
 
-import com.live2d.sdk.cubism.ex.rendering.ALive2DOffscreenSurface
-import com.live2d.sdk.cubism.ex.rendering.ALive2DRenderer
-import com.live2d.sdk.cubism.ex.rendering.ClipContext
-import com.live2d.sdk.cubism.ex.rendering.DrawableContext
-import com.live2d.sdk.cubism.framework.Live2DFramework.VERTEX_OFFSET
-import com.live2d.sdk.cubism.framework.Live2DFramework.VERTEX_STEP
+import me.mikun.live2d.ex.rendering.ALive2DOffscreenSurface
+import me.mikun.live2d.ex.rendering.ALive2DRenderer
+import me.mikun.live2d.ex.rendering.ClipContext
+import me.mikun.live2d.ex.rendering.DrawableContext
+import me.mikun.live2d.framework.Live2DFramework.VERTEX_OFFSET
+import me.mikun.live2d.framework.Live2DFramework.VERTEX_STEP
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.math.CubismVector2
-import com.live2d.sdk.cubism.ex.model.AAppModel
-import com.live2d.sdk.cubism.framework.type.csmRectF
+import me.mikun.live2d.ex.model.AAppModel
+import me.mikun.live2d.framework.type.csmRectF
 import org.lwjgl.opengl.GL11.GL_NEAREST
 import org.lwjgl.opengl.GL11.GL_RGBA
 import org.lwjgl.opengl.GL11.GL_TEXTURE_2D

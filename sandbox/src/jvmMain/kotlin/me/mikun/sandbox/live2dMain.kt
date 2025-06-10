@@ -1,8 +1,8 @@
 package me.mikun.sandbox
 
-import com.live2d.sdk.cubism.framework.Live2DFramework
+import me.mikun.live2d.framework.Live2DFramework
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import com.live2d.sdk.cubism.ex.model.AAppModel
+import me.mikun.live2d.ex.model.AAppModel
 import me.mikun.live2d.Live2DRenderer
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
