@@ -1,4 +1,4 @@
-package com.live2d.sdk.cubism.framework.rendering
+package me.mikun.live2d
 
 import com.live2d.sdk.cubism.ex.rendering.ALive2DOffscreenSurface
 import com.live2d.sdk.cubism.framework.math.CubismVector2

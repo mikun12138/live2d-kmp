@@ -1,4 +1,4 @@
-package com.live2d.sdk.cubism.framework.rendering
+package me.mikun.live2d
 
 import org.lwjgl.opengl.GL46.*
 

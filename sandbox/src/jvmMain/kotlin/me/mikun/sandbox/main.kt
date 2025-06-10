@@ -1,7 +1,6 @@
 package me.mikun.sandbox
 
 import com.live2d.sdk.cubism.core.Live2DCubismCoreFFM
-import me.mikun.live2d.example.live2dMain
 import java.util.Locale.getDefault
 
 
