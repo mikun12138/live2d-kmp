@@ -1,5 +1,6 @@
 package com.live2d.sdk.cubism.framework.rendering
 
+import com.live2d.sdk.cubism.ex.rendering.ALive2DRenderer
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 
 actual fun ALive2DRenderer.Companion.create(

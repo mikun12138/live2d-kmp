@@ -1,6 +1,9 @@
 package com.live2d.sdk.cubism.framework.rendering
 
-import com.live2d.sdk.cubism.framework.rendering.ClipContext.Companion.CHANNEL_FLAGS
+import com.live2d.sdk.cubism.ex.rendering.ClipContext
+import com.live2d.sdk.cubism.ex.rendering.ClipContext.Companion.CHANNEL_FLAGS
+import com.live2d.sdk.cubism.ex.rendering.CubismBlendMode
+import com.live2d.sdk.cubism.ex.rendering.DrawableContext
 import com.live2d.sdk.cubism.framework.type.bottom
 import com.live2d.sdk.cubism.framework.type.right
 import com.live2d.sdk.cubism.framework.type.csmRectF

@@ -1,16 +1,20 @@
 package com.live2d.sdk.cubism.framework.rendering
 
+import com.live2d.sdk.cubism.ex.rendering.ALive2DTexture
+import com.live2d.sdk.cubism.framework.model.Live2DModel
 import org.lwjgl.opengl.GL46.*
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
 import java.nio.ByteBuffer
 
-actual fun ALive2DTexture.Companion.create(bytes: ByteArray): ALive2DTexture {
-    return Live2DTexture(bytes)
-}
-
 class Live2DTexture : ALive2DTexture {
-    constructor(bytes: ByteArray) : super(
+    constructor(
+        model: Live2DModel,
+        textureIndex: Int,
+        bytes: ByteArray,
+    ) : super(
+        model,
+        textureIndex,
         MemoryStack.stackPush().use { stack ->
             val width = stack.mallocInt(1)
             val height = stack.mallocInt(1)

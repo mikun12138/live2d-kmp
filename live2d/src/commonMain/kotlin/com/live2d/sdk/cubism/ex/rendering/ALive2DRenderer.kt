@@ -1,18 +1,12 @@
-package com.live2d.sdk.cubism.framework.rendering
+package com.live2d.sdk.cubism.ex.rendering
 
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import com.live2d.sdk.cubism.framework.math.CubismVector2
 import com.live2d.sdk.cubism.framework.model.Live2DModel
-import com.live2d.sdk.cubism.framework.rendering.ALive2DRenderer.State
+import com.live2d.sdk.cubism.ex.rendering.ALive2DRenderer.State
 import com.live2d.sdk.cubism.framework.type.csmRectF
 import com.live2d.sdk.cubism.framework.utils.IState
 import com.live2d.sdk.cubism.framework.utils.StateContext
 import com.live2d.sdk.cubism.framework.utils.switchStateTo
-
-expect fun ALive2DRenderer.Companion.create(
-    model: Live2DModel,
-    offScreenBufferCount: Int,
-): ALive2DRenderer
 
 abstract class ALive2DRenderer : StateContext<ALive2DRenderer, State> {
     override var state: State = State.SETUP_MASK
@@ -20,25 +14,21 @@ abstract class ALive2DRenderer : StateContext<ALive2DRenderer, State> {
 
     var mvp: CubismMatrix44 = CubismMatrix44.create()
 
-    val offscreenSurfaces: Array<ACubismOffscreenSurface>
+    val offScreenSurfacesCount: Int
+    abstract val offscreenSurfaces: Array<ALive2DOffscreenSurface>
+
     val clipContextList: MutableList<ClipContext> = mutableListOf()
 
     constructor(
         model: Live2DModel,
-        offScreenBufferCount: Int,
+        offScreenSurfacesCount: Int,
     ) {
 
         drawableContextArray = Array(model.drawableCount) {
             DrawableContext(model, it)
         }
 
-        offscreenSurfaces = Array(offScreenBufferCount) {
-            ACubismOffscreenSurface.create().apply {
-                createOffscreenSurface(
-                    CubismVector2(512.0f, 512.0f)
-                )
-            }
-        }
+        this.offScreenSurfacesCount = offScreenSurfacesCount
 
         repeat(model.drawableCount) { index ->
             val drawableMask = model.getDrawableMask(index)!!
@@ -61,21 +51,21 @@ abstract class ALive2DRenderer : StateContext<ALive2DRenderer, State> {
     }
 
     fun setupLayoutBounds(clipContextCount: Int) {
-        val useClippingMaskMaxCount = if (offscreenSurfaces.size <= 1)
+        val useClippingMaskMaxCount = if (offScreenSurfacesCount <= 1)
             CLIPPING_MASK_MAX_COUNT_ON_DEFAULT
         else
-            CLIPPING_MASK_MAX_COUNT_ON_MULTI_RENDER_TEXTURE * offscreenSurfaces.size
+            CLIPPING_MASK_MAX_COUNT_ON_MULTI_RENDER_TEXTURE * offScreenSurfacesCount
 
         // レンダーテクスチャが1枚なら9分割する（最大36枚）
-        val layoutCountMaxValue = if (offscreenSurfaces.size <= 1) 9 else 8
+        val layoutCountMaxValue = if (offScreenSurfacesCount <= 1) 9 else 8
 
         // ひとつのRenderTextureを極力いっぱいに使ってマスクをレイアウトする。
         // マスクグループの数が4以下ならRGBA各チャンネルに１つずつマスクを配置し、5以上6以下ならRGBAを2,2,1,1と配置する。
         // NOTE: 1枚に割り当てるマスクの分割数を取りたいため、小数点は切り上げる。
         val countPerSheetDiv =
-            (clipContextCount + offscreenSurfaces.size - 1) / offscreenSurfaces.size // レンダーテクスチャ1枚あたり何枚割り当てるか
+            (clipContextCount + offScreenSurfacesCount - 1) / offScreenSurfacesCount // レンダーテクスチャ1枚あたり何枚割り当てるか
         val reduceLayoutTextureCount =
-            clipContextCount % offscreenSurfaces.size // レイアウトの数を1枚減らすレンダーテクスチャの数（この数だけのレンダーテクスチャが対象）。
+            clipContextCount % offScreenSurfacesCount // レイアウトの数を1枚減らすレンダーテクスチャの数（この数だけのレンダーテクスチャが対象）。
 
         // RGBAを順番に使っていく。
         val divCount = countPerSheetDiv / COLOR_CHANNEL_COUNT // 1チャンネルに配置する基本のマスク個数
@@ -85,7 +75,7 @@ abstract class ALive2DRenderer : StateContext<ALive2DRenderer, State> {
         // RGBAそれぞれのチャンネルを用意していく(0:R , 1:G , 2:B, 3:A, )
         val iterator = clipContextList.iterator()
 
-        for (renderTextureIndex in 0..<offscreenSurfaces.size) {
+        for (renderTextureIndex in 0..<offScreenSurfacesCount) {
             for (channelIndex in 0..<COLOR_CHANNEL_COUNT) {
                 // このチャンネルにレイアウトする数
                 // NOTE: レイアウト数 = 1チャンネルに配置する基本のマスク + 余りのマスクを置くチャンネルなら1つ追加
@@ -251,7 +241,11 @@ class DrawableContext constructor(
 ) {
     val renderOrder = model.getDrawableRenderOrder(index)
 
-    val texture: ALive2DTexture = model.textures[model.getDrawableTextureIndex(index)]!!
+    val textureIndex = model.getDrawableTextureIndex(index
+
+    val texture: ALive2DTexture by lazy {
+        ALive2DTexture.Cache.textures[model]!![model.getDrawableTextureIndex(index)]!!
+    }
 
     val isCulling = !model.getDrawableIsDoubleSided(index)
 

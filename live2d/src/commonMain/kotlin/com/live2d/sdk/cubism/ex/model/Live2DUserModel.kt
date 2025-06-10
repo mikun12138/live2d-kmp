@@ -1,18 +1,14 @@
-/*
- * Copyright(c) Live2D Inc. All rights reserved.
- *
- * Use of this source code is governed by the Live2D Open Software license
- * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
- */
-package com.live2d.sdk.cubism.framework.model
+package com.live2d.sdk.cubism.ex.model
 
-import com.live2d.sdk.cubism.framework.pose.Live2DPose
 import com.live2d.sdk.cubism.framework.math.CubismModelMatrix
+import com.live2d.sdk.cubism.framework.model.Live2DMoc
+import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
 import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
 import com.live2d.sdk.cubism.framework.motion.expression.Live2DExpressionMotion
 import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotion
 import com.live2d.sdk.cubism.framework.physics.Live2DPhysics
+import com.live2d.sdk.cubism.framework.pose.Live2DPose
 import com.live2d.sdk.cubism.framework.userdata.Live2DModelUserData
 import com.live2d.sdk.cubism.framework.utils.Live2DLogger
 
@@ -88,14 +84,14 @@ abstract class Live2DUserModel protected constructor() {
         this.model = moc.instantiateModel()
 
         this.model.saveParameters()
-        modelMatrix = CubismModelMatrix.create(this.model.canvasWidth, this.model.canvasHeight)
+        modelMatrix = CubismModelMatrix.Companion.create(this.model.canvasWidth, this.model.canvasHeight)
     }
 
     protected fun loadPose(buffer: ByteArray) {
         try {
             pose = Live2DPose(buffer)
         } catch (e: Exception) {
-            Live2DLogger.error("Failed to loadPose(). ${e.message}")
+            Live2DLogger.Companion.error("Failed to loadPose(). ${e.message}")
         }
     }
 
@@ -108,7 +104,7 @@ abstract class Live2DUserModel protected constructor() {
             return Live2DMotion(buffer, onFinishedMotionHandler, onBeganMotionHandler)
         } catch (e: Exception) {
             e.printStackTrace()
-            Live2DLogger.error("Failed to loadMotion(). ${e.message}")
+            Live2DLogger.Companion.error("Failed to loadMotion(). ${e.message}")
             return null
         }
     }
@@ -117,7 +113,7 @@ abstract class Live2DUserModel protected constructor() {
         try {
             return Live2DExpressionMotion(buffer)
         } catch (e: Exception) {
-            Live2DLogger.error("Failed to loadExpressionMotion(). ${e.message}")
+            Live2DLogger.Companion.error("Failed to loadExpressionMotion(). ${e.message}")
             return null
         }
     }
@@ -126,7 +122,7 @@ abstract class Live2DUserModel protected constructor() {
         try {
             physics = Live2DPhysics(buffer)
         } catch (e: Exception) {
-            Live2DLogger.error("Failed to loadPhysics(). ${e.message}")
+            Live2DLogger.Companion.error("Failed to loadPhysics(). ${e.message}")
         }
     }
 
@@ -134,7 +130,7 @@ abstract class Live2DUserModel protected constructor() {
         try {
             modelUserData = Live2DModelUserData(buffer)
         } catch (e: Exception) {
-            Live2DLogger.error("Failed to loadUserData(). ${e.message}")
+            Live2DLogger.Companion.error("Failed to loadUserData(). ${e.message}")
         }
     }
 

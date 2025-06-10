@@ -45,7 +45,7 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.runtime)
 
-//            implementation(projects.)
+            implementation(projects.live2d)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

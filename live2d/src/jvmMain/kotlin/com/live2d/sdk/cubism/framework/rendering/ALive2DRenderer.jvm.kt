@@ -1,8 +1,14 @@
 package com.live2d.sdk.cubism.framework.rendering
 
+import com.live2d.sdk.cubism.ex.rendering.ALive2DOffscreenSurface
+import com.live2d.sdk.cubism.ex.rendering.ALive2DRenderer
+import com.live2d.sdk.cubism.ex.rendering.ALive2DTexture
+import com.live2d.sdk.cubism.ex.rendering.ClipContext
+import com.live2d.sdk.cubism.ex.rendering.DrawableContext
 import com.live2d.sdk.cubism.framework.Live2DFramework.VERTEX_OFFSET
 import com.live2d.sdk.cubism.framework.Live2DFramework.VERTEX_STEP
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
+import com.live2d.sdk.cubism.framework.math.CubismVector2
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.type.csmRectF
 import org.lwjgl.opengl.GL30.glMapBufferRange
@@ -40,17 +46,6 @@ import java.nio.ShortBuffer
 import kotlin.math.max
 import kotlin.math.min
 
-actual fun ALive2DRenderer.Companion.create(
-    model: Live2DModel,
-    offScreenBufferCount: Int,
-): ALive2DRenderer {
-    return Live2DRenderer(
-        model,
-        offScreenBufferCount
-    )
-}
-
-
 class Live2DRenderer(
     model: Live2DModel,
     offScreenBufferCount: Int,
@@ -59,6 +54,17 @@ class Live2DRenderer(
     offScreenBufferCount,
 ) {
 
+    override val offscreenSurfaces: Array<ALive2DOffscreenSurface> = Array(offScreenSurfacesCount) {
+        Live2DOffscreenSurface().apply {
+            createOffscreenSurface(
+                CubismVector2(512.0f, 512.0f)
+            )
+        }
+    }
+
+    val textureArray = Array<Live2DTexture>(model.drawableCount) {
+
+    }
     class VertexArray {
         var vao: Int = -1
         var vboPosition: Int = -1

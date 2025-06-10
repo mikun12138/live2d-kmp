@@ -1,10 +1,8 @@
-package com.live2d.sdk.cubism.framework.rendering
+package com.live2d.sdk.cubism.ex.rendering
 
 import com.live2d.sdk.cubism.framework.math.CubismVector2
 
-expect fun ACubismOffscreenSurface.Companion.create(): ACubismOffscreenSurface
-
-abstract class ACubismOffscreenSurface {
+abstract class ALive2DOffscreenSurface {
 
     fun draw(
         block: () -> Unit
