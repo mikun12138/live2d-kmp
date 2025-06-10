@@ -1,6 +1,6 @@
 package com.live2d.sdk.cubism.framework.rendering
 
-import com.live2d.sdk.cubism.ex.rendering.ACubismOffscreenSurface
+import com.live2d.sdk.cubism.ex.rendering.ALive2DOffscreenSurface
 import com.live2d.sdk.cubism.ex.rendering.ALive2DRenderer
 import com.live2d.sdk.cubism.ex.rendering.ClipContext
 import com.live2d.sdk.cubism.ex.rendering.DrawableContext
@@ -8,8 +8,7 @@ import com.live2d.sdk.cubism.framework.Live2DFramework.VERTEX_OFFSET
 import com.live2d.sdk.cubism.framework.Live2DFramework.VERTEX_STEP
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.math.CubismVector2
-import com.live2d.sdk.cubism.framework.model.AAppModel
-import com.live2d.sdk.cubism.framework.model.Live2DModel
+import com.live2d.sdk.cubism.ex.model.AAppModel
 import com.live2d.sdk.cubism.framework.type.csmRectF
 import org.lwjgl.opengl.GL11.GL_NEAREST
 import org.lwjgl.opengl.GL11.GL_RGBA
@@ -74,8 +73,8 @@ class Live2DRenderer(
     appModel,
     offScreenBufferCount,
 ) {
-    override val offscreenSurfaces: Array<ACubismOffscreenSurface> = Array(offScreenBufferCount) {
-        CubismOffscreenSurface().apply {
+    override val offscreenSurfaces: Array<ALive2DOffscreenSurface> = Array(offScreenBufferCount) {
+        Live2DOffscreenSurface().apply {
             createOffscreenSurface(
                 CubismVector2(
                     512.0f, 512.0f

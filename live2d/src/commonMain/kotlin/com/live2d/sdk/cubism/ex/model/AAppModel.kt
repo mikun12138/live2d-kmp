@@ -1,4 +1,4 @@
-package com.live2d.sdk.cubism.framework.model
+package com.live2d.sdk.cubism.ex.model
 
 import com.live2d.sdk.cubism.framework.id.Live2DDefaultParameterId
 import com.live2d.sdk.cubism.framework.data.ModelJson
@@ -8,13 +8,15 @@ import com.live2d.sdk.cubism.framework.effect.Live2DEyeBlink
 import com.live2d.sdk.cubism.framework.effect.Live2DLipSync
 import com.live2d.sdk.cubism.framework.id.Live2DIdManager
 import com.live2d.sdk.cubism.framework.math.CubismTargetPoint
-import com.live2d.sdk.cubism.framework.model.AAppModel.MotionGroup.IDLE
+import com.live2d.sdk.cubism.ex.model.AAppModel.MotionGroup.IDLE
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
 import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
 import com.live2d.sdk.cubism.framework.motion.expression.Live2DExpressionManager
 import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotion
 import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotionManager
 import kotlinx.serialization.json.Json
+import kotlin.collections.getOrPut
+import kotlin.collections.iterator
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 

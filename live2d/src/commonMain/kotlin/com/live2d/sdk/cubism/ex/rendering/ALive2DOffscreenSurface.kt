@@ -2,7 +2,7 @@ package com.live2d.sdk.cubism.ex.rendering
 
 import com.live2d.sdk.cubism.framework.math.CubismVector2
 
-abstract class ACubismOffscreenSurface {
+abstract class ALive2DOffscreenSurface {
 
     fun draw(
         block: () -> Unit

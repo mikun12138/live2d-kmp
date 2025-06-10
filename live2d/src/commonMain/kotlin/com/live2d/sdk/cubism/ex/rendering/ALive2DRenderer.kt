@@ -3,7 +3,7 @@ package com.live2d.sdk.cubism.ex.rendering
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.ex.rendering.ALive2DRenderer.State
-import com.live2d.sdk.cubism.framework.model.AAppModel
+import com.live2d.sdk.cubism.ex.model.AAppModel
 import com.live2d.sdk.cubism.framework.type.csmRectF
 import com.live2d.sdk.cubism.framework.utils.IState
 import com.live2d.sdk.cubism.framework.utils.StateContext
@@ -16,7 +16,7 @@ abstract class ALive2DRenderer : StateContext<ALive2DRenderer, State> {
     var mvp: CubismMatrix44 = CubismMatrix44.create()
 
     val offscreenSurfacesCount: Int
-    abstract val offscreenSurfaces: Array<ACubismOffscreenSurface>
+    abstract val offscreenSurfaces: Array<ALive2DOffscreenSurface>
     val clipContextList: MutableList<ClipContext> = mutableListOf()
 
     constructor(

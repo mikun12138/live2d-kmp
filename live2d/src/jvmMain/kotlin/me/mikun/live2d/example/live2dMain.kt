@@ -2,7 +2,7 @@ package me.mikun.live2d.example
 
 import com.live2d.sdk.cubism.framework.Live2DFramework
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import com.live2d.sdk.cubism.framework.model.AAppModel
+import com.live2d.sdk.cubism.ex.model.AAppModel
 import com.live2d.sdk.cubism.framework.rendering.Live2DRenderer
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
