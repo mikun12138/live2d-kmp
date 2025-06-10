@@ -30,7 +30,7 @@ class CubismParameterView internal constructor(
     val keyCount: Int
         get() = this.parameters.keyCounts[this.index]
 
-    val keyValue: FloatArray?
+    val keyValue: FloatArray
         get() = this.parameters.keyValues[this.index]
 
 }

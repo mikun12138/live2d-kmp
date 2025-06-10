@@ -1,4 +1,4 @@
-package com.live2d.sdk.cubism.core
+package me.mikun.live2d.core
 
 actual object Live2DCoreImpl {
 

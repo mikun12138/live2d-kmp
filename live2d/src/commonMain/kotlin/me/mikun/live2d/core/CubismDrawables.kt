@@ -10,14 +10,14 @@ class CubismDrawables(count: Int) {
     val renderOrders: IntArray
     val opacities: FloatArray
     val maskCounts: IntArray
-    val masks: Array<IntArray?>
+    val masks: Array<IntArray>
     val vertexCounts: IntArray
-    val vertexPositions: Array<FloatArray?>
-    val vertexUvs: Array<FloatArray?>
+    val vertexPositions: Array<FloatArray>
+    val vertexUvs: Array<FloatArray>
     val indexCounts: IntArray
-    val indices: Array<ShortArray?>
-    val multiplyColors: Array<FloatArray?>
-    val screenColors: Array<FloatArray?>
+    val indices: Array<ShortArray>
+    val multiplyColors: Array<FloatArray>
+    val screenColors: Array<FloatArray>
     val parentPartIndices: IntArray
 
     init {
@@ -32,34 +32,28 @@ class CubismDrawables(count: Int) {
         this.renderOrders = IntArray(count)
         this.opacities = FloatArray(count)
         this.maskCounts = IntArray(count)
-        this.masks = arrayOfNulls<IntArray>(count)
-
-        for (i in 0..<count) {
-            this.masks[i] = IntArray(0)
+        this.masks = Array<IntArray>(count) {
+            IntArray(0)
         }
 
         this.vertexCounts = IntArray(count)
-        this.vertexPositions = arrayOfNulls<FloatArray>(count)
-        this.vertexUvs = arrayOfNulls<FloatArray>(count)
-
-        for (i in 0..<count) {
-            this.vertexPositions[i] = FloatArray(0)
-            this.vertexUvs[i] = FloatArray(0)
+        this.vertexPositions = Array<FloatArray>(count) {
+            FloatArray(0)
+        }
+        this.vertexUvs = Array<FloatArray>(count) {
+            FloatArray(0)
         }
 
         this.indexCounts = IntArray(count)
-        this.indices = arrayOfNulls<ShortArray>(count)
-
-        for (i in 0..<count) {
-            this.indices[i] = ShortArray(0)
+        this.indices = Array<ShortArray>(count) {
+            ShortArray(0)
         }
 
-        this.multiplyColors = arrayOfNulls<FloatArray>(count)
-        this.screenColors = arrayOfNulls<FloatArray>(count)
-
-        for (i in 0..<count) {
-            this.multiplyColors[i] = FloatArray(0)
-            this.screenColors[i] = FloatArray(0)
+        this.multiplyColors = Array<FloatArray>(count) {
+            FloatArray(0)
+        }
+        this.screenColors = Array<FloatArray>(count) {
+            FloatArray(0)
         }
 
         this.parentPartIndices = IntArray(count)

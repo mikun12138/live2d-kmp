@@ -8,7 +8,7 @@ class CubismParameters(count: Int) {
     val maximumValues: FloatArray
     val defaultValues: FloatArray
     val keyCounts: IntArray
-    val keyValues: Array<FloatArray?>
+    val keyValues: Array<FloatArray>
     val values: FloatArray
 
     init {
@@ -22,10 +22,8 @@ class CubismParameters(count: Int) {
         this.defaultValues = FloatArray(count)
         this.values = FloatArray(count)
         this.keyCounts = IntArray(count)
-        this.keyValues = arrayOfNulls<FloatArray>(count)
-
-        for (i in 0..<count) {
-            this.keyValues[i] = FloatArray(0)
+        this.keyValues = Array<FloatArray>(count) {
+            FloatArray(0)
         }
     }
 

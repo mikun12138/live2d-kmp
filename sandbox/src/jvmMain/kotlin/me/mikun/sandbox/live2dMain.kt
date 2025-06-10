@@ -64,7 +64,6 @@ fun live2dMain(
         val renderer = Live2DRenderer(model, 1)
 
         while (!glfwWindowShouldClose(handle)) {
-//            run {
             glClearColor(
                 0.0f,
                 0.0f,

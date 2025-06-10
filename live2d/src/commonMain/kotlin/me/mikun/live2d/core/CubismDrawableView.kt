@@ -26,25 +26,25 @@ class CubismDrawableView internal constructor(
     val opacity: Float
         get() = this.drawables.opacities[this.index]
 
-    val masks: IntArray?
+    val masks: IntArray
         get() = this.drawables.masks[this.index]
 
     val vertexCount: Int
         get() = this.drawables.vertexCounts[this.index]
 
-    val vertexPositions: FloatArray?
+    val vertexPositions: FloatArray
         get() = this.drawables.vertexPositions[this.index]
 
-    val vertexUvs: FloatArray?
+    val vertexUvs: FloatArray
         get() = this.drawables.vertexUvs[this.index]
 
-    val indices: ShortArray?
+    val indices: ShortArray
         get() = this.drawables.indices[this.index]
 
-    val multiplyColors: FloatArray?
+    val multiplyColors: FloatArray
         get() = this.drawables.multiplyColors[this.index]
 
-    val screenColors: FloatArray?
+    val screenColors: FloatArray
         get() = this.drawables.screenColors[this.index]
 
     val parentPartIndex: Int
