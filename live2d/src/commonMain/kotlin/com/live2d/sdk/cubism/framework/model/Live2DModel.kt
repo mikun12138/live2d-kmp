@@ -13,7 +13,6 @@ import com.live2d.sdk.cubism.core.CubismModel
 import com.live2d.sdk.cubism.core.CubismParameterView
 import com.live2d.sdk.cubism.core.CubismPartView
 import com.live2d.sdk.cubism.framework.id.Live2DId
-import com.live2d.sdk.cubism.ex.rendering.ALive2DTexture
 import com.live2d.sdk.cubism.ex.rendering.CubismBlendMode
 import com.live2d.sdk.cubism.ex.rendering.CubismTextureColor
 

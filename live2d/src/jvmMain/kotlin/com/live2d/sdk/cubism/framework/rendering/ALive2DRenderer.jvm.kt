@@ -1,16 +1,32 @@
 package com.live2d.sdk.cubism.framework.rendering
 
-import com.live2d.sdk.cubism.ex.rendering.ALive2DOffscreenSurface
+import com.live2d.sdk.cubism.ex.rendering.ACubismOffscreenSurface
 import com.live2d.sdk.cubism.ex.rendering.ALive2DRenderer
-import com.live2d.sdk.cubism.ex.rendering.ALive2DTexture
 import com.live2d.sdk.cubism.ex.rendering.ClipContext
 import com.live2d.sdk.cubism.ex.rendering.DrawableContext
 import com.live2d.sdk.cubism.framework.Live2DFramework.VERTEX_OFFSET
 import com.live2d.sdk.cubism.framework.Live2DFramework.VERTEX_STEP
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import com.live2d.sdk.cubism.framework.math.CubismVector2
+import com.live2d.sdk.cubism.framework.model.AAppModel
 import com.live2d.sdk.cubism.framework.model.Live2DModel
 import com.live2d.sdk.cubism.framework.type.csmRectF
+import org.lwjgl.opengl.GL11.GL_NEAREST
+import org.lwjgl.opengl.GL11.GL_RGBA
+import org.lwjgl.opengl.GL11.GL_TEXTURE_2D
+import org.lwjgl.opengl.GL11.GL_TEXTURE_BORDER_COLOR
+import org.lwjgl.opengl.GL11.GL_TEXTURE_MAG_FILTER
+import org.lwjgl.opengl.GL11.GL_TEXTURE_MIN_FILTER
+import org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_S
+import org.lwjgl.opengl.GL11.GL_TEXTURE_WRAP_T
+import org.lwjgl.opengl.GL11.GL_UNSIGNED_BYTE
+import org.lwjgl.opengl.GL11.glBindTexture
+import org.lwjgl.opengl.GL11.glGenTextures
+import org.lwjgl.opengl.GL11.glTexImage2D
+import org.lwjgl.opengl.GL11.glTexParameterfv
+import org.lwjgl.opengl.GL11.glTexParameteri
+import org.lwjgl.opengl.GL13.GL_CLAMP_TO_BORDER
+import org.lwjgl.opengl.GL30.glGenerateMipmap
 import org.lwjgl.opengl.GL30.glMapBufferRange
 import org.lwjgl.opengl.GL44.GL_MAP_COHERENT_BIT
 import org.lwjgl.opengl.GL46.GL_ARRAY_BUFFER
@@ -41,30 +57,119 @@ import org.lwjgl.opengl.GL46.glFrontFace
 import org.lwjgl.opengl.GL46.glGenBuffers
 import org.lwjgl.opengl.GL46.glGenVertexArrays
 import org.lwjgl.opengl.GL46.glVertexAttribPointer
+import org.lwjgl.stb.STBImage
+import org.lwjgl.system.MemoryStack
+import java.nio.ByteBuffer
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.use
+
 
 class Live2DRenderer(
-    model: Live2DModel,
+    appModel: AAppModel,
     offScreenBufferCount: Int,
 ) : ALive2DRenderer(
-    model,
+    appModel,
     offScreenBufferCount,
 ) {
-
-    override val offscreenSurfaces: Array<ALive2DOffscreenSurface> = Array(offScreenSurfacesCount) {
-        Live2DOffscreenSurface().apply {
+    override val offscreenSurfaces: Array<ACubismOffscreenSurface> = Array(offScreenBufferCount) {
+        CubismOffscreenSurface().apply {
             createOffscreenSurface(
-                CubismVector2(512.0f, 512.0f)
+                CubismVector2(
+                    512.0f, 512.0f
+                )
             )
         }
     }
 
-    val textureArray = Array<Live2DTexture>(model.drawableCount) {
+    class Texture {
+        val id: Int
+        val isPremultipliedAlpha: Boolean = false
 
+        private constructor(bytes: ByteArray) {
+            id = MemoryStack.stackPush().use { stack ->
+                val width = stack.mallocInt(1)
+                val height = stack.mallocInt(1)
+                val channels = stack.mallocInt(1)
+                STBImage.stbi_load_from_memory(
+                    ByteBuffer.allocateDirect(bytes.size).put(bytes).flip(),
+                    width,
+                    height,
+                    channels,
+                    4
+                ).let { buffer ->
+                    glGenTextures().apply {
+                        glBindTexture(
+                            GL_TEXTURE_2D,
+                            this
+                        )
+                        glTexParameteri(
+                            GL_TEXTURE_2D,
+                            GL_TEXTURE_MIN_FILTER,
+                            GL_NEAREST
+                        )
+                        glTexParameteri(
+                            GL_TEXTURE_2D,
+                            GL_TEXTURE_MAG_FILTER,
+                            GL_NEAREST
+                        )
+                        glTexParameteri(
+                            GL_TEXTURE_2D,
+                            GL_TEXTURE_WRAP_S,
+                            GL_CLAMP_TO_BORDER
+                        )
+                        glTexParameteri(
+                            GL_TEXTURE_2D,
+                            GL_TEXTURE_WRAP_T,
+                            GL_CLAMP_TO_BORDER
+                        )
+                        glTexParameterfv(
+                            GL_TEXTURE_2D,
+                            GL_TEXTURE_BORDER_COLOR,
+                            floatArrayOf(
+                                0.0f,
+                                0.0f,
+                                0.0f,
+                                0.0f
+                            )
+                        )
+                        glTexImage2D(
+                            GL_TEXTURE_2D,
+                            0,
+                            GL_RGBA,
+                            width.get(),
+                            height.get(),
+                            0,
+                            GL_RGBA,
+                            GL_UNSIGNED_BYTE,
+                            buffer
+                        )
+                        glGenerateMipmap(GL_TEXTURE_2D)
+                    }
+                }
+            }
+        }
+
+        companion object {
+            val textures: MutableMap<Int, Texture> = mutableMapOf()
+            fun create(textureIndex: Int, bytes: ByteArray): Texture {
+                return textures.getOrPut(textureIndex) {
+                    Texture(bytes)
+                }
+            }
+        }
     }
+
+    val drawableTextureArray: Array<Texture> = Array(appModel.model.drawableCount) {
+        val drawableContext = drawableContextArray[it]
+        Texture.create(
+            drawableContext.textureIndex,
+            appModel.textures[drawableContext.textureIndex]
+        )
+    }
+
     class VertexArray {
         var vao: Int = -1
         var vboPosition: Int = -1
@@ -75,7 +180,7 @@ class Live2DRenderer(
         var indicesBuffer: ShortBuffer? = null
     }
 
-    val drawableVertexArrayArray: Array<VertexArray> = Array(model.drawableCount) {
+    val drawableVertexArrayArray: Array<VertexArray> = Array(appModel.model.drawableCount) {
         val drawableContext = drawableContextArray[it]
         VertexArray().apply {
             vao = glGenVertexArrays()

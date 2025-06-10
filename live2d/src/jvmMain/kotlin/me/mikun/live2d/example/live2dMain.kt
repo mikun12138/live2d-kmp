@@ -2,9 +2,8 @@ package me.mikun.live2d.example
 
 import com.live2d.sdk.cubism.framework.Live2DFramework
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import com.live2d.sdk.cubism.ex.model.AAppModel
-import com.live2d.sdk.cubism.ex.rendering.ALive2DRenderer
-import com.live2d.sdk.cubism.ex.rendering.create
+import com.live2d.sdk.cubism.framework.model.AAppModel
+import com.live2d.sdk.cubism.framework.rendering.Live2DRenderer
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL46.*
@@ -62,7 +61,7 @@ fun live2dMain(
         val model = AAppModel()
         model.init(resDirMoc, "$mocName.model3.json")
 
-        val renderer = ALive2DRenderer.create(model.model, 1)
+        val renderer = Live2DRenderer(model, 1)
 
         while (!glfwWindowShouldClose(handle)) {
 //            run {

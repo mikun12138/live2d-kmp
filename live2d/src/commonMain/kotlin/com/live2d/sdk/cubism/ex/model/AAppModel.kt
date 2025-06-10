@@ -1,21 +1,20 @@
-package com.live2d.sdk.cubism.ex.model
+package com.live2d.sdk.cubism.framework.model
 
-import com.live2d.sdk.cubism.ex.rendering.ALive2DTexture
-import com.live2d.sdk.cubism.ex.model.Live2DUserModel
+import com.live2d.sdk.cubism.framework.id.Live2DDefaultParameterId
 import com.live2d.sdk.cubism.framework.data.ModelJson
 import com.live2d.sdk.cubism.framework.effect.Live2DBreath
+import com.live2d.sdk.cubism.framework.effect.Live2DBreath.BreathParameterData
 import com.live2d.sdk.cubism.framework.effect.Live2DEyeBlink
 import com.live2d.sdk.cubism.framework.effect.Live2DLipSync
-import com.live2d.sdk.cubism.framework.id.Live2DDefaultParameterId
 import com.live2d.sdk.cubism.framework.id.Live2DIdManager
 import com.live2d.sdk.cubism.framework.math.CubismTargetPoint
+import com.live2d.sdk.cubism.framework.model.AAppModel.MotionGroup.IDLE
 import com.live2d.sdk.cubism.framework.motion.IBeganMotionCallback
 import com.live2d.sdk.cubism.framework.motion.IFinishedMotionCallback
 import com.live2d.sdk.cubism.framework.motion.expression.Live2DExpressionManager
 import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotion
 import com.live2d.sdk.cubism.framework.motion.motion.Live2DMotionManager
 import kotlinx.serialization.json.Json
-import kotlin.collections.iterator
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
@@ -25,6 +24,8 @@ open class AAppModel : Live2DUserModel() {
 //    var isUsingHighPrecisionMask: Boolean = false
     protected var motionManager: Live2DMotionManager = Live2DMotionManager()
     protected var expressionManager: Live2DExpressionManager = Live2DExpressionManager()
+
+    val textures: MutableList<ByteArray> = mutableListOf()
 
     // effects
     protected var breath: Live2DBreath? = null
@@ -36,15 +37,21 @@ open class AAppModel : Live2DUserModel() {
 
     fun init(dir: String, modelJsonFileName: String) {
         val buffer = Path(dir, modelJsonFileName).readBytes()
-        val modelJson = Json.Default.decodeFromString<ModelJson>(String(buffer))
+        val modelJson = Json.decodeFromString<ModelJson>(String(buffer))
         setupModel(dir, modelJson)
 
-        setupTextures(dir, modelJson)
+//        setupTextures(dir, modelJson)
     }
 
     private fun setupModel(dir: String, modelJson: ModelJson) {
         Path(dir, modelJson.fileReferences.moc).readBytes().let { buffer ->
             loadModel(buffer, true)
+        }
+
+        modelJson.fileReferences.textures.forEach {
+            Path(dir, it).readBytes().let { buffer ->
+                textures.add(buffer)
+            }
         }
 
         Path(dir, modelJson.fileReferences.pose).readBytes().let { buffer ->
@@ -97,35 +104,35 @@ open class AAppModel : Live2DUserModel() {
         eyeBlink = Live2DEyeBlink(modelJson)
 
         breath = Live2DBreath(
-            Live2DBreath.BreathParameterData(
+            BreathParameterData(
                 Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.ANGLE_X.id),
                 0.0f,
                 15.0f,
                 6.5345f,
                 0.5f
             ),
-            Live2DBreath.BreathParameterData(
+            BreathParameterData(
                 Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.ANGLE_Y.id),
                 0.0f,
                 8.0f,
                 3.5345f,
                 0.5f
             ),
-            Live2DBreath.BreathParameterData(
+            BreathParameterData(
                 Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.ANGLE_Z.id),
                 0.0f,
                 10.0f,
                 5.5345f,
                 0.5f
             ),
-            Live2DBreath.BreathParameterData(
+            BreathParameterData(
                 Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.BODY_ANGLE_X.id),
                 0.0f,
                 4.0f,
                 15.5345f,
                 0.5f
             ),
-            Live2DBreath.BreathParameterData(
+            BreathParameterData(
                 Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.BREATH.id),
                 0.5f,
                 0.5f,
@@ -140,16 +147,18 @@ open class AAppModel : Live2DUserModel() {
         model.saveParameters()
     }
 
-    fun setupTextures(dir: String, modelJson: ModelJson) {
-        modelJson.fileReferences.textures.forEachIndexed { index, texturePath ->
-            Path(dir, texturePath).readBytes().let { bytes ->
-                model,
-                ALive2DTexture(
-                    bytes
-                )
-            }
-        }
-    }
+//    fun setupTextures(dir: String, modelJson: ModelJson) {
+//        modelJson.fileReferences.textures.forEachIndexed { index, texturePath ->
+//            Path(dir, texturePath).readBytes().let { bytes ->
+//                model.textures.put(
+//                    index,
+//                    ALive2DTexture.create(
+//                        bytes
+//                    )
+//                )
+//            }
+//        }
+//    }
 
     override fun doUpdate(deltaSeconds: Float) {
 
@@ -162,7 +171,7 @@ open class AAppModel : Live2DUserModel() {
         run {
             if (motionManager.isFinished) {
                 startRandomMotion(
-                    MotionGroup.IDLE,
+                    IDLE,
                     MotionPriority.IDLE
                 )
             } else {
@@ -287,3 +296,5 @@ open class AAppModel : Live2DUserModel() {
     }
 
 }
+
+

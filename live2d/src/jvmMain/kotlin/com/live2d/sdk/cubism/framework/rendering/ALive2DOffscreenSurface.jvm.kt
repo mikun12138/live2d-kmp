@@ -1,12 +1,12 @@
 package com.live2d.sdk.cubism.framework.rendering
 
-import com.live2d.sdk.cubism.ex.rendering.ALive2DOffscreenSurface
+import com.live2d.sdk.cubism.ex.rendering.ACubismOffscreenSurface
 import com.live2d.sdk.cubism.framework.math.CubismVector2
 import org.lwjgl.opengl.GL46.*
 import java.nio.ByteBuffer
 
 
-class Live2DOffscreenSurface : ALive2DOffscreenSurface() {
+class CubismOffscreenSurface : ACubismOffscreenSurface() {
     override fun beginDraw(): Boolean {
         if (renderTexture == null) {
             return false

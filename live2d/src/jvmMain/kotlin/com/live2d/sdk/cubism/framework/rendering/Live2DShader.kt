@@ -45,9 +45,10 @@ object Live2DShader {
         renderer: Live2DRenderer,
         drawableContext: DrawableContext,
     ) {
+        val texture = renderer.drawableTextureArray[drawableContext.index]
         with(
             when {
-                drawableContext.texture.isPremultipliedAlpha -> CubismShaderSet.MASKED_INVERTED_PREMULTIPLIED_ALPHA
+                texture.isPremultipliedAlpha -> CubismShaderSet.MASKED_INVERTED_PREMULTIPLIED_ALPHA
                 else -> CubismShaderSet.SIMPLE
             }
         ) {
@@ -75,7 +76,7 @@ object Live2DShader {
                 glActiveTexture(GL_TEXTURE0)
                 glBindTexture(
                     GL_TEXTURE_2D,
-                    drawableContext.texture.id
+                    texture.id
                 )
                 glUniform1i(
                     uniform(Uniform.TEXTURE0),
@@ -161,10 +162,11 @@ object Live2DShader {
         renderer: Live2DRenderer,
         drawableContext: DrawableContext,
     ) {
+        val texture = renderer.drawableTextureArray[drawableContext.index]
         with(
             run {
                 val isInvertedMask = drawableContext.isInvertedMask
-                val isPremultipliedAlpha = drawableContext.texture.isPremultipliedAlpha
+                val isPremultipliedAlpha = texture.isPremultipliedAlpha
 
                 return@run when {
                     !isInvertedMask && !isPremultipliedAlpha -> CubismShaderSet.MASKED
@@ -235,7 +237,7 @@ object Live2DShader {
                 glActiveTexture(GL_TEXTURE0)
                 glBindTexture(
                     GL_TEXTURE_2D,
-                    drawableContext.texture.id
+                    texture.id
                 )
                 glUniform1i(
                     uniform(Uniform.TEXTURE0),
@@ -321,6 +323,8 @@ object Live2DShader {
         drawableContext: DrawableContext,
         clipContext: ClipContext,
     ) {
+        val texture = renderer.drawableTextureArray[drawableContext.index]
+
         with(CubismShaderSet.SETUP_MASK) {
             glUseProgram(shaderProgram.id)
             setupVertexArray(
@@ -345,7 +349,7 @@ object Live2DShader {
                 glActiveTexture(GL_TEXTURE0)
                 glBindTexture(
                     GL_TEXTURE_2D,
-                    drawableContext.texture.id
+                    texture.id
                 )
                 glUniform1i(
                     uniform(Uniform.TEXTURE0),
