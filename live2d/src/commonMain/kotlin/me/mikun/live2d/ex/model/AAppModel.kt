@@ -147,19 +147,6 @@ open class AAppModel : Live2DUserModel() {
         model.saveParameters()
     }
 
-//    fun setupTextures(dir: String, modelJson: ModelJson) {
-//        modelJson.fileReferences.textures.forEachIndexed { index, texturePath ->
-//            Path(dir, texturePath).readBytes().let { bytes ->
-//                model.textures.put(
-//                    index,
-//                    ALive2DTexture.create(
-//                        bytes
-//                    )
-//                )
-//            }
-//        }
-//    }
-
     override fun doUpdate(deltaSeconds: Float) {
 
         // Pose Setting
