@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.compose.compiler)
 }
@@ -42,8 +42,12 @@ kotlin {
 //    }
 
     sourceSets {
+        androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
+        }
         commonMain.dependencies {
             implementation(compose.runtime)
+            implementation(compose.foundation)
 
             implementation(projects.live2d)
         }
@@ -77,7 +81,10 @@ android {
     namespace = "me.mikun.live2d"
     compileSdk = 36
     defaultConfig {
-        minSdk = 33
+        applicationId = "me.mikun.live2d"
+        minSdk = 23
+        versionCode = 1
+        versionName = "1.0"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21

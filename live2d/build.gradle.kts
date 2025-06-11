@@ -60,7 +60,7 @@ android {
     namespace = "me.mikun.live2d"
     compileSdk = 36
     defaultConfig {
-        minSdk = 33
+        minSdk = 23
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
