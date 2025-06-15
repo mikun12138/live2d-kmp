@@ -60,18 +60,18 @@ class Live2DMotion : ALive2DMotion {
             }
         )
 
-        fadeInSeconds = json.meta.fadeInTime?.let {
+        fadeInSeconds = json.meta.fadeInTime.let {
             if (it < 0.0f)
                 1.0f
             else
                 it
-        } ?: 1.0f
-        fadeOutSeconds = json.meta.fadeOutTime?.let {
+        }
+        fadeOutSeconds = json.meta.fadeOutTime.let {
             if (it < 0.0f)
                 1.0f
             else
                 it
-        } ?: 1.0f
+        }
 
         var totalPointIndex = 0
         var totalSegmentIndex = 0
@@ -88,14 +88,8 @@ class Live2DMotion : ALive2DMotion {
                     json.curves[curveIndex].id
                 )
                 curve.baseSegmentIndex = totalSegmentIndex
-                curve.fadeInTime =
-                    json.curves[curveIndex].fadeInTime?.let {
-                        it
-                    } ?: -1.0f
-                curve.fadeOutTime =
-                    json.curves[curveIndex].fadeOutTime?.let {
-                        it
-                    } ?: -1.0f
+                curve.fadeInTime = json.curves[curveIndex].fadeInTime
+                curve.fadeOutTime = json.curves[curveIndex].fadeOutTime
             }
 
             // Segments

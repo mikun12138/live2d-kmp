@@ -11,38 +11,35 @@ import kotlinx.serialization.json.Json
  */
 class Live2DPose {
     constructor(pose3json: ByteArray) {
-        Json.Default.decodeFromString<PoseJson>(String(pose3json)).let { json ->
+        println(String(pose3json))
+        Json.decodeFromString<PoseJson>(String(pose3json)).let { json ->
+            println(json.type)
 
             // Set the fade time.
-            fadeTimeSeconds = json.fadeInTime?.let {
+            fadeTimeSeconds = json.fadeInTime.let {
                 if (it < 0.0f)
                     DEFAULT_FADE_IN_SECONDS
                 else
                     it
-            } ?: DEFAULT_FADE_IN_SECONDS
+            }
 
-
-            // Parts group
-            fun setupPartGroup(partInfo: PoseJson.PartInfo): PartData {
-
-                val partData = PartData(
-                    partId = Live2DIdManager.id(partInfo.id)
-                )
-
-                for (linkedPart in partInfo.link) {
-                    partData.linkedParameter.add(
+            json.groups.forEach { partInfoList ->
+                partInfoList.forEach { partInfo ->
+                    partGroups.add(
                         PartData(
-                            partId = Live2DIdManager.id(linkedPart)
-                        )
+                            partId = Live2DIdManager.id(partInfo.id),
+                        ).apply {
+                            partInfo.links.forEach { id ->
+                                linkedParameter.add(
+                                    PartData(
+                                        Live2DIdManager.id(id)
+                                    )
+                                )
+                            }
+                        }
                     )
                 }
-                return partData
-            }
-            for (idListInfo in json.groups) {
-                for (partInfo in idListInfo) {
-                    partGroups.add(setupPartGroup(partInfo))
-                }
-                partGroupCounts.add(idListInfo.size)
+                partGroupCounts.add(partInfoList.size)
             }
         }
     }
@@ -178,7 +175,7 @@ class Live2DPose {
         model: Live2DModel,
         deltaTimeSeconds: Float,
         beginIndex: Int,
-        partGroupCount: Int
+        partGroupCount: Int,
     ) {
         var visiblePartIndex = -1
         var newOpacity = 1.0f

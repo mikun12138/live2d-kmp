@@ -31,7 +31,7 @@ data class ModelJson(
         @SerialName("Motions")
         val motionGroups: Map<String, List<MotionGroup.Motion>>,
         @SerialName("UserData")
-        val userData: String
+        val userData: String? = null
     ) {
         @Serializable
         data class Expression(
@@ -47,9 +47,9 @@ data class ModelJson(
                 @SerialName("File")
                 val file: String,
                 @SerialName("FadeInTime")
-                val fadeInTime: Float,
+                val fadeInTime: Float = -1.0f,
                 @SerialName("FadeOutTime")
-                val fadeOutTime: Float,
+                val fadeOutTime: Float = -1.0f,
                 @SerialName("Sound")
                 val sound: String? = null
             )

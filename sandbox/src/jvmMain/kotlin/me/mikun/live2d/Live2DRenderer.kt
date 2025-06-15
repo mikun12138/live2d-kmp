@@ -64,6 +64,7 @@ import java.nio.ShortBuffer
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.use
+
 class Live2DRenderer(
     appModel: AAppModel,
     offScreenBufferCount: Int,
@@ -333,6 +334,7 @@ class Live2DRenderer(
         )
 
         sortedDrawableContextArray.forEach { drawableContext ->
+            if (!drawableContext.isVisible) return@forEach
             drawMesh(drawableContext)
         }
     }

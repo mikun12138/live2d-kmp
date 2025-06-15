@@ -48,6 +48,7 @@ kotlin {
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
+            implementation(compose.preview)
 
             implementation(projects.live2d)
         }
@@ -75,6 +76,10 @@ kotlin {
 
     compilerOptions.freeCompilerArgs.add("-Xexpect-actual-classes")
 
+}
+
+dependencies {
+    debugImplementation(compose.uiTooling)
 }
 
 android {

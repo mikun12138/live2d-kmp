@@ -15,6 +15,7 @@ import me.mikun.live2d.core.CubismPartView
 import me.mikun.live2d.framework.id.Live2DId
 import me.mikun.live2d.ex.rendering.CubismBlendMode
 import me.mikun.live2d.ex.rendering.CubismTextureColor
+import kotlin.experimental.and
 
 class Live2DModel {
     val model: CubismModel
@@ -487,7 +488,7 @@ class Live2DModel {
      * @return Return true if the logical product of flag and mask matches the mask.
      */
     private fun isBitSet(flag: Byte, mask: Byte): Boolean {
-        return (flag.toInt() and mask.toInt()) == mask.toInt()
+        return (flag and mask) == mask
     }
 
 

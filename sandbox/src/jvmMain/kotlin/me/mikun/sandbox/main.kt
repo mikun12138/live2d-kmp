@@ -28,7 +28,7 @@ val arch = Arch.byName(
 val resDir = System.getProperty("compose.application.resources.dir")
 val resDirMoc = "$resDir/moc/"
 val resDirLib = "$resDir/lib/${arch.value}"
-val resMocHiyori = "Hiyori"
+val resMocHiyori = "Mao"
 
 fun main() {
 

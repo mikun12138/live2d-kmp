@@ -97,8 +97,10 @@ open class AAppModel : Live2DUserModel() {
             loadPhysics(Buffer)
         }
 
-        Path(dir, modelJson.fileReferences.userData).readBytes().let { buffer ->
-            loadUserData(buffer)
+        modelJson.fileReferences.userData?.let {
+            Path(dir, it).readBytes().let { buffer ->
+                loadUserData(buffer)
+            }
         }
 
         eyeBlink = Live2DEyeBlink(modelJson)
