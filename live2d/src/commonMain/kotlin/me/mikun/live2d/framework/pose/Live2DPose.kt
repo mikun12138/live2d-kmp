@@ -41,32 +41,11 @@ class Live2DPose {
             parameterIndex = model.getParameterIndex(partId)
             partIndex = model.getPartIndex(partId)
 
-            model.setParameterValue(parameterIndex, 1.0f)
-
             linkedParameter.forEach {
                 it.init(model)
             }
         }
 
-    }
-
-
-    data class PartData(
-        var partId: Live2DId,
-        var parameterIndex: Int = 0,
-        var partIndex: Int = 0,
-        var linkedParameter: MutableList<PartData> = mutableListOf(),
-    ) {
-        fun init(model: Live2DModel) {
-            parameterIndex = model.getParameterIndex(partId)
-            partIndex = model.getPartIndex(partId)
-
-            model.setParameterValue(parameterIndex, 1.0f)
-
-            linkedParameter.forEach {
-                it.init(model)
-            }
-        }
     }
 
     fun updateParameters(model: Live2DModel, deltaSeconds: Float) {

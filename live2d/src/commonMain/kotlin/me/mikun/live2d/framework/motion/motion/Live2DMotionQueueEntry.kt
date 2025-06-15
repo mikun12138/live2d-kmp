@@ -121,7 +121,6 @@ class Live2DMotionQueueEntry(
             motion.motionData.curves.filter { it.type == CubismMotionCurveTarget.PARAMETER }
                 .forEach { curve ->
 
-                    // Find parameter index.
                     val parameterIndex = model.getParameterIndex(curve.id)
 
                     // Skip curve evaluation if no value.
@@ -129,7 +128,7 @@ class Live2DMotionQueueEntry(
                         return@forEach
                     }
 
-                    val sourceValue = model.getParameterValue(parameterIndex)
+                    val sourceValue = model.getParameterValue(curve.id)
 
                     // Evaluate curve and apply value.
                     value = motion.evaluateCurve(

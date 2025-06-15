@@ -94,21 +94,15 @@ class Live2DModel {
         }
 
         // If the parameter does not exist in the model, it searches for it in the non-existent parameter ID list and returns its index.
-        if (notExistParameterIds.containsKey(parameterId)) {
-            val index = checkNotNull(notExistParameterIds.get(parameterId))
-            return index
+        notExistParameterIds[parameterId]?.let {
+            return it
         }
 
         // If the parameter does not exist in the non-existent parameter ID list, add newly the element.
         val parameterIndex = model.parameterViews.size + notExistParameterIds.size
         notExistParameterIds.put(parameterId, parameterIndex)
         notExistParameterIndices.add(parameterIndex)
-
-        val tmp = FloatArray(notExistParameterIndices.size)
-        System.arraycopy(notExistParameterValues, 0, tmp, 0, notExistParameterIndices.size - 1)
-        tmp[notExistParameterIndices.size - 1] = 0.0f
-        notExistParameterValues = FloatArray(notExistParameterIndices.size)
-        System.arraycopy(tmp, 0, notExistParameterValues, 0, notExistParameterIndices.size)
+        notExistParameterValues.add(0.0f)
 
         return parameterIndex
     }
@@ -129,7 +123,6 @@ class Live2DModel {
     }
 
     fun getParameterValue(parameterId: Live2DId): Float {
-        // Speeding up the process, this can get partIndex. However, it is not necessary when setting externally because it is not frequently called.
         val parameterIndex = getParameterIndex(parameterId)
         return getParameterValue(parameterIndex)
     }
@@ -325,9 +318,11 @@ class Live2DModel {
             else
                 CubismBlendMode.NORMAL
     }
+
     fun getDrawableIsDoubleSided(drawableIndex: Int): Boolean {
         return getDrawableConstantFlag(drawableIndex, ConstantFlag.IS_DOUBLE_SIDED)
     }
+
     fun getDrawableInvertedMask(drawableIndex: Int): Boolean {
         return getDrawableConstantFlag(drawableIndex, ConstantFlag.IS_INVERTED_MASK)
     }
@@ -344,18 +339,23 @@ class Live2DModel {
     fun getDrawableDynamicFlagVisibilityDidChange(drawableIndex: Int): Boolean {
         return getDrawableDynamicFlag(drawableIndex, DynamicFlag.VISIBILITY_DID_CHANGE)
     }
+
     fun getDrawableDynamicFlagOpacityDidChange(drawableIndex: Int): Boolean {
         return getDrawableDynamicFlag(drawableIndex, DynamicFlag.OPACITY_DID_CHANGE)
     }
+
     fun getDrawableDynamicFlagDrawOrderDidChange(drawableIndex: Int): Boolean {
         return getDrawableDynamicFlag(drawableIndex, DynamicFlag.DRAW_ORDER_DID_CHANGE)
     }
+
     fun getDrawableDynamicFlagRenderOrderDidChange(drawableIndex: Int): Boolean {
         return getDrawableDynamicFlag(drawableIndex, DynamicFlag.RENDER_ORDER_DID_CHANGE)
     }
+
     fun getDrawableDynamicFlagVertexPositionsDidChange(drawableIndex: Int): Boolean {
         return getDrawableDynamicFlag(drawableIndex, DynamicFlag.VERTEX_POSITIONS_DID_CHANGE)
     }
+
     fun getDrawableDynamicFlagBlendColorDidChange(drawableIndex: Int): Boolean {
         return getDrawableDynamicFlag(drawableIndex, DynamicFlag.BLEND_COLOR_DID_CHANGE)
     }
@@ -495,9 +495,9 @@ class Live2DModel {
     /**
      * List of IDs for non-existent parameters
      */
-    private val notExistParameterIds: MutableMap<Live2DId?, Int> = HashMap()
-    private val notExistParameterIndices: MutableList<Int?> = ArrayList()
-    private var notExistParameterValues = FloatArray(1)
+    private val notExistParameterIds: MutableMap<Live2DId, Int> = HashMap()
+    private val notExistParameterIndices: MutableList<Int> = ArrayList()
+    private var notExistParameterValues = mutableListOf<Float>()
     private val notExistPartIds: MutableMap<Live2DId?, Int?> = HashMap()
 
     private val notExistPartIndices: MutableList<Int?> = ArrayList()
