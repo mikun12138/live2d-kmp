@@ -8,13 +8,13 @@ package me.mikun.live2d.framework.model
 
 import me.mikun.live2d.core.CubismDrawableFlag.ConstantFlag
 import me.mikun.live2d.core.CubismDrawableFlag.DynamicFlag
-import me.mikun.live2d.core.CubismDrawableView
 import me.mikun.live2d.core.CubismModel
 import me.mikun.live2d.core.CubismParameterView
 import me.mikun.live2d.core.CubismPartView
 import me.mikun.live2d.framework.id.Live2DId
 import me.mikun.live2d.ex.rendering.CubismBlendMode
 import me.mikun.live2d.ex.rendering.CubismTextureColor
+import kotlin.collections.mutableListOf
 import kotlin.experimental.and
 
 class Live2DModel {
@@ -45,16 +45,6 @@ class Live2DModel {
             }
             userDrawableCullings = List(drawableViews.size) {
                 DrawableCullingData()
-            }
-
-            partChildDrawablesMap = HashMap(drawableViews.count { it.parentPartIndex >= 0 })
-            drawableViews.forEach { drawableView ->
-                // Bind parent Parts and child Drawables.
-                drawableView.parentPartIndex.takeIf { it >= 0 }?.let { parentIndex ->
-                    partChildDrawablesMap.getOrPut(parentIndex) {
-                        mutableListOf(drawableView.index)
-                    }
-                }
             }
         }
     }
@@ -93,12 +83,10 @@ class Live2DModel {
             return parameterView.index
         }
 
-        // If the parameter does not exist in the model, it searches for it in the non-existent parameter ID list and returns its index.
         notExistParameterIds[parameterId]?.let {
             return it
         }
 
-        // If the parameter does not exist in the non-existent parameter ID list, add newly the element.
         val parameterIndex = model.parameterViews.size + notExistParameterIds.size
         notExistParameterIds.put(parameterId, parameterIndex)
         notExistParameterIndices.add(parameterIndex)
@@ -134,9 +122,6 @@ class Live2DModel {
             return value
         }
 
-        // Detect whether partIndex is not out of bounds index
-        assert(0 <= parameterIndex && parameterIndex < this.parameterCount)
-
         return model.parameterViews[parameterIndex].value
     }
 
@@ -146,61 +131,21 @@ class Live2DModel {
     }
 
     fun setParameterValue(parameterIndex: Int, value: Float, weight: Float = 1.0f) {
-        var value = value
         if (notExistParameterIndices.contains(parameterIndex)) {
             val index = notExistParameterIndices.indexOf(parameterIndex)
             val parameterValue = notExistParameterValues[index]
-            val weightedParameterValue =
-                if (weight == 1.0f)
-                    value
-                else
-                    (parameterValue * (1.0f - weight)) + (value * weight)
-            notExistParameterValues[index] = weightedParameterValue
+            notExistParameterValues[index] = (parameterValue * (1.0f - weight)) + (value * weight)
             return
         }
 
+        var value1 = value
+        run {
+            val parameter = model.parameterViews[parameterIndex]
+            value1 = value1.coerceIn(parameter.minimumValue, parameter.maximumValue)
 
-        // Detect whether partIndex is not out of bounds index
-        check(0 <= parameterIndex && parameterIndex < this.parameterCount)
-
-        val parameter: CubismParameterView = model.parameterViews[parameterIndex]
-        if (parameter.maximumValue < value) {
-            value = parameter.maximumValue
-        } else if (parameter.minimumValue > value) {
-            value = parameter.minimumValue
+            // 此处重写了 set
+            parameter.value = (parameter.value * (1.0f - weight)) + (value1 * weight)
         }
-
-        val parameterValue: Float = parameter.value
-        val weightedParameterValue =
-            if (weight == 1.0f)
-                value
-            else
-                (parameterValue * (1.0f - weight)) + (value * weight)
-        parameter.value = weightedParameterValue
-    }
-
-    fun addParameterValue(parameterId: Live2DId, value: Float, weight: Float = 1.0f) {
-        val index = getParameterIndex(parameterId)
-        addParameterValue(index, value, weight)
-    }
-
-    fun addParameterValue(parameterIndex: Int, value: Float, weight: Float = 1.0f) {
-        setParameterValue(
-            parameterIndex,
-            getParameterValue(parameterIndex) + (value * weight)
-        )
-    }
-
-    fun multiplyParameterValue(parameterId: Live2DId, value: Float, weight: Float = 1.0f) {
-        val index = getParameterIndex(parameterId)
-        multiplyParameterValue(index, value, weight)
-    }
-
-    fun multiplyParameterValue(parameterIndex: Int, value: Float, weight: Float = 1.0f) {
-        setParameterValue(
-            parameterIndex,
-            getParameterValue(parameterIndex) * (1.0f + (value - 1.0f) * weight)
-        )
     }
 
     /* ----- *
@@ -213,21 +158,15 @@ class Live2DModel {
             return partView.index
         }
 
-        // If the part does not exist in the model, it searches for it in the non-existent part ID list and returns its index.
-        if (notExistPartIds.containsKey(partId)) {
-            return notExistPartIds.get(partId)!!
+        notExistPartIds[partId]?.let {
+            return it
         }
 
-        // If the part does not exist in the non-existent part ID list, add newly the element.
         val partIndex = model.partViews.size + notExistPartIds.size
         notExistPartIds.put(partId, partIndex)
         notExistPartIndices.add(partIndex)
 
-        val tmp = FloatArray(notExistPartIndices.size)
-        System.arraycopy(notExistPartOpacities, 0, tmp, 0, notExistPartIndices.size - 1)
-        tmp[notExistPartIndices.size - 1] = 0.0f
-        notExistPartOpacities = FloatArray(notExistPartIndices.size)
-        System.arraycopy(tmp, 0, notExistPartOpacities, 0, notExistPartIndices.size)
+        notExistPartOpacities.add(0.0f)
 
         return partIndex
     }
@@ -236,51 +175,33 @@ class Live2DModel {
         get() = model.partViews.size
 
     fun setPartOpacity(partId: Live2DId, opacity: Float) {
-        // Speeding up the process, this can get partIndex. However, it is not necessary when setting externally because it is not frequently called.
-        val index = getPartIndex(partId)
-
-        if (index < 0) {
-            // Skip processes because there is no part.
-            return
-        }
-
-        setPartOpacity(index, opacity)
+        setPartOpacity(
+            getPartIndex(partId),
+            opacity
+        )
     }
 
-    fun setPartOpacity(partIndex: Int, opacity: Float) {
+    private fun setPartOpacity(partIndex: Int, opacity: Float) {
         if (notExistPartIndices.contains(partIndex)) {
             val index = notExistPartIndices.indexOf(partIndex)
             notExistPartOpacities[index] = opacity
             return
         }
 
-        // Detect whether partIndex is not out of bounds index
-        assert(0 <= partIndex && partIndex < this.partCount)
-
         model.partViews[partIndex].opacity = opacity
     }
 
     fun getPartOpacity(partId: Live2DId): Float {
-        // Speeding up the process, this can get partIndex. However, it is not necessary when setting externally because it is not frequently called.
-        val index = getPartIndex(partId)
-
-        if (index < 0) {
-            // Skip processes because there is no part
-            return 0f
-        }
-
-        return getPartOpacity(index)
+        return getPartOpacity(
+            getPartIndex(partId)
+        )
     }
 
-    fun getPartOpacity(partIndex: Int): Float {
+    private fun getPartOpacity(partIndex: Int): Float {
         if (notExistPartIndices.contains(partIndex)) {
-            // If the part ID does not exist in the model, returns the opacity from non-existence parts list.
             val index = notExistPartIndices.indexOf(partIndex)
             return notExistPartOpacities[index]
         }
-
-        // Detect whether partIndex is not out of bounds index
-        assert(0 <= partIndex && partIndex < this.partCount)
 
         return model.partViews[partIndex].opacity
     }
@@ -291,15 +212,6 @@ class Live2DModel {
 
     val drawableCount: Int
         get() = model.drawableViews.size
-
-    fun getDrawableIndex(drawableId: Live2DId): Int {
-        val drawableIndex: CubismDrawableView? = model.findDrawableView(drawableId.value)
-        if (drawableIndex != null) {
-            return drawableIndex.index
-        }
-
-        return -1
-    }
 
     private fun getDrawableConstantFlag(
         drawableIndex: Int,
@@ -496,31 +408,20 @@ class Live2DModel {
      * List of IDs for non-existent parameters
      */
     private val notExistParameterIds: MutableMap<Live2DId, Int> = HashMap()
-    private val notExistParameterIndices: MutableList<Int> = ArrayList()
+    private val notExistParameterIndices = mutableListOf<Int>()
     private var notExistParameterValues = mutableListOf<Float>()
-    private val notExistPartIds: MutableMap<Live2DId?, Int?> = HashMap()
 
-    private val notExistPartIndices: MutableList<Int?> = ArrayList()
-    private var notExistPartOpacities = FloatArray(1)
+    private val notExistPartIds: MutableMap<Live2DId, Int> = HashMap()
+    private val notExistPartIndices = mutableListOf<Int>()
+    private var notExistPartOpacities = mutableListOf<Float>()
 
     /**
      * Saved parameters
      */
     private var savedParameters = FloatArray(1)
 
-    // 不知道干什么的
-    var modelOpacity: Float = 1.0f
-
     private var userDrawableMultiplyColors: List<DrawableColorData>
     private var userDrawableScreenColors: List<DrawableColorData>
     private var userDrawableCullings: List<DrawableCullingData>
-
-    /**
-     * Partとその子DrawableのListとのMap
-     */
-    private lateinit var partChildDrawablesMap: MutableMap<Int, MutableList<Int>>
-
-//    private lateinit var userPartMultiplyColors: List<PartColorData>
-//    private lateinit var userPartScreenColors: List<PartColorData>
 }
 

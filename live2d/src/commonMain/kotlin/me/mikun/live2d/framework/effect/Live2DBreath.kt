@@ -60,10 +60,9 @@ class Live2DBreath {
 
             val value: Float = breathData.offset + (breathData.peak * sin(t / breathData.cycle))
 
-            model.addParameterValue(
+            model.setParameterValue(
                 breathData.parameterId,
-                value,
-                breathData.weight
+                value * breathData.weight
             )
         }
     }

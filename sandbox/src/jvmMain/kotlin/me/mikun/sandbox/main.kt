@@ -40,7 +40,7 @@ fun main() {
 
     Live2DCubismCoreFFM.load(resDirLib)
 
-    val moc = resMocMao
+    val moc = resMocHiyori
 
     live2dMain(
         "$resDirMoc$moc", moc

@@ -31,7 +31,7 @@ class Live2DPose {
     val groups: List<List<PartInfo>>
 
     data class PartInfo(
-        var partId: Live2DId,
+        var partId: Live2DId, // 既是 partId 也是 parameterId
         var linkedParameter: List<PartInfo> = listOf(),
     ) {
         var parameterIndex: Int = -1
@@ -65,13 +65,13 @@ class Live2DPose {
         groups.forEach {
             it.first().let {
                 it.init(model)
-                model.setPartOpacity(it.partIndex, 1.0f)
-                model.setParameterValue(it.parameterIndex, 1.0f)
+                model.setPartOpacity(it.partId, 1.0f)
+                model.setParameterValue(it.partId, 1.0f)
             }
             it.drop(1).forEach {
                 it.init(model)
-                model.setPartOpacity(it.partIndex, 0.0f)
-                model.setParameterValue(it.parameterIndex, 0.0f)
+                model.setPartOpacity(it.partId, 0.0f)
+                model.setParameterValue(it.partId, 0.0f)
             }
         }
     }
@@ -84,22 +84,22 @@ class Live2DPose {
 
         groups.forEach {
             val current = it.find {
-                model.getParameterValue(it.parameterIndex) > EPSILON
+                model.getParameterValue(it.partId) > EPSILON
             }?.also {
-                opacity = calculateOpacity(model, it.partIndex, deltaSeconds)
+                opacity = calculateOpacity(model, it.partId, deltaSeconds)
                 model.setPartOpacity(
-                    it.partIndex,
+                    it.partId,
                     opacity
                 )
             } ?: groups.first().first()
 
-            it.filter { it.partIndex != current.partIndex }.forEach { partInfo ->
+            it.filter { it.partId != current.partId }.forEach { partInfo ->
                 calcNonDisplayedPartsOpacity(
-                    model.getPartOpacity(partInfo.partIndex),
+                    model.getPartOpacity(partInfo.partId),
                     opacity
                 ).also {
                     model.setPartOpacity(
-                        partInfo.partIndex,
+                        partInfo.partId,
                         it
                     )
                 }
@@ -109,7 +109,7 @@ class Live2DPose {
 
     private fun calculateOpacity(
         model: Live2DModel,
-        partIndex: Int,
+        partId: Live2DId,
         deltaSeconds: Float,
     ): Float {
         if (fadeTimeSeconds <= 0.0f) {
@@ -118,7 +118,7 @@ class Live2DPose {
 
         return min(
             model.getPartOpacity(
-                partIndex
+                partId
             ) + deltaSeconds / fadeTimeSeconds,
             1.0f
         )
@@ -132,8 +132,8 @@ class Live2DPose {
             it.forEach {
                 for (linkedPart in it.linkedParameter) {
                     model.setPartOpacity(
-                        linkedPart.partIndex,
-                        model.getPartOpacity(it.partIndex)
+                        linkedPart.partId,
+                        model.getPartOpacity(it.partId)
                     )
                 }
             }

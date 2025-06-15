@@ -101,7 +101,8 @@ class Live2DMotionQueueEntry(
 
                         Live2DIdManager.id(OpacityID.OPACITY.value) -> {
                             // 不透明度の値が存在すれば反映する。
-                            model.modelOpacity = value
+                            // TODO::
+//                            model.modelOpacity = value
                         }
                     }
                 }
@@ -120,13 +121,6 @@ class Live2DMotionQueueEntry(
             val fadeWeight = calFadeWeight(totalSeconds)
             motion.motionData.curves.filter { it.type == CubismMotionCurveTarget.PARAMETER }
                 .forEach { curve ->
-
-                    val parameterIndex = model.getParameterIndex(curve.id)
-
-                    // Skip curve evaluation if no value.
-                    if (parameterIndex == -1) {
-                        return@forEach
-                    }
 
                     val sourceValue = model.getParameterValue(curve.id)
 
@@ -184,7 +178,7 @@ class Live2DMotionQueueEntry(
                         // Apply each fading.
                         v = sourceValue + (value - sourceValue) * fadeWeight
                     }
-                    model.setParameterValue(parameterIndex, v)
+                    model.setParameterValue(curve.id, v)
                 }
 
 
@@ -221,17 +215,9 @@ class Live2DMotionQueueEntry(
             motion.motionData.curves.filter { it.type == CubismMotionCurveTarget.PART_OPACITY }
                 .forEach { curve ->
 
-                    // Find parameter index.
-                    val parameterIndex = model.getParameterIndex(curve.id)
-
-                    // Skip curve evaluation if no value.
-                    if (parameterIndex == -1) {
-                        return@forEach
-                    }
-
                     // Evaluate curve and apply value.
                     value = motion.evaluateCurve(curve, time, isCorrection, duration)
-                    model.setParameterValue(parameterIndex, value)
+                    model.setParameterValue(curve.id, value)
                 }
 
             if (start_2_nowSeconds >= duration) {
