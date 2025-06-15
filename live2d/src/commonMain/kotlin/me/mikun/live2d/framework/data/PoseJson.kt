@@ -18,6 +18,6 @@ data class PoseJson(
         @SerialName("Id")
         val id: String,
         @SerialName("Link")
-        val links: List<String>
+        val link: List<String>
     )
 }

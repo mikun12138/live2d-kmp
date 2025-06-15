@@ -23,7 +23,7 @@ data class ModelJson(
         @SerialName("Physics")
         val physics: String,
         @SerialName("Pose")
-        val pose: String,
+        val pose: String? = null,
         @SerialName("DisplayInfo")
         val displayInfo: String,
         @SerialName("Expressions")

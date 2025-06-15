@@ -5,17 +5,11 @@ import me.mikun.live2d.framework.id.Live2DId
 import me.mikun.live2d.framework.id.Live2DIdManager
 import me.mikun.live2d.framework.model.Live2DModel
 import kotlinx.serialization.json.Json
+import kotlin.math.min
 
-/**
- * This class deals with parts opacity value and settings.
- */
 class Live2DPose {
     constructor(pose3json: ByteArray) {
-        println(String(pose3json))
         Json.decodeFromString<PoseJson>(String(pose3json)).let { json ->
-            println(json.type)
-
-            // Set the fade time.
             fadeTimeSeconds = json.fadeInTime.let {
                 if (it < 0.0f)
                     DEFAULT_FADE_IN_SECONDS
@@ -23,221 +17,148 @@ class Live2DPose {
                     it
             }
 
-            json.groups.forEach { partInfoList ->
-                partInfoList.forEach { partInfo ->
-                    partGroups.add(
-                        PartData(
-                            partId = Live2DIdManager.id(partInfo.id),
-                        ).apply {
-                            partInfo.links.forEach { id ->
-                                linkedParameter.add(
-                                    PartData(
-                                        Live2DIdManager.id(id)
-                                    )
-                                )
-                            }
-                        }
+            groups = json.groups.map {
+                it.map {
+                    PartInfo(
+                        partId = Live2DIdManager.id(it.id),
+                        linkedParameter = it.link.map { PartInfo(Live2DIdManager.id(it)) }
                     )
                 }
-                partGroupCounts.add(partInfoList.size)
             }
         }
     }
 
+    val groups: List<List<PartInfo>>
+
+    data class PartInfo(
+        var partId: Live2DId,
+        var linkedParameter: List<PartInfo> = listOf(),
+    ) {
+        var parameterIndex: Int = -1
+        var partIndex: Int = -1
+
+        fun init(model: Live2DModel) {
+            parameterIndex = model.getParameterIndex(partId)
+            partIndex = model.getPartIndex(partId)
+
+            model.setParameterValue(parameterIndex, 1.0f)
+
+            linkedParameter.forEach {
+                it.init(model)
+            }
+        }
+
+    }
+
+
     data class PartData(
-        var partId: Live2DId? = null,
+        var partId: Live2DId,
         var parameterIndex: Int = 0,
         var partIndex: Int = 0,
         var linkedParameter: MutableList<PartData> = mutableListOf(),
     ) {
         fun init(model: Live2DModel) {
-            parameterIndex = model.getParameterIndex(partId!!)
-            partIndex = model.getPartIndex(partId!!)
+            parameterIndex = model.getParameterIndex(partId)
+            partIndex = model.getPartIndex(partId)
 
             model.setParameterValue(parameterIndex, 1.0f)
+
+            linkedParameter.forEach {
+                it.init(model)
+            }
         }
     }
 
-    /**
-     * Update model's parameters.
-     *
-     * @param model the target model
-     * @param deltaTimeSeconds delta time[s]
-     */
-    fun updateParameters(model: Live2DModel, deltaTimeSeconds: Float) {
+    fun updateParameters1(model: Live2DModel, deltaSeconds: Float) {
         // If given model is different from previous model, it is required to initialize some parameters.
-        var deltaTimeSeconds = deltaTimeSeconds
         if (model != lastModel) {
-            reset(model)
+            reset1(model)
         }
-
         lastModel = model
 
-        // If a negative time is given, 0 value is set.
-        if (deltaTimeSeconds < 0.0f) {
-            deltaTimeSeconds = 0.0f
-        }
+        doFade(model, deltaSeconds)
 
-        var beginIndex = 0
-
-        for (i in partGroupCounts.indices) {
-            val partGroupCount: Int = partGroupCounts.get(i)!!
-
-            doFade(model, deltaTimeSeconds, beginIndex, partGroupCount)
-            beginIndex += partGroupCount
-        }
         copyPartOpacities(model)
+
     }
 
-    /**
-     * Initialize display.
-     *
-     * @param model the target model(Parameters that initial opacity is not 0, the opacity is set to 1.)
-     */
-    private fun reset(model: Live2DModel) {
-        var beginIndex = 0
-
-        for (j in partGroupCounts.indices) {
-            val groupCount: Int = partGroupCounts.get(j)!!
-
-            for (i in beginIndex..<beginIndex + groupCount) {
-                partGroups.get(i).init(model)
-
-                val partsIndex = partGroups.get(i).partIndex
-                val paramIndex = partGroups.get(i).parameterIndex
-
-                if (partsIndex < 0) {
-                    continue
-                }
-
-                if (i == beginIndex) {
-                    model.setPartOpacity(partsIndex, 1.0f)
-                    model.setParameterValue(paramIndex, 1.0f)
-                }
-
-                val value =
-                    if (i == beginIndex)
-                        1.0f
-                    else
-                        0.0f
-                model.setPartOpacity(partsIndex, value)
-                model.setParameterValue(paramIndex, value)
-
-                val link = partGroups.get(i).linkedParameter
-                if (link != null) {
-                    for (data in link) {
-                        data.init(model)
-                    }
-                }
+    private fun reset1(model: Live2DModel) {
+        groups.forEach {
+            it.first().let {
+                it.init(model)
+                model.setPartOpacity(it.partIndex, 1.0f)
+                model.setParameterValue(it.parameterIndex, 1.0f)
             }
-            beginIndex += groupCount
-        }
-    }
-
-    /**
-     * Parts opacity is copied and set to linked parts.
-     *
-     * @param model the target model
-     */
-    private fun copyPartOpacities(model: Live2DModel) {
-        for (i in partGroups.indices) {
-            val partData = partGroups.get(i)
-            if (partData.linkedParameter == null) {
-                continue
-            }
-
-            val partIndex = partData.partIndex
-            val opacity = model.getPartOpacity(partIndex)
-
-            for (j in partData.linkedParameter!!.indices) {
-                val linkedPart = partData.linkedParameter!!.get(j)
-
-                val linkedPartIndex = linkedPart.partIndex
-
-                if (linkedPartIndex < 0) {
-                    continue
-                }
-
-                model.setPartOpacity(linkedPartIndex, opacity)
+            it.drop(1).forEach {
+                it.init(model)
+                model.setPartOpacity(it.partIndex, 0.0f)
+                model.setParameterValue(it.parameterIndex, 0.0f)
             }
         }
     }
 
-    /**
-     * Fade parts
-     *
-     * @param model the target model
-     * @param deltaTimeSeconds delta time[s]
-     * @param beginIndex the head index of parts groups done fading
-     * @param partGroupCount the number of parts groups done fading
-     */
     private fun doFade(
         model: Live2DModel,
-        deltaTimeSeconds: Float,
-        beginIndex: Int,
-        partGroupCount: Int,
+        deltaSeconds: Float,
     ) {
-        var visiblePartIndex = -1
-        var newOpacity = 1.0f
+        var opacity = 1.0f
 
-        // Get parts displayed now.
-        for (i in beginIndex..<beginIndex + partGroupCount) {
-            val paramIndex = partGroups.get(i).parameterIndex
+        groups.forEach {
+            val current = it.find {
+                model.getParameterValue(it.parameterIndex) > EPSILON
+            }?.also {
+                opacity = calculateOpacity(model, it.partIndex, deltaSeconds)
+                model.setPartOpacity(
+                    it.partIndex,
+                    opacity
+                )
+            } ?: groups.first().first()
 
-            if (model.getParameterValue(paramIndex) > EPSILON) {
-                if (visiblePartIndex >= 0) {
-                    break
+            it.filter { it.partIndex != current.partIndex }.forEach { partInfo ->
+                calcNonDisplayedPartsOpacity(
+                    model.getPartOpacity(partInfo.partIndex),
+                    opacity
+                ).also {
+                    model.setPartOpacity(
+                        partInfo.partIndex,
+                        it
+                    )
                 }
-
-                newOpacity = calculateOpacity(model, i, deltaTimeSeconds)
-
-                visiblePartIndex = i
-            }
-        }
-
-        if (visiblePartIndex < 0) {
-            visiblePartIndex = 0
-            newOpacity = 1.0f
-        }
-
-        // Set opacity to displayed, and non-displayed parts
-        for (i in beginIndex..<beginIndex + partGroupCount) {
-            val partsIndex = partGroups.get(i).partIndex
-
-            // Setting of displayed parts
-            if (visiblePartIndex == i) {
-                model.setPartOpacity(partsIndex, newOpacity)
-            } else {
-                val opacity = model.getPartOpacity(partsIndex)
-                val result = calcNonDisplayedPartsOpacity(opacity, newOpacity)
-                model.setPartOpacity(partsIndex, result)
             }
         }
     }
 
-    /**
-     * Calculate the new part opacity. This method is used at fading.
-     *
-     * @param model target model
-     * @param index part index
-     * @param deltaTime delta time[s]
-     * @return new calculated opacity. If fade time is 0.0[s], return 1.0f.
-     */
-    private fun calculateOpacity(model: Live2DModel, index: Int, deltaTime: Float): Float {
-        if (fadeTimeSeconds == 0f) {
+    private fun calculateOpacity(
+        model: Live2DModel,
+        partIndex: Int,
+        deltaSeconds: Float,
+    ): Float {
+        if (fadeTimeSeconds <= 0.0f) {
             return 1.0f
         }
 
-        val partIndex = partGroups.get(index).partIndex
-        var opacity = model.getPartOpacity(partIndex)
+        return min(
+            model.getPartOpacity(
+                partIndex
+            ) + deltaSeconds / fadeTimeSeconds,
+            1.0f
+        )
+    }
 
-        opacity += deltaTime / fadeTimeSeconds
-
-        if (opacity > 1.0f) {
-            opacity = 1.0f
+    /**
+     * 设置子项透明度与父项相同
+     */
+    private fun copyPartOpacities(model: Live2DModel) {
+        groups.forEach {
+            it.forEach {
+                for (linkedPart in it.linkedParameter) {
+                    model.setPartOpacity(
+                        linkedPart.partIndex,
+                        model.getPartOpacity(it.partIndex)
+                    )
+                }
+            }
         }
-
-        return opacity
     }
 
     /**
@@ -274,11 +195,7 @@ class Live2DPose {
         return currentOpacity
     }
 
-    private val partGroups: MutableList<PartData> = ArrayList<PartData>()
-
-    private val partGroupCounts: MutableList<Int?> = ArrayList()
-
-    private var fadeTimeSeconds = DEFAULT_FADE_IN_SECONDS
+    val fadeTimeSeconds: Float
 
     private var lastModel: Live2DModel? = null
 

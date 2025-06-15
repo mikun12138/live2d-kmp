@@ -496,8 +496,12 @@ class Live2DMotion : ALive2DMotion {
 
     val eyeBlinkParameterIds: MutableList<Live2DId> = mutableListOf()
     val lipSyncParameterIds: MutableList<Live2DId> = mutableListOf()
-    val eyeBlinkOverrideFlags = BooleanArray(eyeBlinkParameterIds.size)
-    val lipSyncOverrideFlags = BooleanArray(lipSyncParameterIds.size)
+    val eyeBlinkOverrideFlags by lazy {
+        BooleanArray(eyeBlinkParameterIds.size)
+    }
+    val lipSyncOverrideFlags by lazy {
+        BooleanArray(lipSyncParameterIds.size)
+    }
 
     // event / userdata
     var beganMotionCallback: IBeganMotionCallback = IBeganMotionCallback { }

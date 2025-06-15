@@ -54,8 +54,10 @@ open class AAppModel : Live2DUserModel() {
             }
         }
 
-        Path(dir, modelJson.fileReferences.pose).readBytes().let { buffer ->
-            loadPose(buffer)
+        modelJson.fileReferences.pose?.let {
+            Path(dir, it).readBytes().let { buffer ->
+                loadPose(buffer)
+            }
         }
 
         for ((name, motionGroup) in modelJson.fileReferences.motionGroups) {
@@ -152,7 +154,7 @@ open class AAppModel : Live2DUserModel() {
     override fun doUpdate(deltaSeconds: Float) {
 
         // Pose Setting
-        pose?.updateParameters(model, deltaSeconds)
+        pose?.updateParameters1(model, deltaSeconds)
 
         // モーションによるパラメーター更新の有無
         var isMotionUpdated = false

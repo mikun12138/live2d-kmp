@@ -28,13 +28,21 @@ val arch = Arch.byName(
 val resDir = System.getProperty("compose.application.resources.dir")
 val resDirMoc = "$resDir/moc/"
 val resDirLib = "$resDir/lib/${arch.value}"
-val resMocHiyori = "Mao"
+val resMocHaru = "Haru"
+val resMocHiyori = "Hiyori"
+val resMocMao = "Mao"
+val resMocMark = "Mark"
+val resMocNatori = "Natori"
+val resMocRice = "Rice"
+val resMocWanko = "Wanko"
 
 fun main() {
 
     Live2DCubismCoreFFM.load(resDirLib)
 
+    val moc = resMocMao
+
     live2dMain(
-        "$resDirMoc$resMocHiyori", resMocHiyori
+        "$resDirMoc$moc", moc
     )
 }
