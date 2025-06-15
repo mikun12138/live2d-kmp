@@ -14,6 +14,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Live2D"
-include(":shared")
+rootProject.name = "Live2D-KMP"
+include(":live2d")
 include(":sandbox")

@@ -4,7 +4,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.compose.compiler)
 }
@@ -42,17 +42,35 @@ kotlin {
 //    }
 
     sourceSets {
+        androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
+        }
         commonMain.dependencies {
             implementation(compose.runtime)
+            implementation(compose.foundation)
+            implementation(compose.preview)
 
-            implementation(projects.shared)
+            implementation(projects.live2d)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
 
-        jvmMain.dependencies {
+        val lwjglVersion = "3.3.6"
+        val lwjglNatives = "natives-windows"
 
+        jvmMain.dependencies {
+            implementation(project.dependencies.platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
+
+            implementation("org.lwjgl:lwjgl:${lwjglVersion}")
+            implementation("org.lwjgl:lwjgl-glfw:${lwjglVersion}")
+            implementation("org.lwjgl:lwjgl-opengl:${lwjglVersion}")
+            implementation("org.lwjgl:lwjgl-stb:${lwjglVersion}")
+
+            runtimeOnly("org.lwjgl:lwjgl::$lwjglNatives")
+            runtimeOnly("org.lwjgl:lwjgl-glfw::$lwjglNatives")
+            runtimeOnly("org.lwjgl:lwjgl-opengl::$lwjglNatives")
+            runtimeOnly("org.lwjgl:lwjgl-stb::$lwjglNatives")
         }
     }
 
@@ -60,11 +78,18 @@ kotlin {
 
 }
 
+dependencies {
+    debugImplementation(compose.uiTooling)
+}
+
 android {
     namespace = "me.mikun.live2d"
     compileSdk = 36
     defaultConfig {
-        minSdk = 33
+        applicationId = "me.mikun.live2d"
+        minSdk = 23
+        versionCode = 1
+        versionName = "1.0"
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_21
