@@ -154,7 +154,7 @@ open class AAppModel : Live2DUserModel() {
     override fun doUpdate(deltaSeconds: Float) {
 
         // Pose Setting
-        pose?.updateParameters1(model, deltaSeconds)
+        pose?.updateParameters(model, deltaSeconds)
 
         // モーションによるパラメーター更新の有無
         var isMotionUpdated = false

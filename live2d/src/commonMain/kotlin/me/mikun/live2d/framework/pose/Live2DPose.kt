@@ -69,10 +69,10 @@ class Live2DPose {
         }
     }
 
-    fun updateParameters1(model: Live2DModel, deltaSeconds: Float) {
+    fun updateParameters(model: Live2DModel, deltaSeconds: Float) {
         // If given model is different from previous model, it is required to initialize some parameters.
         if (model != lastModel) {
-            reset1(model)
+            reset(model)
         }
         lastModel = model
 
@@ -82,7 +82,7 @@ class Live2DPose {
 
     }
 
-    private fun reset1(model: Live2DModel) {
+    private fun reset(model: Live2DModel) {
         groups.forEach {
             it.first().let {
                 it.init(model)
