@@ -58,7 +58,7 @@ import org.lwjgl.opengl.GL46.glGenVertexArrays
 import org.lwjgl.opengl.GL46.glVertexAttribPointer
 import org.lwjgl.stb.STBImage
 import org.lwjgl.system.MemoryStack
-import java.nio.ByteBuffer
+import org.lwjgl.system.MemoryUtil
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 import kotlin.math.max
@@ -92,7 +92,7 @@ class Live2DRenderer(
                 val height = stack.mallocInt(1)
                 val channels = stack.mallocInt(1)
                 STBImage.stbi_load_from_memory(
-                    ByteBuffer.allocateDirect(bytes.size).put(bytes).flip(),
+                    MemoryUtil.memAlloc(bytes.size).put(bytes).flip(),
                     width,
                     height,
                     channels,
