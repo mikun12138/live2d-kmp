@@ -1,7 +1,6 @@
 package me.mikun.live2d.ex.rendering
 
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import me.mikun.live2d.framework.model.Live2DModel
 import me.mikun.live2d.ex.rendering.ALive2DRenderer.State
 import me.mikun.live2d.ex.model.AAppModel
 import me.mikun.live2d.framework.type.csmRectF
@@ -16,7 +15,6 @@ abstract class ALive2DRenderer : StateContext<ALive2DRenderer, State> {
     var mvp: CubismMatrix44 = CubismMatrix44.create()
 
     val offscreenSurfacesCount: Int
-    abstract val offscreenSurfaces: Array<ALive2DOffscreenSurface>
     val clipContextList: MutableList<ClipContext> = mutableListOf()
 
     constructor(
@@ -29,7 +27,7 @@ abstract class ALive2DRenderer : StateContext<ALive2DRenderer, State> {
         this.offscreenSurfacesCount = offscreenSurfacesCount
 
         repeat(appModel.model.drawableCount) { index ->
-            val drawableMask = appModel.model.getDrawableMask(index)!!
+            val drawableMask = appModel.model.getDrawableMask(index)
             if (drawableMask.isNotEmpty()) {
                 val clipContext = clipContextList.find {
                     it.maskIndexArray.size == drawableMask.size
@@ -231,122 +229,6 @@ abstract class ALive2DRenderer : StateContext<ALive2DRenderer, State> {
         var CLIPPING_MASK_MAX_COUNT_ON_MULTI_RENDER_TEXTURE: Int = 32
     }
 
-}
-
-// TODO:: expert DrawableContext.create() 然后平台实现?
-class DrawableContext constructor(
-    val model: Live2DModel,
-    val index: Int,
-) {
-    val renderOrder = model.getDrawableRenderOrder(index)
-
-    val textureIndex = model.getDrawableTextureIndex(index)
-
-    val isCulling = !model.getDrawableIsDoubleSided(index)
-
-    val blendMode: CubismBlendMode = model.getDrawableBlendMode(index)
-    val isInvertedMask = model.getDrawableInvertedMask(index)
-
-    val vertex: Vertex = Vertex(model, index)
-    var isVisible = false
-    var vertexPositionDidChange = false
-    var opacity = 1.0f
-    lateinit var baseColor: CubismTextureColor
-    lateinit var multiplyColor: CubismTextureColor
-    lateinit var screenColor: CubismTextureColor
-
-    /*
-        不为空说明该物件有蒙版
-     */
-    var clipContext: ClipContext? = null
-
-    fun update() {
-        vertex.update()
-        isVisible = model.getDrawableDynamicFlagIsVisible(index)
-        vertexPositionDidChange = model.getDrawableDynamicFlagVertexPositionsDidChange(index)
-        opacity = model.getDrawableOpacity(index)
-        baseColor = model.getModelColorWithOpacity(opacity)
-        multiplyColor = model.getDrawableMultiplyColors(index)!!.let {
-            CubismTextureColor(
-                it[0],
-                it[1],
-                it[2],
-                it[3],
-            )
-        }
-        screenColor = model.getDrawableScreenColors(index)!!.let {
-            CubismTextureColor(
-                it[0],
-                it[1],
-                it[2],
-                it[3],
-            )
-        }
-
-    }
-
-    class Vertex(
-        val model: Live2DModel,
-        val index: Int,
-    ) {
-        val count = model.getDrawableVertexCount(index)
-        var positionsArray: FloatArray = model.getDrawableVertexPositions(index)!!
-        var texCoordsArray: FloatArray = model.getDrawableVertexUVs(index)!!
-        var indicesArray: ShortArray = model.getDrawableIndices(index)!!
-
-        fun update() {
-            positionsArray = model.getDrawableVertexPositions(index)!!
-            texCoordsArray = model.getDrawableVertexUVs(index)!!
-            indicesArray =  model.getDrawableIndices(index)!!
-        }
-    }
-
-}
-
-/*
-    对应framebuffer中的一个区域中的一个通道
- */
-class ClipContext(
-    val maskIndexArray: IntArray,
-) {
-    var bufferIndex = 0
-    val layoutBounds: csmRectF = csmRectF()
-    var layoutChannelIndex = 0
-
-    var allClippedDrawRect: csmRectF = csmRectF()
-
-    val matrixForMask: CubismMatrix44 = CubismMatrix44.create()
-
-    val matrixForDraw: CubismMatrix44 = CubismMatrix44.create()
-
-    companion object {
-        val CHANNEL_FLAGS = arrayOf(
-            CubismTextureColor(
-                r = 1.0f,
-                g = 0.0f,
-                b = 0.0f,
-                a = 0.0f,
-            ),
-            CubismTextureColor(
-                r = 0.0f,
-                g = 1.0f,
-                b = 0.0f,
-                a = 0.0f,
-            ),
-            CubismTextureColor(
-                r = 0.0f,
-                g = 0.0f,
-                b = 1.0f,
-                a = 0.0f,
-            ),
-            CubismTextureColor(
-                r = 0.0f,
-                g = 0.0f,
-                b = 0.0f,
-                a = 1.0f,
-            )
-        )
-    }
 }
 
 enum class CubismBlendMode {

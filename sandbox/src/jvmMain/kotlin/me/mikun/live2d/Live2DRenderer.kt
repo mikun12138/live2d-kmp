@@ -72,7 +72,7 @@ class Live2DRenderer(
     appModel,
     offScreenBufferCount,
 ) {
-    override val offscreenSurfaces: Array<ALive2DOffscreenSurface> = Array(offScreenBufferCount) {
+    val offscreenSurfaces: Array<ALive2DOffscreenSurface> = Array(offScreenBufferCount) {
         Live2DOffscreenSurface().apply {
             createOffscreenSurface(
                 CubismVector2(
@@ -320,7 +320,6 @@ class Live2DRenderer(
                         }
                     }
             }
-
 
         }
 

@@ -289,7 +289,7 @@ class Live2DModel {
         return model.drawableViews[drawableIndex].opacity
     }
 
-    fun getDrawableMask(drawableIndex: Int): IntArray? {
+    fun getDrawableMask(drawableIndex: Int): IntArray {
         return model.drawableViews[drawableIndex].masks
     }
 
@@ -297,23 +297,23 @@ class Live2DModel {
         return model.drawableViews[drawableIndex].vertexCount
     }
 
-    fun getDrawableVertexPositions(drawableIndex: Int): FloatArray? {
+    fun getDrawableVertexPositions(drawableIndex: Int): FloatArray {
         return model.drawableViews[drawableIndex].vertexPositions
     }
 
-    fun getDrawableVertexUVs(drawableIndex: Int): FloatArray? {
+    fun getDrawableVertexUVs(drawableIndex: Int): FloatArray {
         return model.drawableViews[drawableIndex].vertexUvs
     }
 
-    fun getDrawableIndices(drawableIndex: Int): ShortArray? {
+    fun getDrawableIndices(drawableIndex: Int): ShortArray {
         return model.drawableViews[drawableIndex].indices
     }
 
-    fun getDrawableMultiplyColors(drawableIndex: Int): FloatArray? {
+    fun getDrawableMultiplyColors(drawableIndex: Int): FloatArray {
         return model.drawableViews[drawableIndex].multiplyColors
     }
 
-    fun getDrawableScreenColors(drawableIndex: Int): FloatArray? {
+    fun getDrawableScreenColors(drawableIndex: Int): FloatArray {
         return model.drawableViews[drawableIndex].screenColors
     }
 
