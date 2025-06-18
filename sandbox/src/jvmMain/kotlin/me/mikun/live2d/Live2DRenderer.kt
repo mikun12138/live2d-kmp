@@ -1,14 +1,13 @@
 package me.mikun.live2d
 
-import me.mikun.live2d.ex.rendering.ALive2DOffscreenSurface
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import me.mikun.live2d.ex.rendering.ClipContext
 import me.mikun.live2d.ex.rendering.DrawableContext
 import me.mikun.live2d.framework.Live2DFramework.VERTEX_OFFSET
 import me.mikun.live2d.framework.Live2DFramework.VERTEX_STEP
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import com.live2d.sdk.cubism.framework.math.CubismVector2
 import me.mikun.live2d.ex.model.AAppModel
+import me.mikun.live2d.ex.rendering.ALive2DOffscreenSurface
 import me.mikun.live2d.framework.type.csmRectF
 import org.lwjgl.opengl.GL11.GL_NEAREST
 import org.lwjgl.opengl.GL11.GL_RGBA
@@ -31,7 +30,6 @@ import org.lwjgl.opengl.GL44.GL_MAP_COHERENT_BIT
 import org.lwjgl.opengl.GL46.GL_ARRAY_BUFFER
 import org.lwjgl.opengl.GL46.GL_BLEND
 import org.lwjgl.opengl.GL46.GL_CCW
-import org.lwjgl.opengl.GL46.GL_COLOR_BUFFER_BIT
 import org.lwjgl.opengl.GL46.GL_CULL_FACE
 import org.lwjgl.opengl.GL46.GL_DEPTH_TEST
 import org.lwjgl.opengl.GL46.GL_ELEMENT_ARRAY_BUFFER
@@ -45,8 +43,6 @@ import org.lwjgl.opengl.GL46.GL_UNSIGNED_SHORT
 import org.lwjgl.opengl.GL46.glBindBuffer
 import org.lwjgl.opengl.GL46.glBindVertexArray
 import org.lwjgl.opengl.GL46.glBufferStorage
-import org.lwjgl.opengl.GL46.glClear
-import org.lwjgl.opengl.GL46.glClearColor
 import org.lwjgl.opengl.GL46.glColorMask
 import org.lwjgl.opengl.GL46.glDisable
 import org.lwjgl.opengl.GL46.glDrawElements
@@ -68,16 +64,18 @@ import kotlin.use
 class Live2DRenderer(
     appModel: AAppModel,
     offScreenBufferCount: Int,
-) : ALive2DRenderer(
+) : ALive2DRenderer.PreClip(
     appModel,
     offScreenBufferCount,
+    pushViewportFun = Live2DRenderState::pushViewPort,
+    pushFrameBufferFun = Live2DRenderState::pushFrameBuffer,
 ) {
-    val offscreenSurfaces: Array<ALive2DOffscreenSurface> = Array(offScreenBufferCount) {
+    var mvp: CubismMatrix44 = CubismMatrix44.create()
+
+    override val offscreenSurfaces: Array<Live2DOffscreenSurface> = Array(offScreenBufferCount) {
         Live2DOffscreenSurface().apply {
             createOffscreenSurface(
-                CubismVector2(
-                    512.0f, 512.0f
-                )
+                512.0f, 512.0f
             )
         }
     }
@@ -242,14 +240,14 @@ class Live2DRenderer(
         }
     }
 
-    /*
-        lazy cache
-    */
-    private val clipContext_2_drawableContextList: Map<ClipContext, List<DrawableContext>> by lazy {
-        clipContextList.associateWith { clipContext -> drawableContextArray.filter { it.clipContext === clipContext } }
+
+    fun frame(mvp: CubismMatrix44) {
+        this.mvp.setMatrix(mvp)
+        doFrame()
     }
 
-    override fun setupMask() {
+    override fun doUpdateData() {
+        super.doUpdateData()
         drawableVertexArrayArray.forEachIndexed { index, vertexArray ->
             with(drawableContextArray[index].vertex) {
                 vertexArray.positionsBuffer
@@ -271,101 +269,52 @@ class Live2DRenderer(
                     ?.position(0)
             }
         }
-        Live2DRenderState.pushViewPort(
-            0,
-            0,
-            512,
-            512,
-        ) {
-            Live2DRenderState.pushFrameBuffer {
-
-                clipContext_2_drawableContextList.forEach { (clipContext, drawableContextList) ->
-                    run {
-                        check(
-                            clipContext.calcClippedDrawTotalBounds(
-                                drawableContextList
-                            )
-                        )
-
-                        clipContext.createMatrixForMask()
-                        clipContext.createMatrixForDraw()
-                    }
-                }
-
-                clipContextList.groupBy { it.bufferIndex }
-                    .forEach { (bufferIndex, clipContextList) ->
-                        offscreenSurfaces[bufferIndex].let {
-                            it.draw {
-                                glClearColor(
-                                    1.0f,
-                                    1.0f,
-                                    1.0f,
-                                    1.0f
-                                )
-                                glClear(GL_COLOR_BUFFER_BIT)
-
-                                clipContextList.forEach { clipContext ->
-                                    for (maskIndex in clipContext.maskIndexArray) {
-                                        val drawableContext = drawableContextArray[maskIndex]
-
-                                        if (!drawableContext.vertexPositionDidChange) continue
-
-                                        currentClipContextForSetupMask = clipContext
-                                        drawMesh(
-                                            drawableContext
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-            }
-
-        }
-
     }
 
-    lateinit var currentClipContextForSetupMask: ClipContext
-
-    override fun draw() {
-        val sortedDrawableContextArray = drawableContextArray.sortedWith(
-            compareBy { it.renderOrder }
+    override fun setupMaskDraw(
+        drawableContext: DrawableContext,
+        clipContextForSetupMask: ClipContext,
+    ) {
+        Live2DShader.setupMask(
+            this,
+            drawableContext,
+            clipContextForSetupMask
         )
 
-        sortedDrawableContextArray.forEach { drawableContext ->
-            if (!drawableContext.isVisible) return@forEach
-            drawMesh(drawableContext)
-        }
+        drawMesh(
+            drawableContext
+        )
     }
 
-    fun drawMesh(
+    override fun simpleDraw(
         drawableContext: DrawableContext,
     ) {
+        Live2DShader.drawSimple(
+            this,
+            drawableContext
+        )
 
-        when (state) {
-            State.SETUP_MASK -> {
-                Live2DShader.setupMask(
-                    this,
-                    drawableContext,
-                    currentClipContextForSetupMask
-                )
-            }
+        drawMesh(
+            drawableContext
+        )
+    }
 
-            State.DRAW -> {
-                drawableContext.clipContext?.let {
-                    Live2DShader.drawMasked(
-                        this,
-                        drawableContext
-                    )
-                } ?: run {
-                    Live2DShader.drawSimple(
-                        this,
-                        drawableContext
-                    )
-                }
-            }
-        }
+    override fun maskDraw(
+        drawableContext: DrawableContext,
+    ) {
+        Live2DShader.drawMasked(
+            this,
+            drawableContext
+        )
 
+        drawMesh(
+            drawableContext
+        )
+    }
+
+    private fun drawMesh(
+        drawableContext: DrawableContext,
+    ) {
         glDisable(GL_SCISSOR_TEST)
         glDisable(GL_STENCIL_TEST)
         glDisable(GL_DEPTH_TEST)
@@ -384,110 +333,12 @@ class Live2DRenderer(
             glDisable(GL_CULL_FACE)
         }
         glFrontFace(GL_CCW)
+
         glDrawElements(
             GL_TRIANGLES,
             drawableContext.vertex.indicesArray.size,
             GL_UNSIGNED_SHORT,
             0
         )
-    }
-}
-
-fun ClipContext.createMatrixForMask() {
-    CubismMatrix44.create().apply {
-        loadIdentity()
-        // Layout0..1を、-1..1に変換
-        translateRelative(-1.0f, -1.0f)
-        scaleRelative(2.0f, 2.0f)
-
-        // view to Layout0..1
-        translateRelative(
-            layoutBounds.x,
-            layoutBounds.y
-        )
-        scaleRelative(
-            layoutBounds.width / allClippedDrawRect.width,
-            layoutBounds.height / allClippedDrawRect.height
-        )
-        translateRelative(
-            -allClippedDrawRect.x,
-            -allClippedDrawRect.y
-        )
-    }.also {
-        matrixForMask.setMatrix(it)
-    }
-}
-
-fun ClipContext.createMatrixForDraw() {
-    CubismMatrix44.create().apply {
-        loadIdentity()
-
-        translateRelative(
-            layoutBounds.x,
-            layoutBounds.y
-        )
-        scaleRelative(
-            layoutBounds.width / allClippedDrawRect.width,
-            layoutBounds.height / allClippedDrawRect.height
-        )
-        translateRelative(
-            -allClippedDrawRect.x,
-            -allClippedDrawRect.y
-        )
-    }.also {
-        matrixForDraw.setMatrix(it)
-    }
-}
-
-fun ClipContext.calcClippedDrawTotalBounds(
-    drawableContextList: List<DrawableContext>,
-): Boolean {
-    var clippedDrawTotalMinX = Float.Companion.MAX_VALUE
-    var clippedDrawTotalMinY = Float.Companion.MAX_VALUE
-    var clippedDrawTotalMaxX = -Float.Companion.MAX_VALUE
-    var clippedDrawTotalMaxY = -Float.Companion.MAX_VALUE
-
-    for (drawableContext in drawableContextList) {
-
-        var minX = Float.Companion.MAX_VALUE
-        var minY = Float.Companion.MAX_VALUE
-        var maxX = -Float.Companion.MAX_VALUE
-        var maxY = -Float.Companion.MAX_VALUE
-
-        val loop = drawableContext.vertex.count * VERTEX_STEP
-        var pi = VERTEX_OFFSET
-        while (pi < loop) {
-            val x = drawableContext.vertex.positionsArray[pi]
-            val y = drawableContext.vertex.positionsArray[pi + 1]
-            minX = min(minX, x)
-            maxX = max(maxX, x)
-            minY = min(minY, y)
-            maxY = max(maxY, y)
-            pi += VERTEX_STEP
-        }
-
-        if (minX == Float.Companion.MAX_VALUE) {
-            continue
-        }
-
-        clippedDrawTotalMinX = min(clippedDrawTotalMinX, minX)
-        clippedDrawTotalMaxX = max(clippedDrawTotalMaxX, maxX)
-        clippedDrawTotalMinY = min(clippedDrawTotalMinY, minY)
-        clippedDrawTotalMaxY = max(clippedDrawTotalMaxY, maxY)
-    }
-
-    if (clippedDrawTotalMinX == Float.Companion.MAX_VALUE) {
-        allClippedDrawRect = csmRectF()
-        return false
-    } else {
-        val w = clippedDrawTotalMaxX - clippedDrawTotalMinX
-        val h = clippedDrawTotalMaxY - clippedDrawTotalMinY
-        allClippedDrawRect = csmRectF(
-            clippedDrawTotalMinX,
-            clippedDrawTotalMinY,
-            w,
-            h
-        )
-        return true
     }
 }

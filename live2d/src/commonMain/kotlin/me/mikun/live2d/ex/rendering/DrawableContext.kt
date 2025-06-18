@@ -15,11 +15,8 @@ class DrawableContext(
     val drawOrder = model.getDrawableDrawOrder(index)
     val renderOrder = model.getDrawableRenderOrder(index)
     var opacity = 1.0f
+    val masks = model.getDrawableMask(index)
 
-    /*
-        不为空说明该物件有蒙版
-     */
-    var clipContext: ClipContext? = null
     val vertex: Vertex = Vertex(model, index)
     lateinit var baseColor: CubismTextureColor
     lateinit var multiplyColor: CubismTextureColor
@@ -103,7 +100,7 @@ class ClipContext(
     val maskIndexArray: IntArray,
 ) {
     var bufferIndex = 0
-    val layoutBounds: csmRectF = csmRectF()
+    lateinit var layoutBounds: csmRectF
     var layoutChannelIndex = 0
 
     var allClippedDrawRect: csmRectF = csmRectF()

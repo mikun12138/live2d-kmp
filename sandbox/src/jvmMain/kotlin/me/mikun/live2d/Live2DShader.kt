@@ -183,43 +183,47 @@ object Live2DShader {
                 renderer.drawableVertexArrayArray[drawableContext.vertex.index]
             )
 
-            /*
-                texture1
-             */
-            glActiveTexture(GL_TEXTURE1)
-            glBindTexture(
-                GL_TEXTURE_2D,
-                renderer.offscreenSurfaces[drawableContext.clipContext!!.bufferIndex].colorBuffer[0]
-            )
-            glUniform1i(
-                uniform(Uniform.TEXTURE1),
-                1
-            )
-
-            /*
-                clipMatrix
-             */
-            // set up a matrix to convert View-coordinates to ClippingContext coordinates
-            glUniformMatrix4fv(
-                uniform(Uniform.CLIP_MATRIX),
-                false,
-                drawableContext.clipContext!!.matrixForDraw.tr,
-            )
-
-            /*
-                colorChannel
-             */
             run {
-                val colorChannel =
-                    CHANNEL_FLAGS[drawableContext.clipContext!!.layoutChannelIndex]
-                glUniform4f(
-                    uniform(Uniform.CHANNEL_FLAG),
-                    colorChannel.r,
-                    colorChannel.g,
-                    colorChannel.b,
-                    colorChannel.a
+                val clipContext = renderer.drawableClipContextList[drawableContext.index]!!
+                /*
+                    texture1
+                 */
+                glActiveTexture(GL_TEXTURE1)
+                glBindTexture(
+                    GL_TEXTURE_2D,
+                    renderer.offscreenSurfaces[clipContext.bufferIndex].colorBuffer[0]
                 )
+                glUniform1i(
+                    uniform(Uniform.TEXTURE1),
+                    1
+                )
+
+                /*
+                    clipMatrix
+                 */
+                // set up a matrix to convert View-coordinates to ClippingContext coordinates
+                glUniformMatrix4fv(
+                    uniform(Uniform.CLIP_MATRIX),
+                    false,
+                    clipContext.matrixForDraw.tr,
+                )
+
+                /*
+                    colorChannel
+                 */
+                run {
+                    val colorChannel =
+                        CHANNEL_FLAGS[clipContext.layoutChannelIndex]
+                    glUniform4f(
+                        uniform(Uniform.CHANNEL_FLAG),
+                        colorChannel.r,
+                        colorChannel.g,
+                        colorChannel.b,
+                        colorChannel.a
+                    )
+                }
             }
+
             /*
                 modelMatrix (其实是mvp
              */

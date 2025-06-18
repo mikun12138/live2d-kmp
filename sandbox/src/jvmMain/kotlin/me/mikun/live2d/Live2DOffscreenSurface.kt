@@ -1,7 +1,6 @@
 package me.mikun.live2d
 
 import me.mikun.live2d.ex.rendering.ALive2DOffscreenSurface
-import com.live2d.sdk.cubism.framework.math.CubismVector2
 import org.lwjgl.opengl.GL46.*
 import java.nio.ByteBuffer
 
@@ -23,7 +22,7 @@ class Live2DOffscreenSurface : ALive2DOffscreenSurface() {
 
     }
 
-    fun clear(
+    override fun clear(
         r: Float,
         g: Float,
         b: Float,
@@ -38,7 +37,7 @@ class Live2DOffscreenSurface : ALive2DOffscreenSurface() {
         glClear(GL_COLOR_BUFFER_BIT)
     }
 
-    override fun createOffscreenSurface(displayBufferSize: CubismVector2) {
+    override fun createOffscreenSurface(width: Float, height: Float) {
         destroyOffscreenSurface()
 
         val ret = IntArray(size = 1)
@@ -54,8 +53,8 @@ class Live2DOffscreenSurface : ALive2DOffscreenSurface() {
             GL_TEXTURE_2D,
             0,
             GL_RGBA,
-            displayBufferSize.x.toInt(),
-            displayBufferSize.y.toInt(),
+            width.toInt(),
+            height.toInt(),
             0,
             GL_RGBA,
             GL_UNSIGNED_BYTE,
@@ -104,8 +103,8 @@ class Live2DOffscreenSurface : ALive2DOffscreenSurface() {
 
         this.renderTexture = IntArray(size = 1)
         this.renderTexture?.let { it[0] = ret[0] }
-        bufferWidth = displayBufferSize.x.toInt()
-        bufferHeight = displayBufferSize.y.toInt()
+        this@Live2DOffscreenSurface.width = width.toInt()
+        this@Live2DOffscreenSurface.height = height.toInt()
 
     }
 
@@ -118,34 +117,13 @@ class Live2DOffscreenSurface : ALive2DOffscreenSurface() {
 
     fun isValid() = renderTexture != null
 
-    override fun isSameSize(bufferSize: CubismVector2): Boolean {
-        val width = bufferSize.x.toInt()
-        val height = bufferSize.y.toInt()
-        return (width == bufferWidth) && (height == bufferHeight)
-    }
+    var colorBuffer: IntArray = IntArray(1)
 
-    /**
-     * texture as rendering target. It is called frame buffer.
-     */
     var renderTexture: IntArray? = null
 
-    /**
-     * old frame buffer
-     */
-    private var oldFBO = IntArray(1)
+    private var width = 0
+    private var height = 0
 
-    /**
-     * width specified at Create() method
-     */
-    private var bufferWidth = 0
 
-    /**
-     * height specified at Create() method
-     */
-    private var bufferHeight = 0
-
-//    /**
-//     * Whether the color buffer is the one set by the argument
-//     */
 //    private var isColorBufferInherited = false
 }
