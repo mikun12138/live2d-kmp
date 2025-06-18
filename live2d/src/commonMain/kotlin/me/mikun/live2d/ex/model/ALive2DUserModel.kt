@@ -89,7 +89,9 @@ abstract class ALive2DUserModel protected constructor() {
 
     protected fun loadPose(buffer: ByteArray) {
         try {
-            pose = Live2DPose(buffer)
+            pose = Live2DPose(buffer).apply {
+                init(model)
+            }
         } catch (e: Exception) {
             Live2DLogger.Companion.error("Failed to loadPose(). ${e.message}")
         }

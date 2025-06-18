@@ -51,8 +51,8 @@ class Live2DEyeBlink {
         OPENING
     }
 
-    fun updateParameters(model: Live2DModel, deltaTimeSeconds: Float) {
-        userTimeSeconds += deltaTimeSeconds
+    fun update(model: Live2DModel, deltaSeconds: Float) {
+        userTimeSeconds += deltaSeconds
 
         when (blinkingState) {
             EyeState.CLOSING -> updateParametersClosing(model)
@@ -132,7 +132,7 @@ class Live2DEyeBlink {
 
     private var blinkingState = EyeState.FIRST
 
-    private var parameterIds: MutableList<Live2DId?> = mutableListOf()
+    private var parameterIds: MutableList<Live2DId> = mutableListOf()
 
     private var nextBlinkingTime = 0f
 
