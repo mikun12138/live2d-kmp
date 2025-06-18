@@ -2,7 +2,7 @@ package me.mikun.sandbox
 
 import me.mikun.live2d.framework.Live2DFramework
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import me.mikun.live2d.ex.model.AAppModel
+import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.Live2DRenderer
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
@@ -58,7 +58,7 @@ fun live2dMain(
             GL_ONE_MINUS_SRC_ALPHA
         )
 
-        val model = AAppModel()
+        val model = Live2DUserModelImpl()
         model.init(resDirMoc, "$mocName.model3.json")
 
         val renderer = Live2DRenderer(model, 1)

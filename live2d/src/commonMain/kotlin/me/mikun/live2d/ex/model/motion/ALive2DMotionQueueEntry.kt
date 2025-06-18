@@ -1,12 +1,7 @@
-/*
- * Copyright(c) Live2D Inc. All rights reserved.
- *
- * Use of this source code is governed by the Live2D Open Software license
- * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
- */
-package me.mikun.live2d.framework.motion
+package me.mikun.live2d.ex.model.motion
 
-import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
+import com.live2d.sdk.cubism.framework.math.CubismMath
+import me.mikun.live2d.framework.motion.ALive2DMotion
 import me.mikun.live2d.framework.utils.IState
 import me.mikun.live2d.framework.utils.StateContext
 import me.mikun.live2d.framework.utils.switchStateTo
@@ -39,13 +34,13 @@ abstract class ALive2DMotionQueueEntry(
         val fadeIn = if (motion.fadeInSeconds < 0.0f)
             1.0f
         else
-            getEasingSine(
+            CubismMath.getEasingSine(
                 (totalSeconds - startTimePoint) / motion.fadeInSeconds
             )
         val fadeOut = if (motion.fadeOutSeconds < 0.0f || endTimePoint < 0.0f)
             1.0f
         else
-            getEasingSine((endTimePoint - totalSeconds) / motion.fadeOutSeconds)
+            CubismMath.getEasingSine((endTimePoint - totalSeconds) / motion.fadeOutSeconds)
 
         check(fadeIn * fadeOut in 0.0f..1.0f)
 

@@ -1,7 +1,8 @@
 package me.mikun.live2d
 
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import me.mikun.live2d.ex.model.AAppModel
+import me.mikun.live2d.ex.model.ALive2DUserModel
+import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import me.mikun.live2d.ex.rendering.Live2DDrawableContext
 import org.lwjgl.opengl.GL11.GL_NEAREST
@@ -54,10 +55,10 @@ import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
 class Live2DRenderer(
-    appModel: AAppModel,
+    userModel: ALive2DUserModel,
     offScreenBufferCount: Int,
 ) : ALive2DRenderer.PreClip(
-    appModel,
+    userModel,
     offScreenBufferCount,
     pushViewportFun = Live2DRenderState::pushViewPort,
     pushFrameBufferFun = Live2DRenderState::pushFrameBuffer,
@@ -150,11 +151,11 @@ class Live2DRenderer(
         }
     }
 
-    val drawableTextureArray: Array<Texture> = Array(appModel.model.drawableCount) {
+    val drawableTextureArray: Array<Texture> = Array(userModel.model.drawableCount) {
         val drawableContext = drawableContextArray[it]
         Texture.create(
             drawableContext.textureIndex,
-            appModel.textures[drawableContext.textureIndex]
+            userModel.textures[drawableContext.textureIndex]
         )
     }
 
@@ -168,7 +169,7 @@ class Live2DRenderer(
         var indicesBuffer: ShortBuffer? = null
     }
 
-    val drawableVertexArrayArray: Array<VertexArray> = Array(appModel.model.drawableCount) {
+    val drawableVertexArrayArray: Array<VertexArray> = Array(userModel.model.drawableCount) {
         val drawableContext = drawableContextArray[it]
         VertexArray().apply {
             vao = glGenVertexArrays()

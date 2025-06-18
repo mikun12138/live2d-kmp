@@ -12,7 +12,7 @@ import me.mikun.live2d.framework.pose.Live2DPose
 import me.mikun.live2d.framework.userdata.Live2DModelUserData
 import me.mikun.live2d.framework.utils.Live2DLogger
 
-abstract class Live2DUserModel protected constructor() {
+abstract class ALive2DUserModel protected constructor() {
 
     var totalSeconds = 0.0f
     var lastTotalSeconds = 0.0f
@@ -159,5 +159,8 @@ abstract class Live2DUserModel protected constructor() {
     protected val name_2_expression: MutableMap<String, Live2DExpressionMotion?> = mutableMapOf()
     protected var physics: Live2DPhysics? = null
     protected var modelUserData: Live2DModelUserData? = null
+
+    val textures: MutableList<ByteArray> = mutableListOf()
+
 
 }

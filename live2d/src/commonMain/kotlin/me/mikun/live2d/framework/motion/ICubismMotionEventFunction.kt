@@ -6,6 +6,8 @@
  */
 package me.mikun.live2d.framework.motion
 
+import me.mikun.live2d.ex.model.motion.ALive2DMotionManager
+
 fun interface ICubismMotionEventFunction {
     fun apply(
         caller: ALive2DMotionManager,

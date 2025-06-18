@@ -398,7 +398,7 @@ object Live2DShader {
 
     enum class CubismShaderSet {
         SETUP_MASK(
-            "live2d/setup_mask.vert", "live2d/setup_mask.frag",
+            "shader/live2d/setup_mask.vert", "shader/live2d/setup_mask.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD
@@ -411,7 +411,7 @@ object Live2DShader {
             )
         ),
         SIMPLE(
-            "live2d/simple.vert", "live2d/simple.frag",
+            "shader/live2d/simple.vert", "shader/live2d/simple.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD
@@ -425,7 +425,7 @@ object Live2DShader {
             ),
         ), // 用于未预乘alpha的 (stbi_load)
         PREMULTIPLIED_ALPHA(
-            "live2d/premultiplied_alpha.vert", "live2d/premultiplied_alpha.frag",
+            "shader/live2d/premultiplied_alpha.vert", "shader/live2d/premultiplied_alpha.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD
@@ -439,7 +439,7 @@ object Live2DShader {
             ),
         ), // 用于已预乘alpha的 (android BitmapFactory.decodeStream)
         MASKED(
-            "live2d/masked.vert", "live2d/masked.frag",
+            "shader/live2d/masked.vert", "shader/live2d/masked.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD
@@ -456,7 +456,7 @@ object Live2DShader {
             )
         ),
         MASKED_INVERTED(
-            "live2d/masked_inverted.vert", "live2d/masked_inverted.frag",
+            "shader/live2d/masked_inverted.vert", "shader/live2d/masked_inverted.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD
@@ -473,7 +473,7 @@ object Live2DShader {
             )
         ),
         MASKED_PREMULTIPLIED_ALPHA(
-            "live2d/masked_premultiplied_alpha.vert", "live2d/masked_premultiplied_alpha.frag",
+            "shader/live2d/masked_premultiplied_alpha.vert", "shader/live2d/masked_premultiplied_alpha.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD
@@ -490,8 +490,8 @@ object Live2DShader {
             )
         ),
         MASKED_INVERTED_PREMULTIPLIED_ALPHA(
-            "live2d/masked_inverted_premultiplied_alpha.vert",
-            "live2d/masked_inverted_premultiplied_alpha.frag",
+            "shader/live2d/masked_inverted_premultiplied_alpha.vert",
+            "shader/live2d/masked_inverted_premultiplied_alpha.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD

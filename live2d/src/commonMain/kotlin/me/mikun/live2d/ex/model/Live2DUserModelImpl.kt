@@ -8,26 +8,24 @@ import me.mikun.live2d.framework.effect.Live2DEyeBlink
 import me.mikun.live2d.framework.effect.Live2DLipSync
 import me.mikun.live2d.framework.id.Live2DIdManager
 import com.live2d.sdk.cubism.framework.math.CubismTargetPoint
-import me.mikun.live2d.ex.model.AAppModel.MotionGroup.IDLE
+import me.mikun.live2d.ex.model.Live2DUserModelImpl.MotionGroup.IDLE
 import me.mikun.live2d.framework.motion.IBeganMotionCallback
 import me.mikun.live2d.framework.motion.IFinishedMotionCallback
-import me.mikun.live2d.framework.motion.expression.Live2DExpressionManager
+import me.mikun.live2d.ex.model.motion.motion.Live2DExpressionManager
 import me.mikun.live2d.framework.motion.motion.Live2DMotion
-import me.mikun.live2d.framework.motion.motion.Live2DMotionManager
+import me.mikun.live2d.ex.model.motion.expression.Live2DMotionManager
 import kotlinx.serialization.json.Json
 import kotlin.collections.getOrPut
 import kotlin.collections.iterator
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
-open class AAppModel : Live2DUserModel() {
+open class Live2DUserModelImpl : ALive2DUserModel() {
 
     // TODO::
 //    var isUsingHighPrecisionMask: Boolean = false
     protected var motionManager: Live2DMotionManager = Live2DMotionManager()
     protected var expressionManager: Live2DExpressionManager = Live2DExpressionManager()
-
-    val textures: MutableList<ByteArray> = mutableListOf()
 
     // effects
     protected var breath: Live2DBreath? = null

@@ -1,9 +1,10 @@
-package me.mikun.live2d.framework.motion.motion
+package me.mikun.live2d.ex.model.motion.expression
 
 import me.mikun.live2d.framework.model.Live2DModel
 import me.mikun.live2d.framework.motion.ALive2DMotion
-import me.mikun.live2d.framework.motion.ALive2DMotionManager
-import me.mikun.live2d.framework.motion.ALive2DMotionQueueEntry
+import me.mikun.live2d.ex.model.motion.ALive2DMotionManager
+import me.mikun.live2d.ex.model.motion.ALive2DMotionQueueEntry
+import me.mikun.live2d.framework.motion.motion.Live2DMotion
 
 /**
  * Class for managing motion playback, used to play ACubismMotion subclasses such as CubismMotion motion.

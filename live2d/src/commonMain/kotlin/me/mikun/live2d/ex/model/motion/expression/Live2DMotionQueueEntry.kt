@@ -1,9 +1,10 @@
-package me.mikun.live2d.framework.motion.motion
+package me.mikun.live2d.ex.model.motion.expression
 
 import me.mikun.live2d.framework.id.Live2DIdManager
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
 import me.mikun.live2d.framework.model.Live2DModel
-import me.mikun.live2d.framework.motion.ALive2DMotionQueueEntry
+import me.mikun.live2d.ex.model.motion.ALive2DMotionQueueEntry
+import me.mikun.live2d.framework.motion.motion.Live2DMotion
 import me.mikun.live2d.framework.motion.motion.Live2DMotionInternal.CubismMotionCurveTarget
 import me.mikun.live2d.framework.motion.motion.Live2DMotion.Companion.EffectID
 import me.mikun.live2d.framework.motion.motion.Live2DMotion.Companion.MotionBehavior

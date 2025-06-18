@@ -1,7 +1,8 @@
 package me.mikun.live2d.ex.rendering
 
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import me.mikun.live2d.ex.model.AAppModel
+import me.mikun.live2d.ex.model.ALive2DUserModel
+import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.ex.rendering.ALive2DRenderer.PreClip.ClipContext.Companion.CHANNEL_FLAGS
 import me.mikun.live2d.framework.Live2DFramework.VERTEX_OFFSET
 import me.mikun.live2d.framework.Live2DFramework.VERTEX_STEP
@@ -13,10 +14,10 @@ abstract class ALive2DRenderer {
     val drawableContextArray: Array<Live2DDrawableContext>
 
     constructor(
-        appModel: AAppModel,
+        userModel: ALive2DUserModel,
     ) {
-        drawableContextArray = Array(appModel.model.drawableCount) {
-            Live2DDrawableContext(appModel.model, it)
+        drawableContextArray = Array(userModel.model.drawableCount) {
+            Live2DDrawableContext(userModel.model, it)
         }
     }
 
@@ -35,12 +36,12 @@ abstract class ALive2DRenderer {
 
 
     abstract class PreClip(
-        appModel: AAppModel,
+        userModel: ALive2DUserModel,
         val offscreenSurfacesCount: Int,
         val pushViewportFun: (Int, Int, Int, Int, () -> Unit) -> Unit,
         val pushFrameBufferFun: (() -> Unit) -> Unit,
     ) : ALive2DRenderer(
-        appModel
+        userModel
     ) {
         abstract val offscreenSurfaces: Array<out ALive2DOffscreenSurface>
         val drawableClipContextList: MutableList<ClipContext?> = mutableListOf()
