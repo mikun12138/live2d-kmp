@@ -1,9 +1,8 @@
 package me.mikun.live2d
 
-import me.mikun.live2d.ex.rendering.ClipContext
-import me.mikun.live2d.ex.rendering.ClipContext.Companion.CHANNEL_FLAGS
+import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import me.mikun.live2d.ex.rendering.CubismBlendMode
-import me.mikun.live2d.ex.rendering.DrawableContext
+import me.mikun.live2d.ex.rendering.Live2DDrawableContext
 import me.mikun.live2d.framework.type.bottom
 import me.mikun.live2d.framework.type.right
 import me.mikun.live2d.framework.type.csmRectF
@@ -12,7 +11,7 @@ import org.lwjgl.opengl.GL46.*
 object Live2DShader {
 
     private fun setupVertexArray(
-        vertex: DrawableContext.Vertex,
+        vertex: Live2DDrawableContext.Vertex,
         vertexArray: Live2DRenderer.VertexArray,
     ) {
         with(vertex) {
@@ -43,7 +42,7 @@ object Live2DShader {
 
     fun drawSimple(
         renderer: Live2DRenderer,
-        drawableContext: DrawableContext,
+        drawableContext: Live2DDrawableContext,
     ) {
         val texture = renderer.drawableTextureArray[drawableContext.index]
         with(
@@ -160,7 +159,7 @@ object Live2DShader {
 
     fun drawMasked(
         renderer: Live2DRenderer,
-        drawableContext: DrawableContext,
+        drawableContext: Live2DDrawableContext,
     ) {
         val texture = renderer.drawableTextureArray[drawableContext.index]
         with(
@@ -183,43 +182,46 @@ object Live2DShader {
                 renderer.drawableVertexArrayArray[drawableContext.vertex.index]
             )
 
-            /*
-                texture1
-             */
-            glActiveTexture(GL_TEXTURE1)
-            glBindTexture(
-                GL_TEXTURE_2D,
-                renderer.offscreenSurfaces[drawableContext.clipContext!!.bufferIndex].colorBuffer[0]
-            )
-            glUniform1i(
-                uniform(Uniform.TEXTURE1),
-                1
-            )
-
-            /*
-                clipMatrix
-             */
-            // set up a matrix to convert View-coordinates to ClippingContext coordinates
-            glUniformMatrix4fv(
-                uniform(Uniform.CLIP_MATRIX),
-                false,
-                drawableContext.clipContext!!.matrixForDraw.tr,
-            )
-
-            /*
-                colorChannel
-             */
             run {
-                val colorChannel =
-                    CHANNEL_FLAGS[drawableContext.clipContext!!.layoutChannelIndex]
-                glUniform4f(
-                    uniform(Uniform.CHANNEL_FLAG),
-                    colorChannel.r,
-                    colorChannel.g,
-                    colorChannel.b,
-                    colorChannel.a
+                val clipContext = renderer.drawableClipContextList[drawableContext.index]!!
+                /*
+                    texture1
+                 */
+                glActiveTexture(GL_TEXTURE1)
+                glBindTexture(
+                    GL_TEXTURE_2D,
+                    renderer.offscreenSurfaces[clipContext.bufferIndex].colorBuffer[0]
                 )
+                glUniform1i(
+                    uniform(Uniform.TEXTURE1),
+                    1
+                )
+
+                /*
+                    clipMatrix
+                 */
+                // set up a matrix to convert View-coordinates to ClippingContext coordinates
+                glUniformMatrix4fv(
+                    uniform(Uniform.CLIP_MATRIX),
+                    false,
+                    clipContext.matrixForDraw.tr,
+                )
+
+                /*
+                    colorChannel
+                 */
+                run {
+                    val colorChannel = clipContext.colorChannel
+                    glUniform4f(
+                        uniform(Uniform.CHANNEL_FLAG),
+                        colorChannel.r,
+                        colorChannel.g,
+                        colorChannel.b,
+                        colorChannel.a
+                    )
+                }
             }
+
             /*
                 modelMatrix (其实是mvp
              */
@@ -320,8 +322,8 @@ object Live2DShader {
 
     fun setupMask(
         renderer: Live2DRenderer,
-        drawableContext: DrawableContext,
-        clipContext: ClipContext,
+        drawableContext: Live2DDrawableContext,
+        clipContext: ALive2DRenderer.PreClip.ClipContext,
     ) {
         val texture = renderer.drawableTextureArray[drawableContext.index]
 
@@ -361,8 +363,7 @@ object Live2DShader {
                 channelFlag
             */
             run {
-                val colorChannel =
-                    CHANNEL_FLAGS[clipContext.layoutChannelIndex]
+                val colorChannel = clipContext.colorChannel
                 glUniform4f(
                     uniform(Uniform.CHANNEL_FLAG),
                     colorChannel.r,
@@ -397,7 +398,7 @@ object Live2DShader {
 
     enum class CubismShaderSet {
         SETUP_MASK(
-            "live2d/setup_mask.vert", "live2d/setup_mask.frag",
+            "shader/live2d/setup_mask.vert", "shader/live2d/setup_mask.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD
@@ -410,7 +411,7 @@ object Live2DShader {
             )
         ),
         SIMPLE(
-            "live2d/simple.vert", "live2d/simple.frag",
+            "shader/live2d/simple.vert", "shader/live2d/simple.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD
@@ -424,7 +425,7 @@ object Live2DShader {
             ),
         ), // 用于未预乘alpha的 (stbi_load)
         PREMULTIPLIED_ALPHA(
-            "live2d/premultiplied_alpha.vert", "live2d/premultiplied_alpha.frag",
+            "shader/live2d/premultiplied_alpha.vert", "shader/live2d/premultiplied_alpha.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD
@@ -438,7 +439,7 @@ object Live2DShader {
             ),
         ), // 用于已预乘alpha的 (android BitmapFactory.decodeStream)
         MASKED(
-            "live2d/masked.vert", "live2d/masked.frag",
+            "shader/live2d/masked.vert", "shader/live2d/masked.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD
@@ -455,7 +456,7 @@ object Live2DShader {
             )
         ),
         MASKED_INVERTED(
-            "live2d/masked_inverted.vert", "live2d/masked_inverted.frag",
+            "shader/live2d/masked_inverted.vert", "shader/live2d/masked_inverted.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD
@@ -472,7 +473,7 @@ object Live2DShader {
             )
         ),
         MASKED_PREMULTIPLIED_ALPHA(
-            "live2d/masked_premultiplied_alpha.vert", "live2d/masked_premultiplied_alpha.frag",
+            "shader/live2d/masked_premultiplied_alpha.vert", "shader/live2d/masked_premultiplied_alpha.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD
@@ -489,8 +490,8 @@ object Live2DShader {
             )
         ),
         MASKED_INVERTED_PREMULTIPLIED_ALPHA(
-            "live2d/masked_inverted_premultiplied_alpha.vert",
-            "live2d/masked_inverted_premultiplied_alpha.frag",
+            "shader/live2d/masked_inverted_premultiplied_alpha.vert",
+            "shader/live2d/masked_inverted_premultiplied_alpha.frag",
             attributes = setOf(
                 Attribute.POSITION,
                 Attribute.TEXCOORD

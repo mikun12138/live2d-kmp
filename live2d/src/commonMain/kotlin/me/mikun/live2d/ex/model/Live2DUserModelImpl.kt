@@ -7,34 +7,65 @@ import me.mikun.live2d.framework.effect.Live2DBreath.BreathParameterData
 import me.mikun.live2d.framework.effect.Live2DEyeBlink
 import me.mikun.live2d.framework.effect.Live2DLipSync
 import me.mikun.live2d.framework.id.Live2DIdManager
-import com.live2d.sdk.cubism.framework.math.CubismTargetPoint
-import me.mikun.live2d.ex.model.AAppModel.MotionGroup.IDLE
+import me.mikun.live2d.ex.model.Live2DUserModelImpl.MotionGroup.IDLE
 import me.mikun.live2d.framework.motion.IBeganMotionCallback
 import me.mikun.live2d.framework.motion.IFinishedMotionCallback
-import me.mikun.live2d.framework.motion.expression.Live2DExpressionManager
+import me.mikun.live2d.ex.model.motion.motion.Live2DExpressionManager
 import me.mikun.live2d.framework.motion.motion.Live2DMotion
-import me.mikun.live2d.framework.motion.motion.Live2DMotionManager
+import me.mikun.live2d.ex.model.motion.expression.Live2DMotionManager
 import kotlinx.serialization.json.Json
 import kotlin.collections.getOrPut
 import kotlin.collections.iterator
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
-open class AAppModel : Live2DUserModel() {
+open class Live2DUserModelImpl : ALive2DUserModel() {
 
     // TODO::
 //    var isUsingHighPrecisionMask: Boolean = false
     protected var motionManager: Live2DMotionManager = Live2DMotionManager()
     protected var expressionManager: Live2DExpressionManager = Live2DExpressionManager()
 
-    val textures: MutableList<ByteArray> = mutableListOf()
-
     // effects
-    protected var breath: Live2DBreath? = null
-    protected var eyeBlink: Live2DEyeBlink? = null
-    protected var lipSync: Live2DLipSync? = null
-
-    protected var dragManager: CubismTargetPoint = CubismTargetPoint()
+    protected var breath: Live2DBreath = Live2DBreath(
+        BreathParameterData(
+            Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.ANGLE_X.id),
+            0.0f,
+            15.0f,
+            6.5345f,
+            0.5f
+        ),
+        BreathParameterData(
+            Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.ANGLE_Y.id),
+            0.0f,
+            8.0f,
+            3.5345f,
+            0.5f
+        ),
+        BreathParameterData(
+            Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.ANGLE_Z.id),
+            0.0f,
+            10.0f,
+            5.5345f,
+            0.5f
+        ),
+        BreathParameterData(
+            Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.BODY_ANGLE_X.id),
+            0.0f,
+            4.0f,
+            15.5345f,
+            0.5f
+        ),
+        BreathParameterData(
+            Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.BREATH.id),
+            0.5f,
+            0.5f,
+            3.2345f,
+            0.5f,
+        )
+    )
+    lateinit var eyeBlink: Live2DEyeBlink
+    lateinit var lipSync: Live2DLipSync
 
 
     fun init(dir: String, modelJsonFileName: String) {
@@ -107,43 +138,7 @@ open class AAppModel : Live2DUserModel() {
 
         eyeBlink = Live2DEyeBlink(modelJson)
 
-        breath = Live2DBreath(
-            BreathParameterData(
-                Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.ANGLE_X.id),
-                0.0f,
-                15.0f,
-                6.5345f,
-                0.5f
-            ),
-            BreathParameterData(
-                Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.ANGLE_Y.id),
-                0.0f,
-                8.0f,
-                3.5345f,
-                0.5f
-            ),
-            BreathParameterData(
-                Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.ANGLE_Z.id),
-                0.0f,
-                10.0f,
-                5.5345f,
-                0.5f
-            ),
-            BreathParameterData(
-                Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.BODY_ANGLE_X.id),
-                0.0f,
-                4.0f,
-                15.5345f,
-                0.5f
-            ),
-            BreathParameterData(
-                Live2DIdManager.id(Live2DDefaultParameterId.ParameterId.BREATH.id),
-                0.5f,
-                0.5f,
-                3.2345f,
-                0.5f,
-            )
-        )
+        lipSync = Live2DLipSync(modelJson)
 
         // TODO:: layout
 //        modelJson.layout
@@ -154,7 +149,7 @@ open class AAppModel : Live2DUserModel() {
     override fun doUpdate(deltaSeconds: Float) {
 
         // Pose Setting
-        pose?.updateParameters(model, deltaSeconds)
+        pose?.update(model, deltaSeconds)
 
         // モーションによるパラメーター更新の有無
         var isMotionUpdated = false
@@ -166,13 +161,13 @@ open class AAppModel : Live2DUserModel() {
                     MotionPriority.IDLE
                 )
             } else {
-                isMotionUpdated = motionManager.updateMotion(model, deltaSeconds)
+                isMotionUpdated = motionManager.update(model, deltaSeconds)
             }
         }
         model.saveParameters()
 
         // expression
-        expressionManager.updateMotion(model, deltaSeconds)
+        expressionManager.update(model, deltaSeconds)
 
         // physics
         physics?.evaluate(model, deltaSeconds)
@@ -182,52 +177,13 @@ open class AAppModel : Live2DUserModel() {
 
         // eye blink
         if (!isMotionUpdated) {
-            eyeBlink?.updateParameters(model, deltaSeconds)
+            eyeBlink.update(model, deltaSeconds)
         }
 
+        lipSync.update(model, deltaSeconds)
+
         // Breath Function
-        breath?.updateParameters(model, deltaSeconds)
-
-
-        /*
-            drag
-            TODO:: move to dragManager?
-        */
-        /*
-                run {
-                    // ドラッグ追従機能
-                    // ドラッグによる顔の向きの調整
-                    model.addParameterValue(
-                        CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_X.id),
-                        dragManager.x * 30
-                    ) // -30から30の値を加える
-                    model.addParameterValue(
-                        CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_Y.id),
-                        dragManager.y * 30
-                    )
-                    model.addParameterValue(
-                        CubismIdManager.id(CubismDefaultParameterId.ParameterId.ANGLE_Z.id),
-                        dragManager.x * dragManager.y * (-30)
-                    )
-
-                    // ドラッグによる体の向きの調整
-                    model.addParameterValue(
-                        CubismIdManager.id(CubismDefaultParameterId.ParameterId.BODY_ANGLE_X.id),
-                        dragManager.x * 10
-                    ) // -10から10の値を加える
-
-                    // ドラッグによる目の向きの調整
-                    model.addParameterValue(
-                        CubismIdManager.id(CubismDefaultParameterId.ParameterId.EYE_BALL_X.id),
-                        dragManager.x
-                    ) // -1から1の値を加える
-                    model.addParameterValue(
-                        CubismIdManager.id(CubismDefaultParameterId.ParameterId.EYE_BALL_Y.id),
-                        dragManager.y
-                    )
-                }
-            */
-        dragManager.update(deltaSeconds)
+        breath.update(model, deltaSeconds)
     }
 
     fun startRandomMotion(

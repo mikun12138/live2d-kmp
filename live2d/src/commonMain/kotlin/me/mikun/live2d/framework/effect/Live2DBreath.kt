@@ -50,10 +50,10 @@ class Live2DBreath {
      * Updates the parameters of the model.
      *
      * @param model the target model
-     * @param deltaTimeSeconds the delta time[s]
+     * @param deltaSeconds the delta time[s]
      */
-    fun updateParameters(model: Live2DModel, deltaTimeSeconds: Float) {
-        userTimeSeconds += deltaTimeSeconds
+    fun update(model: Live2DModel, deltaSeconds: Float) {
+        userTimeSeconds += deltaSeconds
         val t: Float = userTimeSeconds * 2.0f * PI
 
         for (breathData in _parameters) {

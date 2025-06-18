@@ -1,12 +1,7 @@
-/*
- * Copyright(c) Live2D Inc. All rights reserved.
- *
- * Use of this source code is governed by the Live2D Open Software license
- * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
- */
-package me.mikun.live2d.framework.motion
+package me.mikun.live2d.ex.model.motion
 
 import me.mikun.live2d.framework.model.Live2DModel
+import me.mikun.live2d.framework.motion.ALive2DMotion
 import me.mikun.live2d.framework.utils.switchStateTo
 
 /**
@@ -40,7 +35,7 @@ abstract class ALive2DMotionManager(
 
     protected abstract fun doStartMotion(motion: ALive2DMotion)
 
-    fun updateMotion(model: Live2DModel, deltaTimeSeconds: Float): Boolean {
+    fun update(model: Live2DModel, deltaTimeSeconds: Float): Boolean {
         totalSeconds += deltaTimeSeconds
         val isUpdated = !motionEntries.isEmpty()
 

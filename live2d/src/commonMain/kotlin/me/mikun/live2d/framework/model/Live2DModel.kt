@@ -13,7 +13,7 @@ import me.mikun.live2d.core.CubismParameterView
 import me.mikun.live2d.core.CubismPartView
 import me.mikun.live2d.framework.id.Live2DId
 import me.mikun.live2d.ex.rendering.CubismBlendMode
-import me.mikun.live2d.ex.rendering.CubismTextureColor
+import me.mikun.live2d.ex.rendering.Live2DColor
 import kotlin.collections.mutableListOf
 import kotlin.experimental.and
 
@@ -23,13 +23,13 @@ class Live2DModel {
     constructor(model: CubismModel) {
         this.model = model
 
-        val multiplyColor = CubismTextureColor(
+        val multiplyColor = Live2DColor(
             1.0f,
             1.0f,
             1.0f,
             1.0f
         )
-        val screenColor = CubismTextureColor(
+        val screenColor = Live2DColor(
             0.0f,
             0.0f,
             0.0f,
@@ -50,12 +50,12 @@ class Live2DModel {
     }
 
     data class DrawableColorData(
-        var color: CubismTextureColor,
+        var color: Live2DColor,
         var isOverwritten: Boolean = false,
     )
 
     data class PartColorData(
-        var color: CubismTextureColor,
+        var color: Live2DColor,
         var isOverwritten: Boolean = false,
     )
 
@@ -130,7 +130,7 @@ class Live2DModel {
         setParameterValue(index, value, weight)
     }
 
-    fun setParameterValue(parameterIndex: Int, value: Float, weight: Float = 1.0f) {
+    private fun setParameterValue(parameterIndex: Int, value: Float, weight: Float = 1.0f) {
         if (notExistParameterIndices.contains(parameterIndex)) {
             val index = notExistParameterIndices.indexOf(parameterIndex)
             val parameterValue = notExistParameterValues[index]
@@ -289,7 +289,7 @@ class Live2DModel {
         return model.drawableViews[drawableIndex].opacity
     }
 
-    fun getDrawableMask(drawableIndex: Int): IntArray? {
+    fun getDrawableMask(drawableIndex: Int): IntArray {
         return model.drawableViews[drawableIndex].masks
     }
 
@@ -297,23 +297,23 @@ class Live2DModel {
         return model.drawableViews[drawableIndex].vertexCount
     }
 
-    fun getDrawableVertexPositions(drawableIndex: Int): FloatArray? {
+    fun getDrawableVertexPositions(drawableIndex: Int): FloatArray {
         return model.drawableViews[drawableIndex].vertexPositions
     }
 
-    fun getDrawableVertexUVs(drawableIndex: Int): FloatArray? {
+    fun getDrawableVertexUVs(drawableIndex: Int): FloatArray {
         return model.drawableViews[drawableIndex].vertexUvs
     }
 
-    fun getDrawableIndices(drawableIndex: Int): ShortArray? {
+    fun getDrawableIndices(drawableIndex: Int): ShortArray {
         return model.drawableViews[drawableIndex].indices
     }
 
-    fun getDrawableMultiplyColors(drawableIndex: Int): FloatArray? {
+    fun getDrawableMultiplyColors(drawableIndex: Int): FloatArray {
         return model.drawableViews[drawableIndex].multiplyColors
     }
 
-    fun getDrawableScreenColors(drawableIndex: Int): FloatArray? {
+    fun getDrawableScreenColors(drawableIndex: Int): FloatArray {
         return model.drawableViews[drawableIndex].screenColors
     }
 
@@ -351,10 +351,10 @@ class Live2DModel {
             return model.canvasInfo.pixelsPerUnit
         }
 
-    private val modelColor = CubismTextureColor()
+    private val modelColor = Live2DColor()
 
-    fun getModelColorWithOpacity(opacity: Float): CubismTextureColor {
-        return CubismTextureColor(
+    fun getModelColorWithOpacity(opacity: Float): Live2DColor {
+        return Live2DColor(
             modelColor.r,
             modelColor.g,
             modelColor.b,
@@ -370,6 +370,7 @@ class Live2DModel {
     }
 
 
+    // TODO:: remove 不知道为什么似乎不影响更新
     fun loadParameters() {
         var parameterCount = this.parameterCount
         val savedParameterCount = savedParameters.size
@@ -383,6 +384,7 @@ class Live2DModel {
         }
     }
 
+    // TODO:: remove 不知道为什么似乎不影响更新
     fun saveParameters() {
         val parameterCount = this.parameterCount
 

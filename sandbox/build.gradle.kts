@@ -50,6 +50,8 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.preview)
 
+            implementation(compose.components.resources)
+
             implementation(projects.live2d)
         }
         commonTest.dependencies {

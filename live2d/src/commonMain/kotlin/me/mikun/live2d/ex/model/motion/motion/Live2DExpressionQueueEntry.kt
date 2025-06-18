@@ -1,7 +1,8 @@
-package me.mikun.live2d.framework.motion.expression
+package me.mikun.live2d.ex.model.motion.motion
 
 import me.mikun.live2d.framework.model.Live2DModel
-import me.mikun.live2d.framework.motion.ALive2DMotionQueueEntry
+import me.mikun.live2d.ex.model.motion.ALive2DMotionQueueEntry
+import me.mikun.live2d.framework.motion.expression.Live2DExpressionMotion
 import me.mikun.live2d.framework.motion.expression.Live2DExpressionMotion.Companion.DEFAULT_ADDITIVE_VALUE
 import me.mikun.live2d.framework.motion.expression.Live2DExpressionMotion.Companion.DEFAULT_MULTIPLY_VALUE
 import me.mikun.live2d.framework.motion.expression.Live2DExpressionMotion.ExpressionBlendType

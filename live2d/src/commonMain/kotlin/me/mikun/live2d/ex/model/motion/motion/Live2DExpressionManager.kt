@@ -5,14 +5,15 @@
  * Use of this source code is governed by the Live2D Open Software license
  * that can be found at https://www.live2d.com/eula/live2d-open-software-license-agreement_en.html.
  */
-package me.mikun.live2d.framework.motion.expression
+package me.mikun.live2d.ex.model.motion.motion
 
 import me.mikun.live2d.framework.id.Live2DId
 import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
 import me.mikun.live2d.framework.model.Live2DModel
 import me.mikun.live2d.framework.motion.ALive2DMotion
-import me.mikun.live2d.framework.motion.ALive2DMotionManager
-import me.mikun.live2d.framework.motion.ALive2DMotionQueueEntry
+import me.mikun.live2d.ex.model.motion.ALive2DMotionManager
+import me.mikun.live2d.ex.model.motion.ALive2DMotionQueueEntry
+import me.mikun.live2d.framework.motion.expression.Live2DExpressionMotion
 import me.mikun.live2d.framework.utils.switchStateTo
 import kotlin.math.min
 
@@ -52,8 +53,8 @@ class Live2DExpressionManager(
                             // パラメータがリストに存在しないなら新規追加
                             val item = ExpressionParameterValue(
                                 parameterId = parameter.parameterId,
-                                additiveValue = Live2DExpressionMotion.DEFAULT_ADDITIVE_VALUE,
-                                multiplyValue = Live2DExpressionMotion.DEFAULT_MULTIPLY_VALUE,
+                                additiveValue = Live2DExpressionMotion.Companion.DEFAULT_ADDITIVE_VALUE,
+                                multiplyValue = Live2DExpressionMotion.Companion.DEFAULT_MULTIPLY_VALUE,
                                 overwriteValue = model.getParameterValue(parameter.parameterId),
                             )
                             expressionParameterValues.add(item)
@@ -106,8 +107,8 @@ class Live2DExpressionManager(
                 (value.overwriteValue + value.additiveValue) * value.multiplyValue, // 先加算后乘算
                 min(expressionWeight, 1.0f)
             )
-            value.additiveValue = Live2DExpressionMotion.DEFAULT_ADDITIVE_VALUE
-            value.multiplyValue = Live2DExpressionMotion.DEFAULT_MULTIPLY_VALUE
+            value.additiveValue = Live2DExpressionMotion.Companion.DEFAULT_ADDITIVE_VALUE
+            value.multiplyValue = Live2DExpressionMotion.Companion.DEFAULT_MULTIPLY_VALUE
         }
     }
 

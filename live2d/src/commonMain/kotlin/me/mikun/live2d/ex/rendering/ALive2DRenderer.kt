@@ -1,216 +1,401 @@
 package me.mikun.live2d.ex.rendering
 
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import me.mikun.live2d.framework.model.Live2DModel
-import me.mikun.live2d.ex.rendering.ALive2DRenderer.State
-import me.mikun.live2d.ex.model.AAppModel
+import me.mikun.live2d.ex.model.ALive2DUserModel
+import me.mikun.live2d.ex.model.Live2DUserModelImpl
+import me.mikun.live2d.ex.rendering.ALive2DRenderer.PreClip.ClipContext.Companion.CHANNEL_FLAGS
+import me.mikun.live2d.framework.Live2DFramework.VERTEX_OFFSET
+import me.mikun.live2d.framework.Live2DFramework.VERTEX_STEP
 import me.mikun.live2d.framework.type.csmRectF
-import me.mikun.live2d.framework.utils.IState
-import me.mikun.live2d.framework.utils.StateContext
-import me.mikun.live2d.framework.utils.switchStateTo
+import kotlin.math.max
+import kotlin.math.min
 
-abstract class ALive2DRenderer : StateContext<ALive2DRenderer, State> {
-    override var state: State = State.SETUP_MASK
-    val drawableContextArray: Array<DrawableContext>
-
-    var mvp: CubismMatrix44 = CubismMatrix44.create()
-
-    val offscreenSurfacesCount: Int
-    abstract val offscreenSurfaces: Array<ALive2DOffscreenSurface>
-    val clipContextList: MutableList<ClipContext> = mutableListOf()
+abstract class ALive2DRenderer {
+    val drawableContextArray: Array<Live2DDrawableContext>
 
     constructor(
-        appModel: AAppModel,
-        offscreenSurfacesCount: Int,
+        userModel: ALive2DUserModel,
     ) {
-        drawableContextArray = Array(appModel.model.drawableCount) {
-            DrawableContext(appModel.model, it)
-        }
-        this.offscreenSurfacesCount = offscreenSurfacesCount
-
-        repeat(appModel.model.drawableCount) { index ->
-            val drawableMask = appModel.model.getDrawableMask(index)!!
-            if (drawableMask.isNotEmpty()) {
-                val clipContext = clipContextList.find {
-                    it.maskIndexArray.size == drawableMask.size
-                            && it.maskIndexArray.all { drawableMask.contains(it) }
-                } ?: run {
-                    ClipContext(drawableMask).also {
-                        clipContextList.add(it)
-                    }
-                }
-                clipContext.let {
-                    drawableContextArray[index].clipContext = it
-                }
-            }
-        }
-
-        setupLayoutBounds(clipContextList.size)
-    }
-
-    fun setupLayoutBounds(clipContextCount: Int) {
-        val useClippingMaskMaxCount = if (offscreenSurfacesCount <= 1)
-            CLIPPING_MASK_MAX_COUNT_ON_DEFAULT
-        else
-            CLIPPING_MASK_MAX_COUNT_ON_MULTI_RENDER_TEXTURE * offscreenSurfacesCount
-
-        // レンダーテクスチャが1枚なら9分割する（最大36枚）
-        val layoutCountMaxValue = if (offscreenSurfacesCount <= 1) 9 else 8
-
-        // ひとつのRenderTextureを極力いっぱいに使ってマスクをレイアウトする。
-        // マスクグループの数が4以下ならRGBA各チャンネルに１つずつマスクを配置し、5以上6以下ならRGBAを2,2,1,1と配置する。
-        // NOTE: 1枚に割り当てるマスクの分割数を取りたいため、小数点は切り上げる。
-        val countPerSheetDiv =
-            (clipContextCount + offscreenSurfacesCount - 1) / offscreenSurfacesCount // レンダーテクスチャ1枚あたり何枚割り当てるか
-        val reduceLayoutTextureCount =
-            clipContextCount % offscreenSurfacesCount // レイアウトの数を1枚減らすレンダーテクスチャの数（この数だけのレンダーテクスチャが対象）。
-
-        // RGBAを順番に使っていく。
-        val divCount = countPerSheetDiv / COLOR_CHANNEL_COUNT // 1チャンネルに配置する基本のマスク個数
-        val modCount =
-            countPerSheetDiv % COLOR_CHANNEL_COUNT // 余り、この番号のチャンネルまでに1つずつ配分する（インデックスではない）
-
-        // RGBAそれぞれのチャンネルを用意していく(0:R , 1:G , 2:B, 3:A, )
-        val iterator = clipContextList.iterator()
-
-        for (renderTextureIndex in 0..<offscreenSurfacesCount) {
-            for (channelIndex in 0..<COLOR_CHANNEL_COUNT) {
-                // このチャンネルにレイアウトする数
-                // NOTE: レイアウト数 = 1チャンネルに配置する基本のマスク + 余りのマスクを置くチャンネルなら1つ追加
-                var layoutCount = divCount + (if (channelIndex < modCount) 1 else 0)
-
-                // レイアウトの数を1枚減らす場合にそれを行うチャンネルを決定
-                // divが0の時は正常なインデックスの範囲になるように調整
-                val checkChannelIndex = modCount + (if (divCount < 1) -1 else 0)
-
-                // 今回が対象のチャンネルかつ、レイアウトの数を1枚減らすレンダーテクスチャが存在する場合
-                if (channelIndex == checkChannelIndex && reduceLayoutTextureCount > 0) {
-                    // 現在のレンダーテクスチャが、対象のレンダーテクスチャであればレイアウトの数を1枚減らす。
-                    layoutCount -= if (renderTextureIndex >= reduceLayoutTextureCount) 1 else 0
-                }
-
-                // 分割方法を決定する。
-                if (layoutCount == 0) {
-                    // 何もしない。
-                } else if (layoutCount == 1) {
-                    // 全てをそのまま使う。
-                    val cc: ClipContext = iterator.next()
-                    cc.layoutChannelIndex = channelIndex
-                    val bounds: csmRectF = cc.layoutBounds
-
-                    bounds.x = 0.0f
-                    bounds.y = 0.0f
-                    bounds.width = 1.0f
-                    bounds.height = 1.0f
-
-                    cc.bufferIndex = renderTextureIndex
-                } else if (layoutCount == 2) {
-                    for (i in 0..<layoutCount) {
-                        val xpos = i % 2
-
-                        val cc: ClipContext = iterator.next()
-
-                        cc.layoutChannelIndex = channelIndex
-                        val bounds: csmRectF = cc.layoutBounds
-
-                        // UVを2つに分解して使う
-                        bounds.x = xpos * 0.5f
-                        bounds.y = 0.0f
-                        bounds.width = 0.5f
-                        bounds.height = 1.0f
-
-                        cc.bufferIndex = renderTextureIndex
-                    }
-                } else if (layoutCount <= 4) {
-                    // 4分割して使う
-                    for (i in 0..<layoutCount) {
-                        val xpos = i % 2
-                        val ypos = i / 2
-
-                        val cc: ClipContext = iterator.next()
-
-                        cc.layoutChannelIndex = channelIndex
-                        val bounds: csmRectF = cc.layoutBounds
-
-                        bounds.x = xpos * 0.5f
-                        bounds.y = ypos * 0.5f
-                        bounds.width = 0.5f
-                        bounds.height = 0.5f
-
-                        cc.bufferIndex = renderTextureIndex
-                    }
-                } else if (layoutCount <= layoutCountMaxValue) {
-                    // 9分割して使う
-                    for (i in 0..<layoutCount) {
-                        val xpos = i % 3
-                        val ypos = i / 3
-
-                        val cc: ClipContext = iterator.next()
-
-                        cc.layoutChannelIndex = channelIndex
-                        val bounds: csmRectF = cc.layoutBounds
-
-                        bounds.x = xpos / 3.0f
-                        bounds.y = ypos / 3.0f
-                        bounds.width = 1.0f / 3.0f
-                        bounds.height = 1.0f / 3.0f
-
-                        cc.bufferIndex = renderTextureIndex
-                    }
-                } else {
-                    val count = clipContextCount - useClippingMaskMaxCount
-//                    cubismLogError(
-//                        "not supported mask count : %d\n[Details] render texture count: %d\n, mask count : %d",
-//                        count,
-//                        renderTextureCount,
-//                        usingClipCount
-//                    )
-
-                    // 開発モードの場合は停止させる。
-                    assert(false)
-
-                    // 引き続き実行する場合、 SetupShaderProgramでオーバーアクセスが発生するので仕方なく適当に入れておく。
-                    // もちろん描画結果はろくなことにならない。
-                    for (i in 0..<layoutCount) {
-                        val cc: ClipContext = iterator.next()
-
-                        cc.layoutChannelIndex = 0
-
-                        val bounds: csmRectF = cc.layoutBounds
-                        bounds.x = 0.0f
-                        bounds.y = 0.0f
-                        bounds.width = 1.0f
-                        bounds.height = 1.0f
-
-                        cc.bufferIndex = 0
-                    }
-                }
-            }
+        drawableContextArray = Array(userModel.model.drawableCount) {
+            Live2DDrawableContext(userModel.model, it)
         }
     }
 
-    fun frame(mvp: CubismMatrix44) {
+    protected fun doFrame() {
+        doUpdateData()
+        doRender()
+    }
 
-        this.mvp.setMatrix(mvp)
+    protected open fun doUpdateData() {
         drawableContextArray.forEach {
             it.update()
         }
-        this switchStateTo State.SETUP_MASK
-        setupMask()
-        this switchStateTo State.DRAW
-        draw()
     }
 
-    abstract fun setupMask()
+    protected abstract fun doRender()
 
-    abstract fun draw()
 
-    enum class State(
-        override val onEnter: (ALive2DRenderer, State) -> Unit = { _, _ -> },
-        override val onExit: (ALive2DRenderer, State) -> Unit = { _, _ -> },
-    ) : IState<ALive2DRenderer, State> {
-        SETUP_MASK,
-        DRAW
+    abstract class PreClip(
+        userModel: ALive2DUserModel,
+        val offscreenSurfacesCount: Int,
+        val pushViewportFun: (Int, Int, Int, Int, () -> Unit) -> Unit,
+        val pushFrameBufferFun: (() -> Unit) -> Unit,
+    ) : ALive2DRenderer(
+        userModel
+    ) {
+        abstract val offscreenSurfaces: Array<out ALive2DOffscreenSurface>
+        val drawableClipContextList: MutableList<ClipContext?> = mutableListOf()
+        val drawableClipContextNotNullSet: Set<ClipContext> by lazy {
+            drawableClipContextList.filterNotNull().toSet()
+        }
+
+        init {
+            drawableContextArray.forEach { drawableContext ->
+                val drawableMask = drawableContext.masks
+                drawableClipContextList.add(
+                    if (drawableMask.isEmpty())
+                        null
+                    else
+                        drawableClipContextList.find {
+                            it?.maskIndexArray?.size == drawableMask.size
+                                    && it.maskIndexArray.all { drawableMask.contains(it) }
+                        } ?: ClipContext(drawableMask)
+                )
+            }
+            setupLayoutBounds(drawableClipContextNotNullSet.size)
+        }
+
+        private fun setupLayoutBounds(clipContextCount: Int) {
+
+            val result = Array(offscreenSurfacesCount) {
+                IntArray(4)
+            }
+
+            val div0 = clipContextCount / offscreenSurfacesCount
+            val mod0 = clipContextCount % offscreenSurfacesCount
+
+            repeat(offscreenSurfacesCount) { loop0 ->
+                val count0 = div0 + if (loop0 < mod0) 1 else 0
+
+                val div1 = count0 / 4
+                val mod1 = count0 % 4
+
+                repeat(4) { loop1 ->
+                    val count1 = div1 + if (loop1 < mod1) 1 else 0
+                    result[loop0][loop1] = count1
+                }
+            }
+
+            val iterator = drawableClipContextNotNullSet.iterator()
+
+            result.forEachIndexed { renderTextureIndex, texture ->
+                texture.forEachIndexed { channelIndex, count ->
+                    when (count) {
+                        0 -> {}
+                        1 -> {
+                            val cc: ClipContext = iterator.next()
+                            cc.colorChannel = CHANNEL_FLAGS[channelIndex]
+                            cc.layoutBounds = csmRectF(
+                                x = 0.0f,
+                                y = 0.0f,
+                                width = 1.0f,
+                                height = 1.0f
+                            )
+
+                            cc.bufferIndex = renderTextureIndex
+                        }
+
+                        2 -> {
+                            for (i in 0..<2) {
+                                val xpos = i % 2
+
+                                val cc: ClipContext = iterator.next()
+                                cc.colorChannel = CHANNEL_FLAGS[channelIndex]
+                                cc.layoutBounds = csmRectF(
+                                    x = xpos * 0.5f,
+                                    y = 0.0f,
+                                    width = 0.5f,
+                                    height = 1.0f
+                                )
+
+                                cc.bufferIndex = renderTextureIndex
+                            }
+                        }
+
+                        in 3..4 -> {
+                            for (i in 0..<count) {
+                                val xpos = i % 2
+                                val ypos = i / 2
+
+                                val cc: ClipContext = iterator.next()
+                                cc.colorChannel = CHANNEL_FLAGS[channelIndex]
+                                cc.layoutBounds = csmRectF(
+                                    x = xpos * 0.5f,
+                                    y = ypos * 0.5f,
+                                    width = 0.5f,
+                                    height = 0.5f
+
+                                )
+                                cc.bufferIndex = renderTextureIndex
+                            }
+                        }
+
+                        in 5..9 -> {
+                            for (i in 0..<count) {
+                                val xpos = i % 3
+                                val ypos = i / 3
+
+                                val cc: ClipContext = iterator.next()
+
+                                cc.colorChannel = CHANNEL_FLAGS[channelIndex]
+                                cc.layoutBounds = csmRectF(
+                                    x = xpos / 3.0f,
+                                    y = ypos / 3.0f,
+                                    width = 1.0f / 3.0f,
+                                    height = 1.0f / 3.0f
+                                )
+
+                                cc.bufferIndex = renderTextureIndex
+                            }
+                        }
+
+                        else -> error("Incorrect clipContextCount: $count")
+                    }
+                }
+            }
+        }
+
+
+        override fun doRender() {
+            setupMask()
+            draw()
+        }
+
+        /*
+            lazy cache
+        */
+        private val clipContext_2_drawableContextList: Map<ClipContext, List<Live2DDrawableContext>> by lazy {
+            drawableClipContextNotNullSet.associateWith { clipContext -> drawableContextArray.filter { drawableClipContextList[it.index] === clipContext } }
+        }
+
+        protected fun setupMask() {
+            pushViewportFun(
+                0, 0, 512, 512
+            ) {
+                pushFrameBufferFun {
+                    clipContext_2_drawableContextList.forEach { (clipContext, drawableContextList) ->
+                        run {
+                            clipContext.calcClippedDrawTotalBounds(
+                                drawableContextList
+                            ).let {
+                                clipContext.createMatrixForMask(it)
+                                clipContext.createMatrixForDraw(it)
+                            }
+                        }
+                    }
+
+                    drawableClipContextNotNullSet.groupBy { it.bufferIndex }
+                        .forEach { (bufferIndex, clipContextList) ->
+                            offscreenSurfaces[bufferIndex].let {
+                                it.draw {
+                                    clipContextList.forEach { clipContext ->
+                                        for (maskIndex in clipContext.maskIndexArray) {
+                                            val drawableContext = drawableContextArray[maskIndex]
+
+                                            if (!drawableContext.vertexPositionDidChange) continue
+
+                                            setupMaskDraw(
+                                                drawableContext,
+                                                clipContext
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                }
+            }
+        }
+
+        protected abstract fun setupMaskDraw(
+            drawableContext: Live2DDrawableContext,
+            clipContext: ClipContext,
+        )
+
+        protected fun draw() {
+            val sortedDrawableContextArray = drawableContextArray.sortedWith(
+                compareBy { it.renderOrder }
+            )
+
+            sortedDrawableContextArray.forEach { drawableContext ->
+                if (!drawableContext.isVisible) return@forEach
+
+                drawableClipContextList[drawableContext.index]?.let {
+                    maskDraw(
+                        drawableContext
+                    )
+                } ?: run {
+                    simpleDraw(
+                        drawableContext
+                    )
+                }
+            }
+        }
+
+        protected abstract fun maskDraw(
+            drawableContext: Live2DDrawableContext,
+        )
+
+        protected abstract fun simpleDraw(
+            drawableContext: Live2DDrawableContext,
+        )
+
+
+        fun ClipContext.createMatrixForMask(
+            allClippedDrawRect: csmRectF,
+        ) {
+            CubismMatrix44.create().apply {
+                loadIdentity()
+                // Layout0..1を、-1..1に変換
+                translateRelative(-1.0f, -1.0f)
+                scaleRelative(2.0f, 2.0f)
+
+                // view to Layout0..1
+                translateRelative(
+                    layoutBounds.x,
+                    layoutBounds.y
+                )
+                scaleRelative(
+                    layoutBounds.width / allClippedDrawRect.width,
+                    layoutBounds.height / allClippedDrawRect.height
+                )
+                translateRelative(
+                    -allClippedDrawRect.x,
+                    -allClippedDrawRect.y
+                )
+            }.also {
+                matrixForMask.setMatrix(it)
+            }
+        }
+
+        fun ClipContext.createMatrixForDraw(
+            allClippedDrawRect: csmRectF,
+        ) {
+            CubismMatrix44.create().apply {
+                loadIdentity()
+
+                translateRelative(
+                    layoutBounds.x,
+                    layoutBounds.y
+                )
+                scaleRelative(
+                    layoutBounds.width / allClippedDrawRect.width,
+                    layoutBounds.height / allClippedDrawRect.height
+                )
+                translateRelative(
+                    -allClippedDrawRect.x,
+                    -allClippedDrawRect.y
+                )
+            }.also {
+                matrixForDraw.setMatrix(it)
+            }
+        }
+
+        fun ClipContext.calcClippedDrawTotalBounds(
+            drawableContextList: List<Live2DDrawableContext>,
+        ): csmRectF {
+            var clippedDrawTotalMinX = Float.Companion.MAX_VALUE
+            var clippedDrawTotalMinY = Float.Companion.MAX_VALUE
+            var clippedDrawTotalMaxX = -Float.Companion.MAX_VALUE
+            var clippedDrawTotalMaxY = -Float.Companion.MAX_VALUE
+
+            for (drawableContext in drawableContextList) {
+
+                var minX = Float.Companion.MAX_VALUE
+                var minY = Float.Companion.MAX_VALUE
+                var maxX = -Float.Companion.MAX_VALUE
+                var maxY = -Float.Companion.MAX_VALUE
+
+                val loop = drawableContext.vertex.count * VERTEX_STEP
+                var pi = VERTEX_OFFSET
+                while (pi < loop) {
+                    val x = drawableContext.vertex.positionsArray[pi]
+                    val y = drawableContext.vertex.positionsArray[pi + 1]
+                    minX = min(minX, x)
+                    maxX = max(maxX, x)
+                    minY = min(minY, y)
+                    maxY = max(maxY, y)
+                    pi += VERTEX_STEP
+                }
+
+                if (minX == Float.Companion.MAX_VALUE) {
+                    continue
+                }
+
+                clippedDrawTotalMinX = min(clippedDrawTotalMinX, minX)
+                clippedDrawTotalMaxX = max(clippedDrawTotalMaxX, maxX)
+                clippedDrawTotalMinY = min(clippedDrawTotalMinY, minY)
+                clippedDrawTotalMaxY = max(clippedDrawTotalMaxY, maxY)
+            }
+
+            if (clippedDrawTotalMinX == Float.Companion.MAX_VALUE) {
+                return error("")
+            } else {
+                val w = clippedDrawTotalMaxX - clippedDrawTotalMinX
+                val h = clippedDrawTotalMaxY - clippedDrawTotalMinY
+                return csmRectF(
+                    clippedDrawTotalMinX,
+                    clippedDrawTotalMinY,
+                    w,
+                    h
+                )
+            }
+        }
+
+
+        /*
+            对应framebuffer中的一个区域中的一个通道
+         */
+        class ClipContext(
+            val maskIndexArray: IntArray,
+        ) {
+            var bufferIndex = -1
+            lateinit var layoutBounds: csmRectF
+            lateinit var colorChannel: Live2DColor
+
+            val matrixForMask: CubismMatrix44 = CubismMatrix44.Companion.create()
+
+            val matrixForDraw: CubismMatrix44 = CubismMatrix44.Companion.create()
+
+            companion object {
+                val CHANNEL_FLAGS = arrayOf(
+                    Live2DColor(
+                        r = 1.0f,
+                        g = 0.0f,
+                        b = 0.0f,
+                        a = 0.0f,
+                    ),
+                    Live2DColor(
+                        r = 0.0f,
+                        g = 1.0f,
+                        b = 0.0f,
+                        a = 0.0f,
+                    ),
+                    Live2DColor(
+                        r = 0.0f,
+                        g = 0.0f,
+                        b = 1.0f,
+                        a = 0.0f,
+                    ),
+                    Live2DColor(
+                        r = 0.0f,
+                        g = 0.0f,
+                        b = 0.0f,
+                        a = 1.0f,
+                    )
+                )
+            }
+        }
     }
 
     companion object {
@@ -233,122 +418,6 @@ abstract class ALive2DRenderer : StateContext<ALive2DRenderer, State> {
 
 }
 
-// TODO:: expert DrawableContext.create() 然后平台实现?
-class DrawableContext constructor(
-    val model: Live2DModel,
-    val index: Int,
-) {
-    val renderOrder = model.getDrawableRenderOrder(index)
-
-    val textureIndex = model.getDrawableTextureIndex(index)
-
-    val isCulling = !model.getDrawableIsDoubleSided(index)
-
-    val blendMode: CubismBlendMode = model.getDrawableBlendMode(index)
-    val isInvertedMask = model.getDrawableInvertedMask(index)
-
-    val vertex: Vertex = Vertex(model, index)
-    var isVisible = false
-    var vertexPositionDidChange = false
-    var opacity = 1.0f
-    lateinit var baseColor: CubismTextureColor
-    lateinit var multiplyColor: CubismTextureColor
-    lateinit var screenColor: CubismTextureColor
-
-    /*
-        不为空说明该物件有蒙版
-     */
-    var clipContext: ClipContext? = null
-
-    fun update() {
-        vertex.update()
-        isVisible = model.getDrawableDynamicFlagIsVisible(index)
-        vertexPositionDidChange = model.getDrawableDynamicFlagVertexPositionsDidChange(index)
-        opacity = model.getDrawableOpacity(index)
-        baseColor = model.getModelColorWithOpacity(opacity)
-        multiplyColor = model.getDrawableMultiplyColors(index)!!.let {
-            CubismTextureColor(
-                it[0],
-                it[1],
-                it[2],
-                it[3],
-            )
-        }
-        screenColor = model.getDrawableScreenColors(index)!!.let {
-            CubismTextureColor(
-                it[0],
-                it[1],
-                it[2],
-                it[3],
-            )
-        }
-
-    }
-
-    class Vertex(
-        val model: Live2DModel,
-        val index: Int,
-    ) {
-        val count = model.getDrawableVertexCount(index)
-        var positionsArray: FloatArray = model.getDrawableVertexPositions(index)!!
-        var texCoordsArray: FloatArray = model.getDrawableVertexUVs(index)!!
-        var indicesArray: ShortArray = model.getDrawableIndices(index)!!
-
-        fun update() {
-            positionsArray = model.getDrawableVertexPositions(index)!!
-            texCoordsArray = model.getDrawableVertexUVs(index)!!
-            indicesArray =  model.getDrawableIndices(index)!!
-        }
-    }
-
-}
-
-/*
-    对应framebuffer中的一个区域中的一个通道
- */
-class ClipContext(
-    val maskIndexArray: IntArray,
-) {
-    var bufferIndex = 0
-    val layoutBounds: csmRectF = csmRectF()
-    var layoutChannelIndex = 0
-
-    var allClippedDrawRect: csmRectF = csmRectF()
-
-    val matrixForMask: CubismMatrix44 = CubismMatrix44.create()
-
-    val matrixForDraw: CubismMatrix44 = CubismMatrix44.create()
-
-    companion object {
-        val CHANNEL_FLAGS = arrayOf(
-            CubismTextureColor(
-                r = 1.0f,
-                g = 0.0f,
-                b = 0.0f,
-                a = 0.0f,
-            ),
-            CubismTextureColor(
-                r = 0.0f,
-                g = 1.0f,
-                b = 0.0f,
-                a = 0.0f,
-            ),
-            CubismTextureColor(
-                r = 0.0f,
-                g = 0.0f,
-                b = 1.0f,
-                a = 0.0f,
-            ),
-            CubismTextureColor(
-                r = 0.0f,
-                g = 0.0f,
-                b = 0.0f,
-                a = 1.0f,
-            )
-        )
-    }
-}
-
 enum class CubismBlendMode {
     NORMAL,  // 通常
     ADDITIVE,  // 加算
@@ -356,7 +425,7 @@ enum class CubismBlendMode {
     MASK // マスク
 }
 
-data class CubismTextureColor(
+data class Live2DColor(
     val r: Float = 1.0f,
     val g: Float = 1.0f,
     val b: Float = 1.0f,

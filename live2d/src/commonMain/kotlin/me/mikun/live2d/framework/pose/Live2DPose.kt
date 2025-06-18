@@ -8,6 +8,27 @@ import kotlinx.serialization.json.Json
 import kotlin.math.min
 
 class Live2DPose {
+
+    data class PartInfo(
+        var partId: Live2DId, // 既是 partId 也是 parameterId
+        var linkedParameter: List<PartInfo> = listOf(),
+    ) {
+        var parameterIndex: Int = -1
+        var partIndex: Int = -1
+
+        fun init(model: Live2DModel) {
+            parameterIndex = model.getParameterIndex(partId)
+            partIndex = model.getPartIndex(partId)
+
+            linkedParameter.forEach {
+                it.init(model)
+            }
+        }
+    }
+
+    val groups: List<List<PartInfo>>
+    val fadeTimeSeconds: Float
+
     constructor(pose3json: ByteArray) {
         Json.decodeFromString<PoseJson>(String(pose3json)).let { json ->
             fadeTimeSeconds = json.fadeInTime.let {
@@ -28,37 +49,8 @@ class Live2DPose {
         }
     }
 
-    val groups: List<List<PartInfo>>
-
-    data class PartInfo(
-        var partId: Live2DId, // 既是 partId 也是 parameterId
-        var linkedParameter: List<PartInfo> = listOf(),
-    ) {
-        var parameterIndex: Int = -1
-        var partIndex: Int = -1
-
-        fun init(model: Live2DModel) {
-            parameterIndex = model.getParameterIndex(partId)
-            partIndex = model.getPartIndex(partId)
-
-            linkedParameter.forEach {
-                it.init(model)
-            }
-        }
-
-    }
-
-    fun updateParameters(model: Live2DModel, deltaSeconds: Float) {
-        // If given model is different from previous model, it is required to initialize some parameters.
-        if (model != lastModel) {
-            reset(model)
-        }
-        lastModel = model
-
-        doFade(model, deltaSeconds)
-
-        copyPartOpacities(model)
-
+    fun init(model: Live2DModel) {
+        reset(model)
     }
 
     private fun reset(model: Live2DModel) {
@@ -74,6 +66,11 @@ class Live2DPose {
                 model.setParameterValue(it.partId, 0.0f)
             }
         }
+    }
+
+    fun update(model: Live2DModel, deltaSeconds: Float) {
+        doFade(model, deltaSeconds)
+        copyPartOpacities(model)
     }
 
     private fun doFade(
@@ -125,22 +122,6 @@ class Live2DPose {
     }
 
     /**
-     * 设置子项透明度与父项相同
-     */
-    private fun copyPartOpacities(model: Live2DModel) {
-        groups.forEach {
-            it.forEach {
-                for (linkedPart in it.linkedParameter) {
-                    model.setPartOpacity(
-                        linkedPart.partId,
-                        model.getPartOpacity(it.partId)
-                    )
-                }
-            }
-        }
-    }
-
-    /**
      * Calculate opacity of non-displayed parts.
      *
      * @param currentOpacity current part opacity
@@ -174,9 +155,21 @@ class Live2DPose {
         return currentOpacity
     }
 
-    val fadeTimeSeconds: Float
-
-    private var lastModel: Live2DModel? = null
+    /**
+     * 设置子项透明度与父项相同
+     */
+    private fun copyPartOpacities(model: Live2DModel) {
+        groups.forEach {
+            it.forEach {
+                for (linkedPart in it.linkedParameter) {
+                    model.setPartOpacity(
+                        linkedPart.partId,
+                        model.getPartOpacity(it.partId)
+                    )
+                }
+            }
+        }
+    }
 
     companion object {
         private const val EPSILON = 0.001f
