@@ -3,7 +3,7 @@ package me.mikun.live2d
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import me.mikun.live2d.ex.model.AAppModel
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
-import me.mikun.live2d.ex.rendering.DrawableContext
+import me.mikun.live2d.ex.rendering.Live2DDrawableContext
 import org.lwjgl.opengl.GL11.GL_NEAREST
 import org.lwjgl.opengl.GL11.GL_RGBA
 import org.lwjgl.opengl.GL11.GL_TEXTURE_2D
@@ -264,7 +264,7 @@ class Live2DRenderer(
     }
 
     override fun setupMaskDraw(
-        drawableContext: DrawableContext,
+        drawableContext: Live2DDrawableContext,
         clipContextForSetupMask: ClipContext,
     ) {
         Live2DShader.setupMask(
@@ -279,7 +279,7 @@ class Live2DRenderer(
     }
 
     override fun simpleDraw(
-        drawableContext: DrawableContext,
+        drawableContext: Live2DDrawableContext,
     ) {
         Live2DShader.drawSimple(
             this,
@@ -292,7 +292,7 @@ class Live2DRenderer(
     }
 
     override fun maskDraw(
-        drawableContext: DrawableContext,
+        drawableContext: Live2DDrawableContext,
     ) {
         Live2DShader.drawMasked(
             this,
@@ -305,7 +305,7 @@ class Live2DRenderer(
     }
 
     private fun drawMesh(
-        drawableContext: DrawableContext,
+        drawableContext: Live2DDrawableContext,
     ) {
         glDisable(GL_SCISSOR_TEST)
         glDisable(GL_STENCIL_TEST)

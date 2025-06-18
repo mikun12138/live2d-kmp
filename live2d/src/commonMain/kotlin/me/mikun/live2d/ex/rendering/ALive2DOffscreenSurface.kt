@@ -25,6 +25,4 @@ abstract class ALive2DOffscreenSurface {
     protected abstract fun endDraw()
     protected abstract fun clear(r: Float, g: Float, b: Float, a: Float)
 
-    abstract fun createOffscreenSurface(width: Float, height: Float)
-
 }

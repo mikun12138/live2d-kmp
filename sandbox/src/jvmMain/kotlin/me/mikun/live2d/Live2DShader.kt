@@ -1,9 +1,8 @@
 package me.mikun.live2d
 
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
-import me.mikun.live2d.ex.rendering.ALive2DRenderer.PreClip.ClipContext.Companion.CHANNEL_FLAGS
 import me.mikun.live2d.ex.rendering.CubismBlendMode
-import me.mikun.live2d.ex.rendering.DrawableContext
+import me.mikun.live2d.ex.rendering.Live2DDrawableContext
 import me.mikun.live2d.framework.type.bottom
 import me.mikun.live2d.framework.type.right
 import me.mikun.live2d.framework.type.csmRectF
@@ -12,7 +11,7 @@ import org.lwjgl.opengl.GL46.*
 object Live2DShader {
 
     private fun setupVertexArray(
-        vertex: DrawableContext.Vertex,
+        vertex: Live2DDrawableContext.Vertex,
         vertexArray: Live2DRenderer.VertexArray,
     ) {
         with(vertex) {
@@ -43,7 +42,7 @@ object Live2DShader {
 
     fun drawSimple(
         renderer: Live2DRenderer,
-        drawableContext: DrawableContext,
+        drawableContext: Live2DDrawableContext,
     ) {
         val texture = renderer.drawableTextureArray[drawableContext.index]
         with(
@@ -160,7 +159,7 @@ object Live2DShader {
 
     fun drawMasked(
         renderer: Live2DRenderer,
-        drawableContext: DrawableContext,
+        drawableContext: Live2DDrawableContext,
     ) {
         val texture = renderer.drawableTextureArray[drawableContext.index]
         with(
@@ -212,8 +211,7 @@ object Live2DShader {
                     colorChannel
                  */
                 run {
-                    val colorChannel =
-                        CHANNEL_FLAGS[clipContext.layoutChannelIndex]
+                    val colorChannel = clipContext.colorChannel
                     glUniform4f(
                         uniform(Uniform.CHANNEL_FLAG),
                         colorChannel.r,
@@ -324,7 +322,7 @@ object Live2DShader {
 
     fun setupMask(
         renderer: Live2DRenderer,
-        drawableContext: DrawableContext,
+        drawableContext: Live2DDrawableContext,
         clipContext: ALive2DRenderer.PreClip.ClipContext,
     ) {
         val texture = renderer.drawableTextureArray[drawableContext.index]
@@ -365,8 +363,7 @@ object Live2DShader {
                 channelFlag
             */
             run {
-                val colorChannel =
-                    CHANNEL_FLAGS[clipContext.layoutChannelIndex]
+                val colorChannel = clipContext.colorChannel
                 glUniform4f(
                     uniform(Uniform.CHANNEL_FLAG),
                     colorChannel.r,

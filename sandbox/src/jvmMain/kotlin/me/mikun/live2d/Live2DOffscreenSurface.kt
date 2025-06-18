@@ -37,7 +37,7 @@ class Live2DOffscreenSurface : ALive2DOffscreenSurface() {
         glClear(GL_COLOR_BUFFER_BIT)
     }
 
-    override fun createOffscreenSurface(width: Float, height: Float) {
+    fun createOffscreenSurface(width: Float, height: Float) {
         destroyOffscreenSurface()
 
         val ret = IntArray(size = 1)
@@ -115,15 +115,10 @@ class Live2DOffscreenSurface : ALive2DOffscreenSurface() {
         }
     }
 
-    fun isValid() = renderTexture != null
-
     var colorBuffer: IntArray = IntArray(1)
 
     var renderTexture: IntArray? = null
 
     private var width = 0
     private var height = 0
-
-
-//    private var isColorBufferInherited = false
 }

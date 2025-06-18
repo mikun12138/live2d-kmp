@@ -2,6 +2,7 @@ package me.mikun.live2d.ex.rendering
 
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import me.mikun.live2d.ex.model.AAppModel
+import me.mikun.live2d.ex.rendering.ALive2DRenderer.PreClip.ClipContext.Companion.CHANNEL_FLAGS
 import me.mikun.live2d.framework.Live2DFramework.VERTEX_OFFSET
 import me.mikun.live2d.framework.Live2DFramework.VERTEX_STEP
 import me.mikun.live2d.framework.type.csmRectF
@@ -9,13 +10,13 @@ import kotlin.math.max
 import kotlin.math.min
 
 abstract class ALive2DRenderer {
-    val drawableContextArray: Array<DrawableContext>
+    val drawableContextArray: Array<Live2DDrawableContext>
 
     constructor(
         appModel: AAppModel,
     ) {
         drawableContextArray = Array(appModel.model.drawableCount) {
-            DrawableContext(appModel.model, it)
+            Live2DDrawableContext(appModel.model, it)
         }
     }
 
@@ -92,7 +93,7 @@ abstract class ALive2DRenderer {
                         0 -> {}
                         1 -> {
                             val cc: ClipContext = iterator.next()
-                            cc.layoutChannelIndex = channelIndex
+                            cc.colorChannel = CHANNEL_FLAGS[channelIndex]
                             cc.layoutBounds = csmRectF(
                                 x = 0.0f,
                                 y = 0.0f,
@@ -108,8 +109,7 @@ abstract class ALive2DRenderer {
                                 val xpos = i % 2
 
                                 val cc: ClipContext = iterator.next()
-
-                                cc.layoutChannelIndex = channelIndex
+                                cc.colorChannel = CHANNEL_FLAGS[channelIndex]
                                 cc.layoutBounds = csmRectF(
                                     x = xpos * 0.5f,
                                     y = 0.0f,
@@ -127,8 +127,7 @@ abstract class ALive2DRenderer {
                                 val ypos = i / 2
 
                                 val cc: ClipContext = iterator.next()
-
-                                cc.layoutChannelIndex = channelIndex
+                                cc.colorChannel = CHANNEL_FLAGS[channelIndex]
                                 cc.layoutBounds = csmRectF(
                                     x = xpos * 0.5f,
                                     y = ypos * 0.5f,
@@ -147,7 +146,7 @@ abstract class ALive2DRenderer {
 
                                 val cc: ClipContext = iterator.next()
 
-                                cc.layoutChannelIndex = channelIndex
+                                cc.colorChannel = CHANNEL_FLAGS[channelIndex]
                                 cc.layoutBounds = csmRectF(
                                     x = xpos / 3.0f,
                                     y = ypos / 3.0f,
@@ -174,9 +173,10 @@ abstract class ALive2DRenderer {
         /*
             lazy cache
         */
-        private val clipContext_2_drawableContextList: Map<ClipContext, List<DrawableContext>> by lazy {
+        private val clipContext_2_drawableContextList: Map<ClipContext, List<Live2DDrawableContext>> by lazy {
             drawableClipContextNotNullSet.associateWith { clipContext -> drawableContextArray.filter { drawableClipContextList[it.index] === clipContext } }
         }
+
         protected fun setupMask() {
             pushViewportFun(
                 0, 0, 512, 512
@@ -184,14 +184,12 @@ abstract class ALive2DRenderer {
                 pushFrameBufferFun {
                     clipContext_2_drawableContextList.forEach { (clipContext, drawableContextList) ->
                         run {
-                            check(
-                                clipContext.calcClippedDrawTotalBounds(
-                                    drawableContextList
-                                )
-                            )
-
-                            clipContext.createMatrixForMask()
-                            clipContext.createMatrixForDraw()
+                            clipContext.calcClippedDrawTotalBounds(
+                                drawableContextList
+                            ).let {
+                                clipContext.createMatrixForMask(it)
+                                clipContext.createMatrixForDraw(it)
+                            }
                         }
                     }
 
@@ -219,7 +217,7 @@ abstract class ALive2DRenderer {
         }
 
         protected abstract fun setupMaskDraw(
-            drawableContext: DrawableContext,
+            drawableContext: Live2DDrawableContext,
             clipContext: ClipContext,
         )
 
@@ -244,15 +242,17 @@ abstract class ALive2DRenderer {
         }
 
         protected abstract fun maskDraw(
-            drawableContext: DrawableContext,
+            drawableContext: Live2DDrawableContext,
         )
 
         protected abstract fun simpleDraw(
-            drawableContext: DrawableContext,
+            drawableContext: Live2DDrawableContext,
         )
 
 
-        fun ClipContext.createMatrixForMask() {
+        fun ClipContext.createMatrixForMask(
+            allClippedDrawRect: csmRectF,
+        ) {
             CubismMatrix44.create().apply {
                 loadIdentity()
                 // Layout0..1を、-1..1に変換
@@ -277,7 +277,9 @@ abstract class ALive2DRenderer {
             }
         }
 
-        fun ClipContext.createMatrixForDraw() {
+        fun ClipContext.createMatrixForDraw(
+            allClippedDrawRect: csmRectF,
+        ) {
             CubismMatrix44.create().apply {
                 loadIdentity()
 
@@ -299,8 +301,8 @@ abstract class ALive2DRenderer {
         }
 
         fun ClipContext.calcClippedDrawTotalBounds(
-            drawableContextList: List<DrawableContext>,
-        ): Boolean {
+            drawableContextList: List<Live2DDrawableContext>,
+        ): csmRectF {
             var clippedDrawTotalMinX = Float.Companion.MAX_VALUE
             var clippedDrawTotalMinY = Float.Companion.MAX_VALUE
             var clippedDrawTotalMaxX = -Float.Companion.MAX_VALUE
@@ -336,18 +338,16 @@ abstract class ALive2DRenderer {
             }
 
             if (clippedDrawTotalMinX == Float.Companion.MAX_VALUE) {
-                allClippedDrawRect = csmRectF()
-                return false
+                return error("")
             } else {
                 val w = clippedDrawTotalMaxX - clippedDrawTotalMinX
                 val h = clippedDrawTotalMaxY - clippedDrawTotalMinY
-                allClippedDrawRect = csmRectF(
+                return csmRectF(
                     clippedDrawTotalMinX,
                     clippedDrawTotalMinY,
                     w,
                     h
                 )
-                return true
             }
         }
 
@@ -358,11 +358,9 @@ abstract class ALive2DRenderer {
         class ClipContext(
             val maskIndexArray: IntArray,
         ) {
-            var bufferIndex = 0
+            var bufferIndex = -1
             lateinit var layoutBounds: csmRectF
-            var layoutChannelIndex = 0
-
-            var allClippedDrawRect: csmRectF = csmRectF()
+            lateinit var colorChannel: Live2DColor
 
             val matrixForMask: CubismMatrix44 = CubismMatrix44.Companion.create()
 
@@ -370,25 +368,25 @@ abstract class ALive2DRenderer {
 
             companion object {
                 val CHANNEL_FLAGS = arrayOf(
-                    CubismTextureColor(
+                    Live2DColor(
                         r = 1.0f,
                         g = 0.0f,
                         b = 0.0f,
                         a = 0.0f,
                     ),
-                    CubismTextureColor(
+                    Live2DColor(
                         r = 0.0f,
                         g = 1.0f,
                         b = 0.0f,
                         a = 0.0f,
                     ),
-                    CubismTextureColor(
+                    Live2DColor(
                         r = 0.0f,
                         g = 0.0f,
                         b = 1.0f,
                         a = 0.0f,
                     ),
-                    CubismTextureColor(
+                    Live2DColor(
                         r = 0.0f,
                         g = 0.0f,
                         b = 0.0f,
@@ -426,7 +424,7 @@ enum class CubismBlendMode {
     MASK // マスク
 }
 
-data class CubismTextureColor(
+data class Live2DColor(
     val r: Float = 1.0f,
     val g: Float = 1.0f,
     val b: Float = 1.0f,

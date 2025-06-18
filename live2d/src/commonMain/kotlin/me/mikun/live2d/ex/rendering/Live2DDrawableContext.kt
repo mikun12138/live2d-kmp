@@ -1,11 +1,9 @@
 package me.mikun.live2d.ex.rendering
 
-import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import me.mikun.live2d.ex.annotation.Experimental
 import me.mikun.live2d.framework.model.Live2DModel
-import me.mikun.live2d.framework.type.csmRectF
 
-class DrawableContext(
+class Live2DDrawableContext(
     val model: Live2DModel,
     val index: Int,
 ) {
@@ -18,9 +16,9 @@ class DrawableContext(
     val masks = model.getDrawableMask(index)
 
     val vertex: Vertex = Vertex(model, index)
-    lateinit var baseColor: CubismTextureColor
-    lateinit var multiplyColor: CubismTextureColor
-    lateinit var screenColor: CubismTextureColor
+    lateinit var baseColor: Live2DColor
+    lateinit var multiplyColor: Live2DColor
+    lateinit var screenColor: Live2DColor
 
     val blendMode: CubismBlendMode = model.getDrawableBlendMode(index)
     val isCulling = !model.getDrawableIsDoubleSided(index)
@@ -58,7 +56,7 @@ class DrawableContext(
         vertex.update()
         baseColor = model.getModelColorWithOpacity(opacity)
         multiplyColor = model.getDrawableMultiplyColors(index)!!.let {
-            CubismTextureColor(
+            Live2DColor(
                 it[0],
                 it[1],
                 it[2],
@@ -66,7 +64,7 @@ class DrawableContext(
             )
         }
         screenColor = model.getDrawableScreenColors(index)!!.let {
-            CubismTextureColor(
+            Live2DColor(
                 it[0],
                 it[1],
                 it[2],
