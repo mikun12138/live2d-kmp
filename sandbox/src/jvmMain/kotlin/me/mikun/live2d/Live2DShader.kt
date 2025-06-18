@@ -1,7 +1,7 @@
 package me.mikun.live2d
 
-import me.mikun.live2d.ex.rendering.ClipContext
-import me.mikun.live2d.ex.rendering.ClipContext.Companion.CHANNEL_FLAGS
+import me.mikun.live2d.ex.rendering.ALive2DRenderer
+import me.mikun.live2d.ex.rendering.ALive2DRenderer.PreClip.ClipContext.Companion.CHANNEL_FLAGS
 import me.mikun.live2d.ex.rendering.CubismBlendMode
 import me.mikun.live2d.ex.rendering.DrawableContext
 import me.mikun.live2d.framework.type.bottom
@@ -325,7 +325,7 @@ object Live2DShader {
     fun setupMask(
         renderer: Live2DRenderer,
         drawableContext: DrawableContext,
-        clipContext: ClipContext,
+        clipContext: ALive2DRenderer.PreClip.ClipContext,
     ) {
         val texture = renderer.drawableTextureArray[drawableContext.index]
 

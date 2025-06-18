@@ -1,14 +1,9 @@
 package me.mikun.live2d
 
-import me.mikun.live2d.ex.rendering.ALive2DRenderer
-import me.mikun.live2d.ex.rendering.ClipContext
-import me.mikun.live2d.ex.rendering.DrawableContext
-import me.mikun.live2d.framework.Live2DFramework.VERTEX_OFFSET
-import me.mikun.live2d.framework.Live2DFramework.VERTEX_STEP
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import me.mikun.live2d.ex.model.AAppModel
-import me.mikun.live2d.ex.rendering.ALive2DOffscreenSurface
-import me.mikun.live2d.framework.type.csmRectF
+import me.mikun.live2d.ex.rendering.ALive2DRenderer
+import me.mikun.live2d.ex.rendering.DrawableContext
 import org.lwjgl.opengl.GL11.GL_NEAREST
 import org.lwjgl.opengl.GL11.GL_RGBA
 import org.lwjgl.opengl.GL11.GL_TEXTURE_2D
@@ -57,9 +52,6 @@ import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryUtil
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.use
 
 class Live2DRenderer(
     appModel: AAppModel,
