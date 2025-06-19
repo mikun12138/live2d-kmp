@@ -604,6 +604,30 @@ sealed class Live2DCubismCoreFFM : LibraryFFM {
     }
 
     /**
+     * Gets Parameter Repeat informations.
+     *
+     * @param  model  Model to query.
+     *
+     * @return  Valid pointer on success; '0' otherwise.
+     */
+    object csmGetParameterRepeats : Live2DCubismCoreFFM(
+        "csmGetParameterRepeats",
+        FunctionDescriptor.of(
+            ValueLayout.ADDRESS,
+            ValueLayout.ADDRESS,
+        )
+    ), (Long) -> MemorySegment {
+        override fun invoke(modelHandle: Long): MemorySegment {
+            Arena.ofConfined().use {
+                return this.methodHandle.invokeExact(
+                    MemorySegment.ofAddress(modelHandle),
+                ) as MemorySegment
+            }
+        }
+
+    }
+
+    /**
      * Gets number of key values of each parameter.
      *
      * @param  model  Model to query.

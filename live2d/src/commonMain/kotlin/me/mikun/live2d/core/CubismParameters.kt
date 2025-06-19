@@ -9,6 +9,7 @@ class CubismParameters(count: Int) {
     val defaultValues: FloatArray
     val keyCounts: IntArray
     val keyValues: Array<FloatArray>
+    val repeats: BooleanArray
     val values: FloatArray
 
     init {
@@ -22,6 +23,7 @@ class CubismParameters(count: Int) {
         this.defaultValues = FloatArray(count)
         this.values = FloatArray(count)
         this.keyCounts = IntArray(count)
+        this.repeats = BooleanArray(count)
         this.keyValues = Array<FloatArray>(count) {
             FloatArray(0)
         }
