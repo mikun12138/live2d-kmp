@@ -148,6 +148,7 @@ class Live2DMotionQueueEntry(
                             }
                     }
 
+
                     val v: Float
                     if (motion.existFade(curve)) {
 
