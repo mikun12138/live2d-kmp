@@ -170,7 +170,7 @@ open class Live2DUserModelImpl : ALive2DUserModel() {
         expressionManager.update(model, deltaSeconds)
 
         // physics
-        physics?.evaluate(model, deltaSeconds)
+        physics?.update(model, deltaSeconds)
 
         // userData
         // TODO::

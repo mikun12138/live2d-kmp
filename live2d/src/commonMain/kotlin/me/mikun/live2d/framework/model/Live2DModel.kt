@@ -18,7 +18,7 @@ import kotlin.collections.mutableListOf
 import kotlin.experimental.and
 
 class Live2DModel {
-    val model: CubismModel
+    private val model: CubismModel
 
     constructor(model: CubismModel) {
         this.model = model
@@ -130,7 +130,7 @@ class Live2DModel {
         setParameterValue(index, value, weight)
     }
 
-    private fun setParameterValue(parameterIndex: Int, value: Float, weight: Float = 1.0f) {
+    fun setParameterValue(parameterIndex: Int, value: Float, weight: Float = 1.0f) {
         if (notExistParameterIndices.contains(parameterIndex)) {
             val index = notExistParameterIndices.indexOf(parameterIndex)
             val parameterValue = notExistParameterValues[index]

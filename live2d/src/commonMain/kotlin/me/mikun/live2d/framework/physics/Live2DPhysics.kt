@@ -26,463 +26,6 @@ class Live2DPhysics {
         options!!.wind.setZero()
     }
 
-    /**
-     * Options of physics operation
-     */
-    class Options(
-        val wind: CubismVector2 = CubismVector2(),
-        val gravity: CubismVector2 = CubismVector2(),
-
-        )
-
-    /**
-     * Output result of physics operations before applying to parameters
-     */
-    class PhysicsOutput(
-        var outputs: FloatArray,
-    )
-
-    /**
-     * Reset parameters.
-     */
-    fun reset() {
-        options!!.gravity.set(0.0f, -1.0f)
-        options!!.wind.setZero()
-
-        physicsRig.gravity.setZero()
-        physicsRig.wind.setZero()
-
-        initialize()
-    }
-
-    /**
-     * 現在のパラメータ値で物理演算が安定化する状態を演算する。
-     *
-     * @param model 物理演算の結果を適用するモデル
-     */
-    fun stabilization(model: Live2DModel) {
-        val totalAngle = FloatArray(1)
-        var weight: Float
-        var radAngle: Float
-        var outputValue: Float
-        val totalTranslation: CubismVector2 = CubismVector2()
-        var i: Int
-        var settingIndex: Int
-        var particleIndex: Int
-        var currentSetting: Live2DPhysicsInternal.CubismPhysicsSubRig
-
-        val parameterValues = model.model.parameters.values
-        val parameterMaximumValues = model.model.parameters.maximumValues
-        val parameterMinimumValues = model.model.parameters.minimumValues
-        val parameterDefaultValues = model.model.parameters.defaultValues
-
-        if (parameterCaches.size < model.parameterCount) {
-            parameterCaches = FloatArray(model.parameterCount)
-        }
-        if (parameterInputCaches.size < model.parameterCount) {
-            parameterInputCaches = FloatArray(model.parameterCount)
-        }
-
-        for (j in 0..<model.parameterCount) {
-            parameterCaches[j] = parameterValues[j]
-            parameterInputCaches[j] = parameterValues[j]
-        }
-
-        settingIndex = 0
-        while (settingIndex < physicsRig.subRigCount) {
-            totalAngle[0] = 0.0f
-            totalTranslation.setZero()
-
-            currentSetting = physicsRig.settings.get(settingIndex)
-            val baseInputIndex: Int = currentSetting.baseInputIndex
-            val baseOutputIndex: Int = currentSetting.baseOutputIndex
-            val baseParticleIndex: Int = currentSetting.baseParticleIndex
-
-            // Load input parameters.
-            i = 0
-            while (i < currentSetting.inputCount) {
-                val currentInput: Live2DPhysicsInternal.CubismPhysicsInput =
-                    physicsRig.inputs.get(baseInputIndex + i)
-
-                weight = currentInput.weight / MAXIMUM_WEIGHT
-
-                if (currentInput.sourceParameterIndex === -1) {
-                    currentInput.sourceParameterIndex =
-                        model.getParameterIndex(currentInput.source.Id)
-                }
-
-                currentInput.getNormalizedParameterValue!!.getNormalizedParameterValue(
-                    totalTranslation,
-                    totalAngle,
-                    parameterValues[currentInput.sourceParameterIndex],
-                    parameterMinimumValues[currentInput.sourceParameterIndex],
-                    parameterMaximumValues[currentInput.sourceParameterIndex],
-                    parameterDefaultValues[currentInput.sourceParameterIndex],
-                    currentSetting.normalizationPosition,
-                    currentSetting.normalizationAngle,
-                    currentInput.reflect,
-                    weight
-                )
-
-                parameterCaches[currentInput.sourceParameterIndex] =
-                    parameterValues[currentInput.sourceParameterIndex]
-                i++
-            }
-
-            radAngle = CubismMath.degreesToRadian(-totalAngle[0])
-
-            totalTranslation.x =
-                (totalTranslation.x * CubismMath.cosF(radAngle) - totalTranslation.y * CubismMath.sinF(
-                    radAngle
-                ))
-            totalTranslation.y =
-                (totalTranslation.x * CubismMath.sinF(radAngle) + totalTranslation.y * CubismMath.cosF(
-                    radAngle
-                ))
-
-            // Calculate particles position.
-            updateParticlesForStabilization(
-                physicsRig.particles,
-                baseParticleIndex,
-                currentSetting.particleCount,
-                totalTranslation,
-                totalAngle[0],
-                options!!.wind,
-                MOVEMENT_THRESHOLD * currentSetting.normalizationPosition.maximumValue
-            )
-
-            // Update output parameters.
-            i = 0
-            while (i < currentSetting.outputCount) {
-                val currentOutput: Live2DPhysicsInternal.CubismPhysicsOutput =
-                    physicsRig.outputs.get(baseOutputIndex + i)
-
-                particleIndex = currentOutput.vertexIndex
-
-                if (currentOutput.destinationParameterIndex === -1) {
-                    currentOutput.destinationParameterIndex =
-                        model.getParameterIndex(currentOutput.destination.Id)
-                }
-
-                if (particleIndex < 1 || particleIndex >= currentSetting.particleCount) {
-                    i++
-                    continue
-                }
-
-                val translation: CubismVector2 = CubismVector2()
-                CubismVector2.subtract(
-                    physicsRig.particles.get(baseParticleIndex + particleIndex).position,
-                    physicsRig.particles.get(baseParticleIndex + particleIndex - 1).position,
-                    translation
-                )
-
-                outputValue = currentOutput.getValue!!.getValue(
-                    translation,
-                    physicsRig.particles,
-                    physicsRig.settings.get(i).baseParticleIndex,
-                    particleIndex,
-                    currentOutput.reflect,
-                    options!!.gravity
-                )
-
-                currentRigOutputs.get(settingIndex)!!.outputs[i] = outputValue
-                previousRigOutputs.get(settingIndex)!!.outputs[i] = outputValue
-
-                updateOutputParameterValue(
-                    parameterValues,
-                    currentOutput.destinationParameterIndex,
-                    parameterMinimumValues[currentOutput.destinationParameterIndex],
-                    parameterMaximumValues[currentOutput.destinationParameterIndex],
-                    outputValue,
-                    currentOutput
-                )
-
-                parameterCaches[currentOutput.destinationParameterIndex] =
-                    parameterValues[currentOutput.destinationParameterIndex]
-                i++
-            }
-            settingIndex++
-        }
-    }
-
-    /**
-     * Evaluate a physics operation.
-     *
-     *
-     * Pendulum interpolation weights
-     *
-     *
-     * 振り子の計算結果は保存され、パラメータへの出力は保存された前回の結果で補間されます。
-     * The result of the pendulum calculation is saved and
-     * the output to the parameters is interpolated with the saved previous result of the pendulum calculation.
-     *
-     *
-     * 図で示すと[1]と[2]で補間されます。
-     * The figure shows the interpolation between [1] and [2].
-     *
-     *
-     * 補間の重みは最新の振り子計算タイミングと次回のタイミングの間で見た現在時間で決定する。
-     * The weight of the interpolation are determined by the current time seen between
-     * the latest pendulum calculation timing and the next timing.
-     *
-     *
-     * 図で示すと[2]と[4]の間でみた(3)の位置の重みになる。
-     * Figure shows the weight of position (3) as seen between [2] and [4].
-     *
-     *
-     * 解釈として振り子計算のタイミングと重み計算のタイミングがズレる。
-     * As an interpretation, the pendulum calculation and weights are misaligned.
-     *
-     *
-     * physics3.jsonにFPS情報が存在しない場合は常に前の振り子状態で設定される。
-     * If there is no FPS information in physics3.json, it is always set in the previous pendulum state.
-     *
-     *
-     * この仕様は補間範囲を逸脱したことが原因の震えたような見た目を回避を目的にしている。
-     * The purpose of this specification is to avoid the quivering appearance caused by deviations from the interpolation range.
-     *
-     *
-     * ------------ time --------------&gt;
-     *
-     *
-     * |+++++|------| &lt;- weight
-     * ==[1]====#=====[2]---(3)----(4)
-     * ^ output contents
-     *
-     *
-     * 1:_previousRigOutputs
-     * 2:_currentRigOutputs
-     * 3:_currentRemainTime (now rendering)
-     * 4:next particles timing
-     *
-     * @param model Model to which the results of physics operation are applied
-     * @param deltaTimeSeconds rendering delta time[s]
-     */
-    fun evaluate(model: Live2DModel, deltaTimeSeconds: Float) {
-        var weight: Float
-        var radAngle: Float
-        var outputValue: Float
-//        var i: Int
-        var particleIndex: Int
-        val inputs: MutableList<Live2DPhysicsInternal.CubismPhysicsInput> = physicsRig.inputs
-        val outputs: MutableList<Live2DPhysicsInternal.CubismPhysicsOutput> = physicsRig.outputs
-
-        if (0.0f >= deltaTimeSeconds) {
-            return
-        }
-
-        val physicsDeltaTime: Float
-        currentRemainTime += deltaTimeSeconds
-        if (currentRemainTime > MAX_DELTA_TIME) {
-            currentRemainTime = 0.0f
-        }
-
-        val parameterValues = model.model.parameters.values // input
-        val parameterMaximumValues = model.model.parameters.maximumValues
-        val parameterMinimumValues = model.model.parameters.minimumValues
-        val parameterDefaultValues = model.model.parameters.defaultValues
-
-        if (parameterCaches.size < model.parameterCount) {
-            parameterCaches = FloatArray(model.parameterCount)
-        }
-
-        if (parameterInputCaches.size < model.parameterCount) {
-            parameterInputCaches = FloatArray(model.parameterCount)
-            if (model.parameterCount >= 0) System.arraycopy(
-                parameterValues,
-                0,
-                parameterInputCaches,
-                0,
-                model.parameterCount
-            )
-        }
-
-        if (physicsRig.fps > 0.0f) {
-            physicsDeltaTime = 1.0f / physicsRig.fps
-        } else {
-            physicsDeltaTime = deltaTimeSeconds
-        }
-
-//        var currentSetting: CubismPhysicsInternal.CubismPhysicsSubRig
-//        var currentInput: CubismPhysicsInternal.CubismPhysicsInput
-        var currentOutput: Live2DPhysicsInternal.CubismPhysicsOutput
-        var currentParticle: Live2DPhysicsInternal.CubismPhysicsParticle
-
-//        var settingIndex: Int
-        while (currentRemainTime >= physicsDeltaTime) {
-            // copy RigOutputs: _currentRigOutputs to _previousRigOutputs
-            repeat(physicsRig.subRigCount) { settingIndex ->
-                repeat(physicsRig.settings[settingIndex].outputCount) { outputIndex ->
-                    previousRigOutputs[settingIndex]!!.outputs[outputIndex] =
-                        currentRigOutputs[settingIndex]!!.outputs[outputIndex]
-                }
-            }
-
-            // 入力キャッシュとパラメータで線形補間してUpdateParticlesするタイミングでの入力を計算する。
-            // Calculate the input at the timing to UpdateParticles by linear interpolation with the _parameterInputCaches and parameterValues.
-            // _parameterCachesはグループ間での値の伝搬の役割があるので_parameterInputCachesとの分離が必要。
-            // _parameterCaches needs to be separated from _parameterInputCaches because of its role in propagating values between groups.
-            val inputWeight = physicsDeltaTime / currentRemainTime
-            repeat(model.parameterCount) {
-                parameterCaches[it] =
-                    parameterInputCaches[it] * (1.0f - inputWeight) + parameterValues[it] * inputWeight
-                parameterInputCaches[it] = parameterCaches[it]
-            }
-
-            repeat(physicsRig.subRigCount) { settingIndex ->
-
-                totalAngle[0] = 0.0f
-                totalTranslation.setZero()
-
-                val currentSetting = physicsRig.settings[settingIndex]
-                val particles: MutableList<Live2DPhysicsInternal.CubismPhysicsParticle> =
-                    physicsRig.particles
-
-                val baseInputIndex: Int = currentSetting.baseInputIndex
-                val baseOutputIndex: Int = currentSetting.baseOutputIndex
-                val baseParticleIndex: Int = currentSetting.baseParticleIndex
-
-                // Load input parameters.
-                repeat(currentSetting.inputCount) {
-                    val currentInput = inputs[baseInputIndex + it]
-                    weight = currentInput.weight / MAXIMUM_WEIGHT
-
-                    if (currentInput.sourceParameterIndex == -1) {
-                        currentInput.sourceParameterIndex =
-                            model.getParameterIndex(currentInput.source.Id)
-                    }
-
-                    currentInput.getNormalizedParameterValue!!.getNormalizedParameterValue(
-                        totalTranslation,
-                        totalAngle,
-                        parameterCaches[currentInput.sourceParameterIndex],
-                        parameterMinimumValues[currentInput.sourceParameterIndex],
-                        parameterMaximumValues[currentInput.sourceParameterIndex],
-                        parameterDefaultValues[currentInput.sourceParameterIndex],
-                        currentSetting.normalizationPosition,
-                        currentSetting.normalizationAngle,
-                        currentInput.reflect,
-                        weight
-                    )
-                }
-
-                radAngle = CubismMath.degreesToRadian(-totalAngle[0])
-
-                totalTranslation.x =
-                    (totalTranslation.x * CubismMath.cosF(radAngle) - totalTranslation.y * CubismMath.sinF(
-                        radAngle
-                    ))
-                totalTranslation.y =
-                    (totalTranslation.x * CubismMath.sinF(radAngle) + totalTranslation.y * CubismMath.cosF(
-                        radAngle
-                    ))
-
-
-                // Calculate particles position.
-                updateParticles(
-                    particles,
-                    baseParticleIndex,
-                    currentSetting.particleCount,
-                    totalTranslation,
-                    totalAngle[0],
-                    options!!.wind,
-                    MOVEMENT_THRESHOLD * currentSetting.normalizationPosition.maximumValue,
-                    physicsDeltaTime,
-                    AIR_RESISTANCE
-                )
-
-                // Update output parameters.
-                repeat(currentSetting.outputCount) {
-                    currentOutput = outputs.get(baseOutputIndex + it)
-                    particleIndex = currentOutput.vertexIndex
-
-
-                    if (currentOutput.destinationParameterIndex == -1) {
-                        currentOutput.destinationParameterIndex =
-                            model.getParameterIndex(currentOutput.destination.Id)
-                    }
-
-                    if (particleIndex < 1 || particleIndex >= currentSetting.particleCount) {
-                        return@repeat
-                    }
-
-                    currentParticle = particles.get(baseParticleIndex + particleIndex)
-                    val previousParticle = particles.get(baseParticleIndex + particleIndex - 1)
-                    CubismVector2.subtract(
-                        currentParticle.position,
-                        previousParticle.position,
-                        translation
-                    )
-
-                    outputValue = currentOutput.getValue!!.getValue(
-                        translation,
-                        particles,
-                        baseParticleIndex,
-                        particleIndex,
-                        currentOutput.reflect,
-                        options!!.gravity
-                    )
-
-                    currentRigOutputs.get(settingIndex)!!.outputs[it] = outputValue
-
-                    cache[0] = parameterCaches[currentOutput.destinationParameterIndex]
-
-                    updateOutputParameterValue(
-                        cache,
-                        0,
-                        parameterMinimumValues[currentOutput.destinationParameterIndex],
-                        parameterMaximumValues[currentOutput.destinationParameterIndex],
-                        outputValue,
-                        currentOutput
-                    )
-                    parameterCaches[currentOutput.destinationParameterIndex] = cache[0]
-                }
-            }
-            currentRemainTime -= physicsDeltaTime
-        }
-
-        val alpha = currentRemainTime / physicsDeltaTime
-        interpolate(model, alpha)
-    }
-
-    // There are only used by 'evaluate' method.
-    // Avoid creating a new float array and CubismVector2 instance.
-    private val totalAngle = FloatArray(1)
-    private val cache = FloatArray(1)
-    private val totalTranslation: CubismVector2 = CubismVector2()
-    private val translation: CubismVector2 = CubismVector2()
-
-    /**
-     * Set an option.
-     *
-     * @param options a physics operation of option
-     */
-    fun setOptions(options: Options?) {
-        if (options == null) {
-            return
-        }
-        this.options = options
-    }
-
-    /**
-     * Get the physics operation of option.
-     *
-     * @return the physics operation of option
-     */
-    fun getOptions(): Options? {
-        return options
-    }
-
-    // -----private constants-----
-    // Physics types tags
-    private enum class PhysicsTypeTag(
-        val tag: String,
-    ) {
-        X("X"),
-        Y("Y"),
-        ANGLE("Angle");
-
-    }
 
     /**
      * Parse a physics3.json data.
@@ -548,6 +91,47 @@ class Live2DPhysics {
         }
         initialize()
     }
+
+
+    /**
+     * Initializes physics
+     */
+    private fun initialize() {
+        for (settingIndex in 0..<physicsRig.subRigCount) {
+            val currentSetting: Live2DPhysicsInternal.CubismPhysicsSubRig =
+                physicsRig.settings.get(settingIndex)
+
+            val baseIndex: Int = currentSetting.baseParticleIndex
+            val baseParticle: Live2DPhysicsInternal.CubismPhysicsParticle =
+                physicsRig.particles.get(baseIndex)
+
+            // Initialize the top of particle
+            baseParticle.initialPosition = CubismVector2()
+            baseParticle.lastPosition = CubismVector2(baseParticle.initialPosition)
+            baseParticle.lastGravity = CubismVector2(0.0f, 1.0f)
+            baseParticle.velocity = CubismVector2()
+            baseParticle.force = CubismVector2()
+
+            // Initialize particles
+            for (i in 1..<currentSetting.particleCount) {
+                val currentParticle: Live2DPhysicsInternal.CubismPhysicsParticle =
+                    physicsRig.particles.get(baseIndex + i)
+
+                val radius: CubismVector2 = CubismVector2(0.0f, currentParticle.radius)
+
+                val previousPosition: CubismVector2 =
+                    CubismVector2(physicsRig.particles.get(baseIndex + i - 1).initialPosition)
+                currentParticle.initialPosition = previousPosition.add(radius)
+
+                currentParticle.position = CubismVector2(currentParticle.initialPosition)
+                currentParticle.lastPosition = CubismVector2(currentParticle.initialPosition)
+                currentParticle.lastGravity = CubismVector2(0.0f, 1.0f)
+                currentParticle.velocity = CubismVector2()
+                currentParticle.force = CubismVector2()
+            }
+        }
+    }
+
 
     private fun parseSetting(
         json: PhysicsJson,
@@ -666,43 +250,419 @@ class Live2DPhysics {
         }
     }
 
+    private enum class PhysicsTypeTag(
+        val tag: String,
+    ) {
+        X("X"),
+        Y("Y"),
+        ANGLE("Angle");
+
+    }
+
+
     /**
-     * Initializes physics
+     * Options of physics operation
+     * @see PhysicsJson.Meta.EffectiveForces
      */
-    private fun initialize() {
-        for (settingIndex in 0..<physicsRig.subRigCount) {
-            val currentSetting: Live2DPhysicsInternal.CubismPhysicsSubRig =
-                physicsRig.settings.get(settingIndex)
+    class Options(
+        val wind: CubismVector2 = CubismVector2(),
+        val gravity: CubismVector2 = CubismVector2(),
 
-            val baseIndex: Int = currentSetting.baseParticleIndex
-            val baseParticle: Live2DPhysicsInternal.CubismPhysicsParticle =
-                physicsRig.particles.get(baseIndex)
+        )
 
-            // Initialize the top of particle
-            baseParticle.initialPosition = CubismVector2()
-            baseParticle.lastPosition = CubismVector2(baseParticle.initialPosition)
-            baseParticle.lastGravity = CubismVector2(0.0f, 1.0f)
-            baseParticle.velocity = CubismVector2()
-            baseParticle.force = CubismVector2()
+    /**
+     * Output result of physics operations before applying to parameters
+     */
+    class PhysicsOutput(
+        var outputs: FloatArray,
+    )
 
-            // Initialize particles
-            for (i in 1..<currentSetting.particleCount) {
-                val currentParticle: Live2DPhysicsInternal.CubismPhysicsParticle =
-                    physicsRig.particles.get(baseIndex + i)
+    /**
+     * Reset parameters.
+     */
+    fun reset() {
+        options!!.gravity.set(0.0f, -1.0f)
+        options!!.wind.setZero()
 
-                val radius: CubismVector2 = CubismVector2(0.0f, currentParticle.radius)
+        physicsRig.gravity.setZero()
+        physicsRig.wind.setZero()
 
-                val previousPosition: CubismVector2 =
-                    CubismVector2(physicsRig.particles.get(baseIndex + i - 1).initialPosition)
-                currentParticle.initialPosition = previousPosition.add(radius)
+        initialize()
+    }
 
-                currentParticle.position = CubismVector2(currentParticle.initialPosition)
-                currentParticle.lastPosition = CubismVector2(currentParticle.initialPosition)
-                currentParticle.lastGravity = CubismVector2(0.0f, 1.0f)
-                currentParticle.velocity = CubismVector2()
-                currentParticle.force = CubismVector2()
+    /**
+     * 現在のパラメータ値で物理演算が安定化する状態を演算する。
+     *
+     * @param model 物理演算の結果を適用するモデル
+     */
+    fun stabilization(model: Live2DModel) {
+        val totalAngle = FloatArray(1)
+        var weight: Float
+        var radAngle: Float
+        var outputValue: Float
+        val totalTranslation = CubismVector2()
+        var i: Int
+        var settingIndex: Int
+        var particleIndex: Int
+        var currentSetting: Live2DPhysicsInternal.CubismPhysicsSubRig
+
+        if (parameterCaches.size < model.parameterCount) {
+            parameterCaches = FloatArray(model.parameterCount)
+        }
+        if (parameterInputCaches.size < model.parameterCount) {
+            parameterInputCaches = FloatArray(model.parameterCount)
+        }
+
+        for (j in 0..<model.parameterCount) {
+            model.getParameterValue(j).let {
+                parameterCaches[j] = it
+                parameterInputCaches[j] = it
             }
         }
+
+        settingIndex = 0
+        while (settingIndex < physicsRig.subRigCount) {
+            totalAngle[0] = 0.0f
+            totalTranslation.setZero()
+
+            currentSetting = physicsRig.settings.get(settingIndex)
+            val baseInputIndex: Int = currentSetting.baseInputIndex
+            val baseOutputIndex: Int = currentSetting.baseOutputIndex
+            val baseParticleIndex: Int = currentSetting.baseParticleIndex
+
+            // Load input parameters.
+            i = 0
+            while (i < currentSetting.inputCount) {
+                val currentInput: Live2DPhysicsInternal.CubismPhysicsInput =
+                    physicsRig.inputs.get(baseInputIndex + i)
+
+                weight = currentInput.weight / MAXIMUM_WEIGHT
+
+                if (currentInput.sourceParameterIndex == -1) {
+                    currentInput.sourceParameterIndex =
+                        model.getParameterIndex(currentInput.source.Id)
+                }
+
+                currentInput.getNormalizedParameterValue!!.getNormalizedParameterValue(
+                    totalTranslation,
+                    totalAngle,
+                    model.getParameterValue(currentInput.sourceParameterIndex),
+                    model.getParameterMinimumValue(currentInput.sourceParameterIndex),
+                    model.getParameterMaximumValue(currentInput.sourceParameterIndex),
+                    model.getParameterDefaultValue(currentInput.sourceParameterIndex),
+                    currentSetting.normalizationPosition,
+                    currentSetting.normalizationAngle,
+                    currentInput.reflect,
+                    weight
+                )
+
+                parameterCaches[currentInput.sourceParameterIndex] =
+                    model.getParameterValue(currentInput.sourceParameterIndex)
+
+                i++
+            }
+
+            radAngle = CubismMath.degreesToRadian(-totalAngle[0])
+
+            totalTranslation.x =
+                (totalTranslation.x * CubismMath.cosF(radAngle) - totalTranslation.y * CubismMath.sinF(
+                    radAngle
+                ))
+            totalTranslation.y =
+                (totalTranslation.x * CubismMath.sinF(radAngle) + totalTranslation.y * CubismMath.cosF(
+                    radAngle
+                ))
+
+            // Calculate particles position.
+            updateParticlesForStabilization(
+                physicsRig.particles,
+                baseParticleIndex,
+                currentSetting.particleCount,
+                totalTranslation,
+                totalAngle[0],
+                options!!.wind,
+                MOVEMENT_THRESHOLD * currentSetting.normalizationPosition.maximumValue
+            )
+
+            // Update output parameters.
+            i = 0
+            while (i < currentSetting.outputCount) {
+                val currentOutput: Live2DPhysicsInternal.CubismPhysicsOutput =
+                    physicsRig.outputs.get(baseOutputIndex + i)
+
+                particleIndex = currentOutput.vertexIndex
+
+                if (currentOutput.destinationParameterIndex == -1) {
+                    currentOutput.destinationParameterIndex =
+                        model.getParameterIndex(currentOutput.destination.Id)
+                }
+
+                if (particleIndex < 1 || particleIndex >= currentSetting.particleCount) {
+                    i++
+                    continue
+                }
+
+                val translation = CubismVector2()
+                CubismVector2.subtract(
+                    physicsRig.particles.get(baseParticleIndex + particleIndex).position,
+                    physicsRig.particles.get(baseParticleIndex + particleIndex - 1).position,
+                    translation
+                )
+
+                outputValue = currentOutput.getValue!!.getValue(
+                    translation,
+                    physicsRig.particles,
+                    physicsRig.settings.get(i).baseParticleIndex,
+                    particleIndex,
+                    currentOutput.reflect,
+                    options!!.gravity
+                )
+
+                currentRigOutputs.get(settingIndex)!!.outputs[i] = outputValue
+                previousRigOutputs.get(settingIndex)!!.outputs[i] = outputValue
+
+                // TODO:: 真的需要在这里set吗
+                model.setParameterValue(
+                    currentOutput.destinationParameterIndex,
+                    updateOutputParameterValue(
+                        model.getParameterValue(currentOutput.destinationParameterIndex),
+                        model.getParameterMinimumValue(currentOutput.destinationParameterIndex),
+                        model.getParameterMaximumValue(currentOutput.destinationParameterIndex),
+                        outputValue,
+                        currentOutput
+                    )
+                )
+
+                parameterCaches[currentOutput.destinationParameterIndex] =
+                    model.getParameterValue(currentOutput.destinationParameterIndex)
+
+                i++
+            }
+            settingIndex++
+        }
+    }
+
+    /**
+     * Evaluate a physics operation.
+     *
+     *
+     * Pendulum interpolation weights
+     *
+     *
+     * 振り子の計算結果は保存され、パラメータへの出力は保存された前回の結果で補間されます。
+     * The result of the pendulum calculation is saved and
+     * the output to the parameters is interpolated with the saved previous result of the pendulum calculation.
+     *
+     *
+     * 図で示すと[1]と[2]で補間されます。
+     * The figure shows the interpolation between [1] and [2].
+     *
+     *
+     * 補間の重みは最新の振り子計算タイミングと次回のタイミングの間で見た現在時間で決定する。
+     * The weight of the interpolation are determined by the current time seen between
+     * the latest pendulum calculation timing and the next timing.
+     *
+     *
+     * 図で示すと[2]と[4]の間でみた(3)の位置の重みになる。
+     * Figure shows the weight of position (3) as seen between [2] and [4].
+     *
+     *
+     * 解釈として振り子計算のタイミングと重み計算のタイミングがズレる。
+     * As an interpretation, the pendulum calculation and weights are misaligned.
+     *
+     *
+     * physics3.jsonにFPS情報が存在しない場合は常に前の振り子状態で設定される。
+     * If there is no FPS information in physics3.json, it is always set in the previous pendulum state.
+     *
+     *
+     * この仕様は補間範囲を逸脱したことが原因の震えたような見た目を回避を目的にしている。
+     * The purpose of this specification is to avoid the quivering appearance caused by deviations from the interpolation range.
+     *
+     *
+     * ------------ time --------------&gt;
+     *
+     *
+     * |+++++|------| &lt;- weight
+     * ==[1]====#=====[2]---(3)----(4)
+     * ^ output contents
+     *
+     *
+     * 1:_previousRigOutputs
+     * 2:_currentRigOutputs
+     * 3:_currentRemainTime (now rendering)
+     * 4:next particles timing
+     *
+     * @param model Model to which the results of physics operation are applied
+     * @param deltaSeconds rendering delta time[s]
+     */
+    fun update(model: Live2DModel, deltaSeconds: Float) {
+
+        /*
+            更新计时器
+         */
+        run {
+            if (deltaSeconds <= 0.0f) {
+                return
+            }
+
+            currentRemainTime += deltaSeconds
+            if (currentRemainTime > MAX_DELTA_TIME) {
+                currentRemainTime = 0.0f
+            }
+        }
+
+        if (parameterCaches.size < model.parameterCount) {
+            parameterCaches = FloatArray(model.parameterCount)
+        }
+
+        if (parameterInputCaches.size < model.parameterCount) {
+            parameterInputCaches = FloatArray(model.parameterCount) {
+                model.getParameterValue(it)
+            }
+        }
+
+        val physicsDeltaTime =
+            if (physicsRig.fps > 0.0f) {
+                1.0f / physicsRig.fps
+            } else {
+                deltaSeconds
+            }
+
+        while (currentRemainTime >= physicsDeltaTime) {
+            // copy RigOutputs: _currentRigOutputs to _previousRigOutputs
+            repeat(physicsRig.subRigCount) { settingIndex ->
+                repeat(physicsRig.settings[settingIndex].outputCount) { outputIndex ->
+                    previousRigOutputs[settingIndex]!!.outputs[outputIndex] =
+                        currentRigOutputs[settingIndex]!!.outputs[outputIndex]
+                }
+            }
+
+            // 入力キャッシュとパラメータで線形補間してUpdateParticlesするタイミングでの入力を計算する。
+            // Calculate the input at the timing to UpdateParticles by linear interpolation with the _parameterInputCaches and parameterValues.
+            // _parameterCachesはグループ間での値の伝搬の役割があるので_parameterInputCachesとの分離が必要。
+            // _parameterCaches needs to be separated from _parameterInputCaches because of its role in propagating values between groups.
+            val inputWeight = physicsDeltaTime / currentRemainTime
+            repeat(model.parameterCount) {
+                parameterCaches[it] =
+                    parameterInputCaches[it] * (1.0f - inputWeight) + model.getParameterValue(it) * inputWeight
+                parameterInputCaches[it] = parameterCaches[it]
+            }
+
+            repeat(physicsRig.subRigCount) { settingIndex ->
+                val totalAngle = FloatArray(1)
+                val totalTranslation = CubismVector2(0.0f, 0.0f)
+
+                val currentSetting: Live2DPhysicsInternal.CubismPhysicsSubRig =
+                    physicsRig.settings[settingIndex]
+                val particles: MutableList<Live2DPhysicsInternal.CubismPhysicsParticle> =
+                    physicsRig.particles
+
+                val baseInputIndex: Int = currentSetting.baseInputIndex
+                val baseOutputIndex: Int = currentSetting.baseOutputIndex
+                val baseParticleIndex: Int = currentSetting.baseParticleIndex
+
+                // Load input parameters.
+                repeat(currentSetting.inputCount) {
+                    val currentInput: Live2DPhysicsInternal.CubismPhysicsInput =
+                        physicsRig.inputs[baseInputIndex + it]
+                    val weight = currentInput.weight / MAXIMUM_WEIGHT
+
+                    if (currentInput.sourceParameterIndex == -1) {
+                        currentInput.sourceParameterIndex =
+                            model.getParameterIndex(currentInput.source.Id)
+                    }
+
+                    currentInput.getNormalizedParameterValue!!.getNormalizedParameterValue(
+                        totalTranslation,
+                        totalAngle,
+                        parameterCaches[currentInput.sourceParameterIndex],
+                        model.getParameterMinimumValue(currentInput.sourceParameterIndex),
+                        model.getParameterMaximumValue(currentInput.sourceParameterIndex),
+                        model.getParameterDefaultValue(currentInput.sourceParameterIndex),
+                        currentSetting.normalizationPosition,
+                        currentSetting.normalizationAngle,
+                        currentInput.reflect,
+                        weight
+                    )
+                }
+
+                val radAngle = CubismMath.degreesToRadian(-totalAngle[0])
+
+                totalTranslation.x =
+                    totalTranslation.x * CubismMath.cosF(radAngle) - totalTranslation.y * CubismMath.sinF(
+                        radAngle
+                    )
+                totalTranslation.y =
+                    totalTranslation.x * CubismMath.sinF(radAngle) + totalTranslation.y * CubismMath.cosF(
+                        radAngle
+                    )
+
+
+                // Calculate particles position.
+                updateParticles(
+                    particles,
+                    baseParticleIndex,
+                    currentSetting.particleCount,
+                    totalTranslation,
+                    totalAngle[0],
+                    options!!.wind,
+                    MOVEMENT_THRESHOLD * currentSetting.normalizationPosition.maximumValue,
+                    physicsDeltaTime,
+                    AIR_RESISTANCE
+                )
+
+                // Update output parameters.
+                repeat(currentSetting.outputCount) {
+                    val currentOutput: Live2DPhysicsInternal.CubismPhysicsOutput =
+                        physicsRig.outputs[baseOutputIndex + it]
+                    val particleIndex = currentOutput.vertexIndex
+
+                    if (currentOutput.destinationParameterIndex == -1) {
+                        currentOutput.destinationParameterIndex =
+                            model.getParameterIndex(currentOutput.destination.Id)
+                    }
+
+                    if (particleIndex < 1 || particleIndex >= currentSetting.particleCount) {
+                        return@repeat
+                    }
+
+                    val currentParticle: Live2DPhysicsInternal.CubismPhysicsParticle =
+                        particles[baseParticleIndex + particleIndex]
+                    val previousParticle = particles[baseParticleIndex + particleIndex - 1]
+
+                    val translation = CubismVector2()
+                    CubismVector2.subtract(
+                        currentParticle.position,
+                        previousParticle.position,
+                        translation
+                    )
+
+                    val outputValue = currentOutput.getValue!!.getValue(
+                        translation,
+                        particles,
+                        baseParticleIndex,
+                        particleIndex,
+                        currentOutput.reflect,
+                        options!!.gravity
+                    )
+
+                    currentRigOutputs[settingIndex]!!.outputs[it] = outputValue
+
+                    parameterCaches[currentOutput.destinationParameterIndex] =
+                        updateOutputParameterValue(
+                            parameterCaches[currentOutput.destinationParameterIndex],
+                            model.getParameterMinimumValue(currentOutput.destinationParameterIndex),
+                            model.getParameterMaximumValue(currentOutput.destinationParameterIndex),
+                            outputValue,
+                            currentOutput
+                        )
+                }
+            }
+            currentRemainTime -= physicsDeltaTime
+        }
+
+        val alpha = currentRemainTime / physicsDeltaTime
+        interpolate(model, alpha)
     }
 
     /**
@@ -715,44 +675,32 @@ class Live2DPhysics {
     private fun interpolate(model: Live2DModel, weight: Float) {
         for (settingIndex in 0..<physicsRig.subRigCount) {
             val currentSetting: Live2DPhysicsInternal.CubismPhysicsSubRig =
-                physicsRig.settings.get(settingIndex)
-            val outputs: MutableList<Live2DPhysicsInternal.CubismPhysicsOutput> = physicsRig.outputs
-            val baseOutputIndex: Int = currentSetting.baseOutputIndex
-
-            val parameterValues = model.model.parameters.values
-            val parameterMaximumValues = model.model.parameters.maximumValues
-            val parameterMinimumValues = model.model.parameters.minimumValues
-
-            tmpValue[0] = 0.0f
+                physicsRig.settings[settingIndex]
 
             for (i in 0..<currentSetting.outputCount) {
                 val currentOutput: Live2DPhysicsInternal.CubismPhysicsOutput =
-                    outputs.get(baseOutputIndex + i)
+                    physicsRig.outputs[currentSetting.baseOutputIndex + i]
 
-                if (currentOutput.destinationParameterIndex === -1) {
+                if (currentOutput.destinationParameterIndex == -1) {
                     continue
                 }
 
-                tmpValue[0] = parameterValues[currentOutput.destinationParameterIndex]
+                model.setParameterValue(
+                    currentOutput.destinationParameterIndex,
 
-                updateOutputParameterValue(
-                    tmpValue,
-                    0,
-                    parameterMinimumValues[currentOutput.destinationParameterIndex],
-                    parameterMaximumValues[currentOutput.destinationParameterIndex],
-                    previousRigOutputs.get(settingIndex)!!.outputs[i] * (1 - weight) + currentRigOutputs.get(
-                        settingIndex
-                    )!!.outputs[i] * weight,
-                    currentOutput
+                    updateOutputParameterValue(
+                        model.getParameterValue(currentOutput.destinationParameterIndex),
+                        model.getParameterMinimumValue(currentOutput.destinationParameterIndex),
+                        model.getParameterMaximumValue(currentOutput.destinationParameterIndex),
+                        previousRigOutputs.get(settingIndex)!!.outputs[i] * (1 - weight) + currentRigOutputs.get(
+                            settingIndex
+                        )!!.outputs[i] * weight,
+                        currentOutput
+                    )
                 )
-                parameterValues[currentOutput.destinationParameterIndex] = tmpValue[0]
             }
         }
     }
-
-    // This is only used by 'interpolate' method.
-    // Avoid creating a new float array instance.
-    private val tmpValue = FloatArray(1)
 
     /**
      * Load input parameters.
@@ -778,7 +726,7 @@ class Live2DPhysics {
                 physicsRig.inputs.get(currentSetting.baseInputIndex + i)
             val weight: Float = currentInput.weight / MAXIMUM_WEIGHT
 
-            if (currentInput.sourceParameterIndex === -1) {
+            if (currentInput.sourceParameterIndex == -1) {
                 currentInput.sourceParameterIndex = model.getParameterIndex(currentInput.source.Id)
             }
 
@@ -815,7 +763,7 @@ class Live2DPhysics {
     /**
      * Options of physics operation
      */
-    private var options: Options? = Options()
+    var options: Options? = Options()
 
     /**
      * Result of the latest pendulum calculation
@@ -867,13 +815,12 @@ class Live2DPhysics {
             deltaTimeSeconds: Float,
             airResistance: Float,
         ) {
-            val totalRadian: Float
             var delay: Float
             var radian: Float
 
             strand.get(baseParticleIndex).position.set(totalTranslation.x, totalTranslation.y)
 
-            totalRadian = CubismMath.degreesToRadian(totalAngle)
+            val totalRadian = CubismMath.degreesToRadian(totalAngle)
             CubismMath.radianToDirection(totalRadian, currentGravity).normalize()
 
             for (i in 1..<strandCount) {
@@ -975,19 +922,17 @@ class Live2DPhysics {
             windDirection: CubismVector2,
             thresholdValue: Float,
         ) {
-            var i: Int
-            val totalRadian: Float
 
             strand.get(baseParticleIndex).position.set(totalTranslation.x, totalTranslation.y)
 
-            totalRadian = CubismMath.degreesToRadian(totalAngle)
+            val totalRadian: Float = CubismMath.degreesToRadian(totalAngle)
             CubismMath.radianToDirection(totalRadian, currentGravityForStablization).normalize()
 
-            i = 1
+            var i = 1
             while (i < strandCount) {
                 val particle: Live2DPhysicsInternal.CubismPhysicsParticle =
                     strand.get(baseParticleIndex + i)
-                CubismVector2.multiply(
+                    CubismVector2.multiply(
                     currentGravityForStablization,
                     particle.acceleration,
                     particle.force
@@ -1024,23 +969,19 @@ class Live2DPhysics {
         private val forceForStabilization: CubismVector2 = CubismVector2()
 
         private fun updateOutputParameterValue(
-            parameterValue: FloatArray,
-            destinationParameterIndex: Int,
+            destinationParameterValue: Float,
             parameterValueMinimum: Float,
             parameterValueMaximum: Float,
             translation: Float,
             output: Live2DPhysicsInternal.CubismPhysicsOutput,
-        ) {
-            val outputScale: Float
-            var value: Float
-            val weight: Float
+        ): Float {
 
-            outputScale = output.getScale!!.getScale(
+            val outputScale = output.getScale!!.getScale(
                 output.transitionScale,
                 output.angleScale
             )
 
-            value = translation * outputScale
+            var value = translation * outputScale
 
             if (value < parameterValueMinimum) {
                 if (value < output.valueBelowMinimum) {
@@ -1056,13 +997,14 @@ class Live2DPhysics {
                 value = parameterValueMaximum
             }
 
-            weight = output.weight / MAXIMUM_WEIGHT
+            val weight = output.weight / MAXIMUM_WEIGHT
 
             if (!(weight >= 1.0f)) {
                 value =
-                    (parameterValue[destinationParameterIndex] * (1.0f - weight)) + (value * weight)
+                    (destinationParameterValue * (1.0f - weight)) + (value * weight)
             }
-            parameterValue[destinationParameterIndex] = value
+
+            return value
         }
 
         /**
