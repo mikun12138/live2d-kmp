@@ -13,214 +13,112 @@ import com.live2d.sdk.cubism.framework.math.CubismVector2
  * Internal data of CubismPhysics.
  */
 class Live2DPhysicsInternal {
-    /**
-     * Types of physics operations to be applied.
-     */
-    enum class CubismPhysicsTargetType {
-        /**
-         * Apply physics operation to parameters
-         */
-        PARAMETER
-    }
 
-    /**
-     * Types of input for physics operations.
-     */
-    enum class CubismPhysicsSource {
-        /**
-         * From X-axis
-         */
-        X,
+    class CubismPhysicsRig {
+        var subRigCount: Int = 0
+
+        var settings = ArrayList<CubismPhysicsSubRig>()
 
         /**
-         * From Y-axis
+         * all of inputs
          */
-        Y,
+        var inputs: MutableList<CubismPhysicsInput> = ArrayList()
 
         /**
-         * From angle
+         * all of outputs
          */
-        ANGLE
-    }
+        var outputs: MutableList<CubismPhysicsOutput> = ArrayList()
 
-    /**
-     * External forces used in physics operations.
-     */
-    class PhysicsJsonEffectiveForces {
+        /**
+         * List of particles for physics operation
+         */
+        var particles: MutableList<CubismPhysicsParticle> = ArrayList()
+
         /**
          * Gravity
          */
-        var gravity: CubismVector2? = null
+        var gravity: CubismVector2 = CubismVector2()
 
         /**
          * Wind
          */
-        var wind: CubismVector2? = null
+        var wind: CubismVector2 = CubismVector2()
+
+        /**
+         * Physics operation FPS
+         */
+        var fps: Float = 0f
     }
 
-    /**
-     * Parameter information for physics operations.
-     */
-    class CubismPhysicsParameter {
-        /**
-         * Parameter ID
-         */
-        lateinit var Id: Live2DId
 
-        /**
-         * Type of destination
-         */
-        var targetType: CubismPhysicsTargetType? = null
-    }
-
-    /**
-     * Normalization information for physics operations.
-     */
-    class CubismPhysicsNormalization {
-        /**
-         * Minimum value
-         */
-        var minimumValue: Float = 0f
-
-        /**
-         * Maximum value
-         */
-        var maximumValue: Float = 0f
-
-        /**
-         * Default value
-         */
-        var defaultValue: Float = 0f
-    }
-
-    /**
-     * Information on a particle used for physics operations.
-     */
-    class CubismPhysicsParticle {
-        /**
-         * Initial position
-         */
-        var initialPosition: CubismVector2 = CubismVector2()
-
-        /**
-         * Mobility
-         */
-        var mobility: Float = 0f
-
-        /**
-         * Delay
-         */
-        var delay: Float = 0f
-
-        /**
-         * Acceleration
-         */
-        var acceleration: Float = 0f
-
-        /**
-         * Distance
-         */
-        var radius: Float = 0f
-
-        /**
-         * Current position
-         */
-        var position: CubismVector2 = CubismVector2()
-
-        /**
-         * Last position
-         */
-        var lastPosition: CubismVector2 = CubismVector2()
-
-        /**
-         * Last gravity
-         */
-        var lastGravity: CubismVector2 = CubismVector2()
-
-        /**
-         * Current force
-         */
-        var force: CubismVector2 = CubismVector2()
-
-        /**
-         * Current velocity
-         */
-        var velocity: CubismVector2 = CubismVector2()
-    }
-
-    /**
-     * Manager of phycal points in physics operations.
-     */
-    class CubismPhysicsSubRig {
-        /**
-         * number of inputs
-         */
-        var inputCount: Int = 0
-
-        /**
-         * number of outputs
-         */
-        var outputCount: Int = 0
-
-        /**
-         * number of particles
-         */
-        var particleCount: Int = 0
-
+    data class CubismPhysicsSubRig(
         /**
          * First index of inputs
          */
-        var baseInputIndex: Int = 0
+        val baseInputIndex: Int,
+
+        /**
+         * number of inputs
+         */
+        val inputCount: Int,
 
         /**
          * First index of outputs
          */
-        var baseOutputIndex: Int = 0
+        val baseOutputIndex: Int,
+
+        /**
+         * number of outputs
+         */
+        val outputCount: Int,
 
         /**
          * First index of particles
          */
-        var baseParticleIndex: Int = 0
+        val baseParticleIndex: Int,
+
+        /**
+         * number of particles
+         */
+        val particleCount: Int,
 
         /**
          * Normalized position
          */
-        var normalizationPosition: CubismPhysicsNormalization = CubismPhysicsNormalization()
+        val normalizationPosition: CubismPhysicsNormalization,
 
         /**
          * Normalized angle
          */
-        var normalizationAngle: CubismPhysicsNormalization = CubismPhysicsNormalization()
-    }
+        var normalizationAngle: CubismPhysicsNormalization,
+    )
+
+    /**
+     * Normalization information for physics operations.
+     * @see me.mikun.live2d.framework.data.PhysicsJson.PhysicsSetting.Normalization
+     */
+    data class CubismPhysicsNormalization(
+        val maximumValue: Float,
+        val minimumValue: Float,
+        val defaultValue: Float,
+    )
+
 
     /**
      * Input information for physics operations.
+     * @see me.mikun.live2d.framework.data.PhysicsJson.PhysicsSetting.Input
      */
     class CubismPhysicsInput {
-        /**
-         * Input source parameter
-         */
-        var source: CubismPhysicsParameter = CubismPhysicsParameter()
+        lateinit var source: CubismPhysicsParameter
+        var reflect: Boolean = false
+        var type: CubismPhysicsSource? = null
+        var weight: Float = 0f
 
+        // TODO:: remove it
         /**
          * Index of input source parameter
          */
         var sourceParameterIndex: Int = 0
-
-        /**
-         * Weight
-         */
-        var weight: Float = 0f
-
-        /**
-         * Type of input
-         */
-        var type: CubismPhysicsSource? = null
-
-        /**
-         * Whether the value is inverted.
-         */
-        var reflect: Boolean = false
 
         /**
          * Function to get normalized parameter values
@@ -230,22 +128,15 @@ class Live2DPhysicsInternal {
 
     /**
      * Output information for physics operations.
+     * @see me.mikun.live2d.framework.data.PhysicsJson.PhysicsSetting.Output
      */
     class CubismPhysicsOutput {
-        /**
-         * Output destination parameter
-         */
-        var destination: CubismPhysicsParameter = CubismPhysicsParameter()
-
-        /**
-         * Index of output destination parameter
-         */
-        var destinationParameterIndex: Int = 0
-
-        /**
-         * Pendulum index
-         */
+        lateinit var destination: CubismPhysicsParameter
+        var reflect: Boolean = false
+        var scale: Float = 0f
+        var type: CubismPhysicsSource? = null
         var vertexIndex: Int = 0
+        var weight: Float = 0f
 
         /**
          * transition scale
@@ -253,24 +144,10 @@ class Live2DPhysicsInternal {
         var transitionScale: CubismVector2 = CubismVector2()
 
         /**
-         * Angle scale
+         * Index of output destination parameter
          */
-        var angleScale: Float = 0f
-
-        /**
-         * Weight
-         */
-        var weight: Float = 0f
-
-        /**
-         * Type of output
-         */
-        var type: CubismPhysicsSource? = null
-
-        /**
-         * Whether the value is inverted
-         */
-        var reflect: Boolean = false
+        // TODO:: remove it
+        var destinationParameterIndex: Int = 0
 
         /**
          * Value when the value is below the minimum value
@@ -294,48 +171,21 @@ class Live2DPhysicsInternal {
     }
 
     /**
-     * Physics operation data
+     * Parameter information for physics operations.
      */
-    class CubismPhysicsRig {
-        /**
-         * Number of physics point for physics operation
-         */
-        var subRigCount: Int = 0
+    class CubismPhysicsParameter(
+        val id: Live2DId,
+        val targetType: CubismPhysicsTargetType
+    )
 
-        /**
-         * List of physics point management for physics operation
-         */
-        var settings = ArrayList<CubismPhysicsSubRig>()
+    enum class CubismPhysicsTargetType {
+        PARAMETER
+    }
 
-        /**
-         * List of inputs for physics operation
-         */
-        var inputs: MutableList<CubismPhysicsInput> = ArrayList()
-
-        /**
-         * List of outputs for physics operation
-         */
-        var outputs: MutableList<CubismPhysicsOutput> = ArrayList()
-
-        /**
-         * List of particles for physics operation
-         */
-        var particles: MutableList<CubismPhysicsParticle> = ArrayList()
-
-        /**
-         * Gravity
-         */
-        var gravity: CubismVector2 = CubismVector2()
-
-        /**
-         * Wind
-         */
-        var wind: CubismVector2 = CubismVector2()
-
-        /**
-         * Physics operation FPS
-         */
-        var fps: Float = 0f
+    enum class CubismPhysicsSource {
+        X,
+        Y,
+        ANGLE
     }
 
     /**
@@ -407,4 +257,60 @@ class Live2DPhysicsInternal {
          */
         fun getScale(transitionScale: CubismVector2, angleScale: Float): Float
     }
+
+
+    /**
+     * External forces used in physics operations.
+     */
+    class PhysicsJsonEffectiveForces {
+        /**
+         * Gravity
+         */
+        var gravity: CubismVector2? = null
+
+        /**
+         * Wind
+         */
+        var wind: CubismVector2? = null
+    }
+
+
+    /**
+     * Information on a particle used for physics operations.
+     */
+    class CubismPhysicsParticle(
+        val position: CubismVector2,
+        val mobility: Float,
+        val delay: Float,
+        val acceleration: Float,
+        val radius: Float,
+    ) {
+
+        /**
+         * Initial position
+         */
+        var initialPosition: CubismVector2 = CubismVector2()
+
+        /**
+         * Last position
+         */
+        var lastPosition: CubismVector2 = CubismVector2()
+
+        /**
+         * Last gravity
+         */
+        var lastGravity: CubismVector2 = CubismVector2()
+
+        /**
+         * Current force
+         */
+        var force: CubismVector2 = CubismVector2()
+
+        /**
+         * Current velocity
+         */
+        var velocity: CubismVector2 = CubismVector2()
+    }
+
+
 }

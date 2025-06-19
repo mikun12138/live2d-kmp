@@ -6,19 +6,15 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class PhysicsJson(
+    @SerialName("Version")
+    val version: Int,
     @SerialName("Meta")
     val meta: Meta,
     @SerialName("PhysicsSettings")
     val physicsSettings: List<PhysicsSetting>,
-    @SerialName("Version")
-    val version: Int
 ) {
     @Serializable
     data class Meta(
-        @SerialName("EffectiveForces")
-        val effectiveForces: EffectiveForces,
-        @SerialName("PhysicsDictionary")
-        val physicsDictionary: List<PhysicsDictionary>,
         @SerialName("PhysicsSettingCount")
         val physicsSettingCount: Int,
         @SerialName("TotalInputCount")
@@ -27,6 +23,10 @@ data class PhysicsJson(
         val totalOutputCount: Int,
         @SerialName("VertexCount")
         val vertexCount: Int,
+        @SerialName("EffectiveForces")
+        val effectiveForces: EffectiveForces,
+        @SerialName("PhysicsDictionary")
+        val physicsDictionary: List<PhysicsDictionary>,
         @SerialName("Fps")
         val fps: Int,
     ) {
@@ -69,12 +69,12 @@ data class PhysicsJson(
         val id: String,
         @SerialName("Input")
         val input: List<Input>,
-        @SerialName("Normalization")
-        val normalization: Normalization,
         @SerialName("Output")
         val output: List<Output>,
         @SerialName("Vertices")
-        val vertices: List<Vertice>
+        val vertices: List<Vertice>,
+        @SerialName("Normalization")
+        val normalization: Normalization,
     ) {
         @Serializable
         data class Input(
@@ -85,7 +85,7 @@ data class PhysicsJson(
             @SerialName("Type")
             val type: String,
             @SerialName("Weight")
-            val weight: Int
+            val weight: Float
         ) {
             @Serializable
             data class Source(
@@ -98,13 +98,14 @@ data class PhysicsJson(
 
         @Serializable
         data class Normalization(
+            @SerialName("Position")
+            val position: Position,
             @SerialName("Angle")
             val angle: Angle,
-            @SerialName("Position")
-            val position: Position
         ) {
+
             @Serializable
-            data class Angle(
+            data class Position(
                 @SerialName("Default")
                 val default: Int,
                 @SerialName("Maximum")
@@ -112,9 +113,8 @@ data class PhysicsJson(
                 @SerialName("Minimum")
                 val minimum: Int
             )
-
             @Serializable
-            data class Position(
+            data class Angle(
                 @SerialName("Default")
                 val default: Int,
                 @SerialName("Maximum")
@@ -150,16 +150,16 @@ data class PhysicsJson(
 
         @Serializable
         data class Vertice(
-            @SerialName("Acceleration")
-            val acceleration: Float,
-            @SerialName("Delay")
-            val delay: Float,
-            @SerialName("Mobility")
-            val mobility: Float,
             @SerialName("Position")
             val position: Position,
+            @SerialName("Mobility")
+            val mobility: Float,
+            @SerialName("Delay")
+            val delay: Float,
+            @SerialName("Acceleration")
+            val acceleration: Float,
             @SerialName("Radius")
-            val radius: Float
+            val radius: Float,
         ) {
             @Serializable
             data class Position(
