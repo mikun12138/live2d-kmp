@@ -1,4 +1,4 @@
-package me.mikun.live2d
+package me.mikun.live2d.opengl
 
 import org.lwjgl.opengl.GL46.*
 

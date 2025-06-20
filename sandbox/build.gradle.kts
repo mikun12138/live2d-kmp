@@ -50,6 +50,8 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.preview)
 
+            implementation("org.jetbrains.skiko:skiko:0.9.4.2")
+
 
             implementation(projects.live2d)
         }
@@ -75,6 +77,28 @@ kotlin {
 
             implementation("org.joml:joml:1.10.8")
             implementation("org.joml:joml-primitives:1.10.0")
+
+
+            run {
+                val osName = System.getProperty("os.name")
+                val targetOs = when {
+                    osName == "Mac OS X" -> "macos"
+                    osName.startsWith("Win") -> "windows"
+                    osName.startsWith("Linux") -> "linux"
+                    else -> error("Unsupported OS: $osName")
+                }
+
+                val osArch = System.getProperty("os.arch")
+                val targetArch = when (osArch) {
+                    "x86_64", "amd64" -> "x64"
+                    "aarch64" -> "arm64"
+                    else -> error("Unsupported arch: $osArch")
+                }
+
+                val target = "${targetOs}-${targetArch}"
+
+                implementation("org.jetbrains.skiko:skiko-awt-runtime-${target}:0.9.4.2")
+            }
         }
     }
 

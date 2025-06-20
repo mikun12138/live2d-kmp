@@ -1,4 +1,4 @@
-package me.mikun.live2d
+package me.mikun.live2d.opengl
 
 import me.mikun.live2d.ex.rendering.ALive2DOffscreenSurface
 import org.lwjgl.opengl.GL46.*

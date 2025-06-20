@@ -1,6 +1,5 @@
-package me.mikun.live2d
+package me.mikun.live2d.opengl
 
-import me.mikun.live2d.framework.math.CubismMatrix44
 import me.mikun.live2d.ex.model.ALive2DUserModel
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import me.mikun.live2d.ex.rendering.Live2DDrawableContext
@@ -53,7 +52,7 @@ import org.lwjgl.system.MemoryUtil
 import java.nio.FloatBuffer
 import java.nio.ShortBuffer
 
-class Live2DRenderer(
+class OpenGLRenderer(
     userModel: ALive2DUserModel,
     offScreenBufferCount: Int,
 ) : ALive2DRenderer.PreClip(

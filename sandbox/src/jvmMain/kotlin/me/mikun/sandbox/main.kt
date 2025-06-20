@@ -1,6 +1,8 @@
 package me.mikun.sandbox
 
 import me.mikun.live2d.core.Live2DCubismCoreFFM
+import me.mikun.live2d.opengl.opengl
+import me.mikun.live2d.skiko.skiko
 import java.util.Locale.getDefault
 
 
@@ -42,7 +44,25 @@ fun main() {
 
     val moc = resMocMao
 
-    live2dMain(
-        "$resDirMoc$moc", moc
-    )
+
+    when (backend) {
+        Backends.OpenGL -> {
+            opengl(
+                "$resDirMoc$moc", moc
+            )
+        }
+
+        Backends.Skiko -> {
+            skiko(
+                "$resDirMoc$moc", moc
+            )
+        }
+    }
 }
+
+enum class Backends {
+    OpenGL, Skiko
+}
+
+val backend = Backends.Skiko
+

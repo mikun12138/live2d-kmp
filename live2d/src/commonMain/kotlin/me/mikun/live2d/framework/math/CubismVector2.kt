@@ -79,14 +79,14 @@ class CubismVector2 {
         return (this.x * vec.x) + (this.y * vec.y)
     }
 
-    private fun set(vec: CubismVector2): CubismVector2 {
+    fun set(vec: CubismVector2): CubismVector2 {
         this.x = vec.x
         this.y = vec.y
 
         return this
     }
 
-    private fun set(x: Float, y: Float): CubismVector2 {
+    fun set(x: Float, y: Float): CubismVector2 {
         this.x = x
         this.y = y
 

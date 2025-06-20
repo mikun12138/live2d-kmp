@@ -1,19 +1,14 @@
-package me.mikun.sandbox
+package me.mikun.live2d.opengl
 
 import me.mikun.live2d.framework.Live2DFramework
-import me.mikun.live2d.framework.math.CubismMatrix44
 import me.mikun.live2d.ex.model.Live2DUserModelImpl
-import me.mikun.live2d.Live2DRenderer
-import org.jetbrains.skia.Matrix44
+import me.mikun.sandbox.Timer
 import org.joml.Matrix4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL46.*
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.nio.FloatBuffer
 
-fun live2dMain(
+fun opengl(
     resDirMoc: String,
     mocName: String,
 ) {
@@ -66,7 +61,7 @@ fun live2dMain(
         val model = Live2DUserModelImpl()
         model.init(resDirMoc, "$mocName.model3.json")
 
-        val renderer = Live2DRenderer(model, 1)
+        val renderer = OpenGLRenderer(model, 1)
 
         Timer.update()
         while (!glfwWindowShouldClose(handle)) {
@@ -81,7 +76,7 @@ fun live2dMain(
 
             Timer.update()
 
-            val canvas = Matrix4f().scale(
+            val canvasMatrix = Matrix4f().scale(
                 1080.0f / 1920.0f,
                 1.0f,
                 1.0f
@@ -95,7 +90,7 @@ fun live2dMain(
 
             model.update(Timer.deltaF)
             renderer.frame(
-                modelMatrix.mul(canvas, Matrix4f()).get(FloatArray(16))
+                modelMatrix.mul(canvasMatrix, Matrix4f()).get(FloatArray(16))
             )
 
             glfwSwapBuffers(handle)
@@ -104,18 +99,3 @@ fun live2dMain(
     }
 }
 
-object Timer {
-    fun update() {
-        current = System.nanoTime()
-        delta = current - last
-        last = current
-    }
-
-    var current: Long = 0
-    var last: Long = 0
-    var delta: Long = 0
-
-    val deltaF: Float
-        get() = delta / 1000000000.0f
-
-}
