@@ -10,7 +10,6 @@ package me.mikun.live2d.framework.physics
 
 import com.live2d.sdk.cubism.framework.math.CubismMath
 import com.live2d.sdk.cubism.framework.math.CubismVector2
-import me.mikun.live2d.framework.physics.Live2DPhysicsInternal.NormalizedPhysicsParameterValueGetter
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
@@ -102,7 +101,7 @@ internal object Live2DPhysicsFunctions {
         return minValue + (getRangeValue(min, max) / 2.0f)
     }
 
-    class GetInputTranslationXFromNormalizedParameterValue : NormalizedPhysicsParameterValueGetter {
+    object GetInputTranslationXFromNormalizedParameterValue : NormalizedPhysicsParameterValueGetter {
         override fun getNormalizedParameterValue(
             targetTranslation: CubismVector2,
             targetAngle: FloatArray,
@@ -110,8 +109,8 @@ internal object Live2DPhysicsFunctions {
             parameterMinimumValue: Float,
             parameterMaximumValue: Float,
             parameterDefaultValue: Float,
-            normalizationPosition: Live2DPhysicsInternal.CubismPhysicsNormalization,
-            normalizationAngle: Live2DPhysicsInternal.CubismPhysicsNormalization,
+            normalizationPosition: CubismPhysicsNormalization,
+            normalizationAngle: CubismPhysicsNormalization,
             isInverted: Boolean,
             weight: Float
         ) {
@@ -128,7 +127,7 @@ internal object Live2DPhysicsFunctions {
         }
     }
 
-    class GetInputTranslationYFromNormalizedParameterValue : NormalizedPhysicsParameterValueGetter {
+    object GetInputTranslationYFromNormalizedParameterValue : NormalizedPhysicsParameterValueGetter {
         override fun getNormalizedParameterValue(
             targetTranslation: CubismVector2,
             targetAngle: FloatArray,
@@ -136,8 +135,8 @@ internal object Live2DPhysicsFunctions {
             parameterMinimumValue: Float,
             parameterMaximumValue: Float,
             parameterDefaultValue: Float,
-            normalizationPosition: Live2DPhysicsInternal.CubismPhysicsNormalization,
-            normalizationAngle: Live2DPhysicsInternal.CubismPhysicsNormalization,
+            normalizationPosition: CubismPhysicsNormalization,
+            normalizationAngle: CubismPhysicsNormalization,
             isInverted: Boolean,
             weight: Float
         ) {
@@ -154,7 +153,7 @@ internal object Live2DPhysicsFunctions {
         }
     }
 
-    class GetInputAngleFromNormalizedParameterValue : NormalizedPhysicsParameterValueGetter {
+    object GetInputAngleFromNormalizedParameterValue : NormalizedPhysicsParameterValueGetter {
         override fun getNormalizedParameterValue(
             targetTranslation: CubismVector2,
             targetAngle: FloatArray,
@@ -162,8 +161,8 @@ internal object Live2DPhysicsFunctions {
             parameterMinimumValue: Float,
             parameterMaximumValue: Float,
             parameterDefaultValue: Float,
-            normalizationPosition: Live2DPhysicsInternal.CubismPhysicsNormalization,
-            normalizationAngle: Live2DPhysicsInternal.CubismPhysicsNormalization,
+            normalizationPosition: CubismPhysicsNormalization,
+            normalizationAngle: CubismPhysicsNormalization,
             isInverted: Boolean,
             weight: Float
         ) {
@@ -180,10 +179,10 @@ internal object Live2DPhysicsFunctions {
         }
     }
 
-    class GetOutputTranslationX : Live2DPhysicsInternal.PhysicsValueGetter {
+    object GetOutputTranslationX : PhysicsValueGetter {
         override fun getValue(
             translation: CubismVector2,
-            particles: MutableList<Live2DPhysicsInternal.CubismPhysicsParticle>,
+            particles: MutableList<CubismPhysicsParticle>,
             baseParticleIndex: Int,
             particleIndex: Int,
             isInverted: Boolean,
@@ -199,10 +198,10 @@ internal object Live2DPhysicsFunctions {
         }
     }
 
-    class GetOutputTranslationY : Live2DPhysicsInternal.PhysicsValueGetter {
+    object GetOutputTranslationY : PhysicsValueGetter {
         override fun getValue(
             translation: CubismVector2,
-            particles: MutableList<Live2DPhysicsInternal.CubismPhysicsParticle>,
+            particles: MutableList<CubismPhysicsParticle>,
             baseParticleIndex: Int,
             particleIndex: Int,
             isInverted: Boolean,
@@ -218,10 +217,10 @@ internal object Live2DPhysicsFunctions {
         }
     }
 
-    class GetOutputAngle : Live2DPhysicsInternal.PhysicsValueGetter {
+    object GetOutputAngle : PhysicsValueGetter {
         override fun getValue(
             translation: CubismVector2,
-            particles: MutableList<Live2DPhysicsInternal.CubismPhysicsParticle>,
+            particles: MutableList<CubismPhysicsParticle>,
             baseParticleIndex: Int,
             particleIndex: Int,
             isInverted: Boolean,
@@ -254,19 +253,19 @@ internal object Live2DPhysicsFunctions {
         }
     }
 
-    class GetOutputScaleTranslationX : Live2DPhysicsInternal.PhysicsScaleGetter {
+    object GetOutputScaleTranslationX : PhysicsScaleGetter {
         override fun getScale(translationScale: CubismVector2, angleScale: Float): Float {
             return translationScale.x
         }
     }
 
-    class GetOutputScaleTranslationY : Live2DPhysicsInternal.PhysicsScaleGetter {
+    object GetOutputScaleTranslationY : PhysicsScaleGetter {
         override fun getScale(translationScale: CubismVector2, angleScale: Float): Float {
             return translationScale.y
         }
     }
 
-    class GetOutputScaleAngle : Live2DPhysicsInternal.PhysicsScaleGetter {
+    object GetOutputScaleAngle : PhysicsScaleGetter {
         override fun getScale(translationScale: CubismVector2, angleScale: Float): Float {
             return angleScale
         }

@@ -98,21 +98,40 @@ class Live2DModel {
     val parameterCount: Int
         get() = model.parameterViews.size
 
-    fun getParameterMinimumValue(parameterIndex: Int): Float {
+    private fun getParameterMinimumValue(parameterIndex: Int): Float {
         return model.parameterViews[parameterIndex].minimumValue
     }
 
-    fun getParameterMaximumValue(parameterIndex: Int): Float {
+    fun getParameterMinimumValue(parameterId: Live2DId): Float {
+        return getParameterMinimumValue(
+            getParameterIndex(parameterId)
+        )
+    }
+
+    private fun getParameterMaximumValue(parameterIndex: Int): Float {
         return model.parameterViews[parameterIndex].maximumValue
     }
 
-    fun getParameterDefaultValue(parameterIndex: Int): Float {
+    fun getParameterMaximumValue(parameterId: Live2DId): Float {
+        return getParameterMaximumValue(
+            getParameterIndex(parameterId)
+        )
+    }
+
+    private fun getParameterDefaultValue(parameterIndex: Int): Float {
         return model.parameterViews[parameterIndex].defaultValue
     }
 
+    fun getParameterDefaultValue(parameterId: Live2DId): Float {
+        return getParameterDefaultValue(
+            getParameterIndex(parameterId)
+        )
+    }
+
     fun getParameterValue(parameterId: Live2DId): Float {
-        val parameterIndex = getParameterIndex(parameterId)
-        return getParameterValue(parameterIndex)
+        return getParameterValue(
+            getParameterIndex(parameterId)
+        )
     }
 
     fun getParameterValue(parameterIndex: Int): Float {
@@ -130,7 +149,7 @@ class Live2DModel {
         setParameterValue(index, value, weight)
     }
 
-    private fun setParameterValue(parameterIndex: Int, value: Float, weight: Float = 1.0f) {
+    fun setParameterValue(parameterIndex: Int, value: Float, weight: Float = 1.0f) {
         if (notExistParameterIndices.contains(parameterIndex)) {
             val index = notExistParameterIndices.indexOf(parameterIndex)
             val parameterValue = notExistParameterValues[index]
@@ -146,6 +165,11 @@ class Live2DModel {
             // 此处重写了 set
             parameter.value = (parameter.value * (1.0f - weight)) + (value1 * weight)
         }
+    }
+
+    fun getParameterId(parameterIndex: Int): String {
+        // TODO:: 添加 notExistList 的查询?
+        return model.parameterViews[parameterIndex].id!!
     }
 
     /* ----- *
