@@ -9,40 +9,16 @@ package me.mikun.live2d.framework.math
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-/**
- * This class offers 2D vector function.
- */
 class CubismVector2 {
-    /**
-     * Constructor.
-     */
-    constructor()
 
-    /**
-     * Constructor.
-     *
-     * @param x x-value
-     * @param y y-value
-     */
-    constructor(x: Float, y: Float) {
+    constructor(x: Float = 0.0f, y: Float = 0.0f) {
         set(x, y)
     }
 
-    /**
-     * Copy constructor.
-     *
-     * @param vec the vector which is copied
-     */
     constructor(vec: CubismVector2) {
         set(vec)
     }
 
-    /**
-     * Add the given vector to this vector.
-     *
-     * @param vec the added vector
-     * @return calculated result
-     */
     fun add(vec: CubismVector2): CubismVector2 {
         this.x += vec.x
         this.y += vec.y
@@ -50,12 +26,6 @@ class CubismVector2 {
         return this
     }
 
-    /**
-     * Subtract the given vector from this.
-     *
-     * @param vec the subtracted vector
-     * @return the calculated result
-     */
     fun subtract(vec: CubismVector2): CubismVector2 {
         this.x -= vec.x
         this.y -= vec.y
@@ -63,12 +33,6 @@ class CubismVector2 {
         return this
     }
 
-    /**
-     * Multiply this vector by the given vector.
-     *
-     * @param vec multiplier
-     * @return the calculated result
-     */
     fun multiply(vec: CubismVector2): CubismVector2 {
         x *= vec.x
         y *= vec.y
@@ -76,12 +40,6 @@ class CubismVector2 {
         return this
     }
 
-    /**
-     * Multiply this vector by a scalar value.
-     *
-     * @param scalar a scalar value
-     * @return a calculated value
-     */
     fun multiply(scalar: Float): CubismVector2 {
         x *= scalar
         y *= scalar
@@ -89,12 +47,6 @@ class CubismVector2 {
         return this
     }
 
-    /**
-     * Divide this vector by the given vector.
-     *
-     * @param vec divisor
-     * @return the calculated result
-     */
     fun divide(vec: CubismVector2): CubismVector2 {
         x /= vec.x
         y /= vec.y
@@ -102,12 +54,6 @@ class CubismVector2 {
         return this
     }
 
-    /**
-     * Divide this vector by a scalar value.
-     *
-     * @param scalar a scalar value
-     * @return a calculated value
-     */
     fun divide(scalar: Float): CubismVector2 {
         this.x /= scalar
         this.y /= scalar
@@ -115,9 +61,6 @@ class CubismVector2 {
         return this
     }
 
-    /**
-     * Normalize this vector.
-     */
     fun normalize() {
         val length = (((x * x) + (y * y)).toDouble().pow(0.5)).toFloat()
 
@@ -126,65 +69,30 @@ class CubismVector2 {
     }
 
     val length: Float
-        /**
-         * Get the length of this vector.
-         *
-         * @return the length of this vector
-         */
         get() = sqrt(x * x + y * y)
 
-    /**
-     * Get a distance between vectors.
-     *
-     * @param vec a position vector
-     * @return a distance between vectors
-     */
     fun getDistanceWith(vec: CubismVector2): Float {
         return sqrt(((this.x - vec.x) * (this.x - vec.x)) + ((this.y - vec.y) * (this.y - vec.y)))
     }
 
-    /**
-     * Calculate dot product
-     *
-     * @param vec a vector
-     * @return a calculated result
-     */
     fun dot(vec: CubismVector2): Float {
         return (this.x * vec.x) + (this.y * vec.y)
     }
 
-    /**
-     * 与えられたベクトルのx, yの値をこのベクトルのx, yに設定する。
-     *
-     * @param vec copied vector
-     * @return this vector for chaining
-     */
-    fun set(vec: CubismVector2): CubismVector2 {
+    private fun set(vec: CubismVector2): CubismVector2 {
         this.x = vec.x
         this.y = vec.y
 
         return this
     }
 
-    /**
-     * 与えられたx, yの値をこのベクトルのx, yに設定する。
-     *
-     * @param x x value
-     * @param y y value
-     * @return this vector for chaining
-     */
-    fun set(x: Float, y: Float): CubismVector2 {
+    private fun set(x: Float, y: Float): CubismVector2 {
         this.x = x
         this.y = y
 
         return this
     }
 
-    /**
-     * Sets the components of this vector to 0.
-     *
-     * @return this vector for chaining
-     */
     fun setZero(): CubismVector2 {
         this.x = 0.0f
         this.y = 0.0f
@@ -208,14 +116,8 @@ class CubismVector2 {
         return result
     }
 
-    /**
-     * X-value
-     */
     var x: Float = 0f
 
-    /**
-     * Y-value
-     */
     var y: Float = 0f
 
     companion object {

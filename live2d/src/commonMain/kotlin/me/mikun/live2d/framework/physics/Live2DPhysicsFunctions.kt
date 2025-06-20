@@ -110,8 +110,8 @@ internal object Live2DPhysicsFunctions {
             parameterMinimumValue: Float,
             parameterMaximumValue: Float,
             parameterDefaultValue: Float,
-            normalizationPosition: CubismPhysicsNormalization,
-            normalizationAngle: CubismPhysicsNormalization,
+            normalizationPosition: Live2DPhysicsNormalization,
+            normalizationAngle: Live2DPhysicsNormalization,
             isInverted: Boolean,
             weight: Float
         ) {
@@ -136,8 +136,8 @@ internal object Live2DPhysicsFunctions {
             parameterMinimumValue: Float,
             parameterMaximumValue: Float,
             parameterDefaultValue: Float,
-            normalizationPosition: CubismPhysicsNormalization,
-            normalizationAngle: CubismPhysicsNormalization,
+            normalizationPosition: Live2DPhysicsNormalization,
+            normalizationAngle: Live2DPhysicsNormalization,
             isInverted: Boolean,
             weight: Float
         ) {
@@ -162,8 +162,8 @@ internal object Live2DPhysicsFunctions {
             parameterMinimumValue: Float,
             parameterMaximumValue: Float,
             parameterDefaultValue: Float,
-            normalizationPosition: CubismPhysicsNormalization,
-            normalizationAngle: CubismPhysicsNormalization,
+            normalizationPosition: Live2DPhysicsNormalization,
+            normalizationAngle: Live2DPhysicsNormalization,
             isInverted: Boolean,
             weight: Float
         ) {
@@ -183,7 +183,7 @@ internal object Live2DPhysicsFunctions {
     object GetOutputTranslationX : PhysicsValueGetter {
         override fun getValue(
             translation: CubismVector2,
-            particles: MutableList<CubismPhysicsParticle>,
+            particles: MutableList<Live2DPhysicsParticle>,
             baseParticleIndex: Int,
             particleIndex: Int,
             isInverted: Boolean,
@@ -202,7 +202,7 @@ internal object Live2DPhysicsFunctions {
     object GetOutputTranslationY : PhysicsValueGetter {
         override fun getValue(
             translation: CubismVector2,
-            particles: MutableList<CubismPhysicsParticle>,
+            particles: MutableList<Live2DPhysicsParticle>,
             baseParticleIndex: Int,
             particleIndex: Int,
             isInverted: Boolean,
@@ -221,7 +221,7 @@ internal object Live2DPhysicsFunctions {
     object GetOutputAngle : PhysicsValueGetter {
         override fun getValue(
             translation: CubismVector2,
-            particles: MutableList<CubismPhysicsParticle>,
+            particles: MutableList<Live2DPhysicsParticle>,
             baseParticleIndex: Int,
             particleIndex: Int,
             isInverted: Boolean,

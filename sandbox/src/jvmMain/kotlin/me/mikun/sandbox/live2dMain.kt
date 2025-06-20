@@ -4,7 +4,6 @@ import me.mikun.live2d.framework.Live2DFramework
 import me.mikun.live2d.framework.math.CubismMatrix44
 import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.Live2DRenderer
-import me.mikun.live2d.framework.math.CubismModelMatrix
 import org.jetbrains.skia.Matrix44
 import org.joml.Matrix4f
 import org.lwjgl.glfw.GLFW.*

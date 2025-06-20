@@ -1,6 +1,5 @@
 package me.mikun.live2d.ex.model
 
-import me.mikun.live2d.framework.math.CubismModelMatrix
 import me.mikun.live2d.framework.model.Live2DMoc
 import me.mikun.live2d.framework.model.Live2DModel
 import me.mikun.live2d.framework.motion.IBeganMotionCallback
