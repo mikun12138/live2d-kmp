@@ -18,7 +18,7 @@ import kotlin.collections.mutableListOf
 import kotlin.experimental.and
 
 class Live2DModel {
-    val model: CubismModel
+    private val model: CubismModel
 
     constructor(model: CubismModel) {
         this.model = model

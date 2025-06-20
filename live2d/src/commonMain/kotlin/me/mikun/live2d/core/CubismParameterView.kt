@@ -3,7 +3,7 @@ package me.mikun.live2d.core
 
 class CubismParameterView internal constructor(
     val index: Int,
-    val parameters: CubismParameters
+    val parameters: CubismParameters,
 ) {
 
     val id: String?
@@ -29,6 +29,10 @@ class CubismParameterView internal constructor(
 
     val keyCount: Int
         get() = this.parameters.keyCounts[this.index]
+
+    fun isRepeat(): Boolean {
+        return this.parameters.repeats[this.index]
+    }
 
     val keyValue: FloatArray
         get() = this.parameters.keyValues[this.index]

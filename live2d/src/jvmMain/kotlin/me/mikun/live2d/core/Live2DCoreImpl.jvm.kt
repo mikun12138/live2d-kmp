@@ -354,6 +354,19 @@ actual object Live2DCoreImpl {
                         }
                     }
 
+                Live2DCubismCoreFFM.csmGetParameterRepeats(model.nativeHandle)
+                    .also { repeats ->
+                        val repeats = repeats.reinterpret(parameterCount * ValueLayout.JAVA_INT.byteSize())
+                        for (i in 0 until parameterCount) {
+                            cubismParameters.repeats[i] =
+                                repeats.getAtIndex(
+                                    ValueLayout.JAVA_INT,
+                                    i.toLong()
+                                ) != 0
+                        }
+
+                    }
+
                 val keyCountsList = mutableListOf<Int>()
                 Live2DCubismCoreFFM.csmGetParameterKeyCounts(model.nativeHandle).also { keyCounts ->
                     val keyCounts =

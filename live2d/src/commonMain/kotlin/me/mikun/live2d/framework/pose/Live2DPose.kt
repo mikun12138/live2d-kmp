@@ -1,10 +1,10 @@
 package me.mikun.live2d.framework.pose
 
+import kotlinx.serialization.json.Json
 import me.mikun.live2d.framework.data.PoseJson
 import me.mikun.live2d.framework.id.Live2DId
 import me.mikun.live2d.framework.id.Live2DIdManager
 import me.mikun.live2d.framework.model.Live2DModel
-import kotlinx.serialization.json.Json
 import kotlin.math.min
 
 class Live2DPose {
@@ -136,7 +136,9 @@ class Live2DPose {
         var a1: Float // opacity to be calculated
         if (newOpacity < PHI) {
             // Linear equation passing through (0,1),(PHI,PHI)
-            a1 = newOpacity * (PHI - 1.0f) / (PHI + 1.0f)
+
+            // Linear equation passing through (0,1),(PHI,PHI)
+            a1 = newOpacity * (PHI - 1) / PHI + 1.0f
         } else {
             a1 = (1 - newOpacity) * PHI / (1.0f - PHI)
         }
