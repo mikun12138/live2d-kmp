@@ -8,8 +8,9 @@
  */
 package me.mikun.live2d.framework.physics
 
-import com.live2d.sdk.cubism.framework.math.CubismMath
-import com.live2d.sdk.cubism.framework.math.CubismVector2
+import me.mikun.live2d.framework.math.CubismMath
+import me.mikun.live2d.framework.math.CubismVector2
+import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
@@ -93,7 +94,7 @@ internal object Live2DPhysicsFunctions {
         val maxValue = max(min, max)
         val minValue = min(min, max)
 
-        return CubismMath.absF(maxValue - minValue)
+        return abs(maxValue - minValue)
     }
 
     private fun getDefaultValue(min: Float, max: Float): Float {

@@ -1,6 +1,6 @@
 package me.mikun.live2d.ex.model.motion
 
-import com.live2d.sdk.cubism.framework.math.CubismMath
+import me.mikun.live2d.framework.math.CubismMath
 import me.mikun.live2d.framework.motion.ALive2DMotion
 import me.mikun.live2d.framework.utils.IState
 import me.mikun.live2d.framework.utils.StateContext

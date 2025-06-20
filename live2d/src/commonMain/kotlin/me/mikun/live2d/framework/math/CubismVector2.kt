@@ -4,9 +4,10 @@
  * Use of this source code is governed by the Live2D Open Software license
  * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
  */
-package com.live2d.sdk.cubism.framework.math
+package me.mikun.live2d.framework.math
 
 import kotlin.math.pow
+import kotlin.math.sqrt
 
 /**
  * This class offers 2D vector function.
@@ -130,7 +131,7 @@ class CubismVector2 {
          *
          * @return the length of this vector
          */
-        get() = CubismMath.sqrtF(x * x + y * y)
+        get() = sqrt(x * x + y * y)
 
     /**
      * Get a distance between vectors.
@@ -139,7 +140,7 @@ class CubismVector2 {
      * @return a distance between vectors
      */
     fun getDistanceWith(vec: CubismVector2): Float {
-        return CubismMath.sqrtF(((this.x - vec.x) * (this.x - vec.x)) + ((this.y - vec.y) * (this.y - vec.y)))
+        return sqrt(((this.x - vec.x) * (this.x - vec.x)) + ((this.y - vec.y) * (this.y - vec.y)))
     }
 
     /**

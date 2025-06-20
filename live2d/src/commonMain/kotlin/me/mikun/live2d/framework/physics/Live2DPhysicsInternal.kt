@@ -7,7 +7,7 @@
 package me.mikun.live2d.framework.physics
 
 import me.mikun.live2d.framework.id.Live2DId
-import com.live2d.sdk.cubism.framework.math.CubismVector2
+import me.mikun.live2d.framework.math.CubismVector2
 
 
 class CubismPhysicsRig {

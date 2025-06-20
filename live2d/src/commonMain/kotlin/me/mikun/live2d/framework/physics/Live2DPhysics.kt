@@ -6,14 +6,17 @@
  */
 package me.mikun.live2d.framework.physics
 
-import com.live2d.sdk.cubism.framework.math.CubismMath
-import com.live2d.sdk.cubism.framework.math.CubismVector2
+import me.mikun.live2d.framework.math.CubismMath
+import me.mikun.live2d.framework.math.CubismVector2
 import kotlinx.serialization.json.Json
 import me.mikun.live2d.framework.data.PhysicsJson
 import me.mikun.live2d.framework.id.Live2DId
 import me.mikun.live2d.framework.id.Live2DIdManager
 import me.mikun.live2d.framework.model.Live2DModel
+import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.pow
+import kotlin.math.sin
 
 /**
  * Physics operation class.
@@ -294,11 +297,11 @@ class Live2DPhysics {
             radAngle = CubismMath.degreesToRadian(-totalAngle[0])
 
             totalTranslation.x =
-                (totalTranslation.x * CubismMath.cosF(radAngle) - totalTranslation.y * CubismMath.sinF(
+                (totalTranslation.x * cos(radAngle) - totalTranslation.y * sin(
                     radAngle
                 ))
             totalTranslation.y =
-                (totalTranslation.x * CubismMath.sinF(radAngle) + totalTranslation.y * CubismMath.cosF(
+                (totalTranslation.x * sin(radAngle) + totalTranslation.y * cos(
                     radAngle
                 ))
 
@@ -509,11 +512,11 @@ class Live2DPhysics {
                 val radAngle = CubismMath.degreesToRadian(-totalAngle[0])
 
                 totalTranslation.x =
-                    totalTranslation.x * CubismMath.cosF(radAngle) - totalTranslation.y * CubismMath.sinF(
+                    totalTranslation.x * cos(radAngle) - totalTranslation.y * sin(
                         radAngle
                     )
                 totalTranslation.y =
-                    totalTranslation.x * CubismMath.sinF(radAngle) + totalTranslation.y * CubismMath.cosF(
+                    totalTranslation.x * sin(radAngle) + totalTranslation.y * cos(
                         radAngle
                     )
 
@@ -751,9 +754,9 @@ class Live2DPhysics {
                         Companion.currentGravity
                     ) / airResistance
                     Companion.direction.x =
-                        ((CubismMath.cosF(radian) * Companion.direction.x) - (CubismMath.sinF(radian) * Companion.direction.y))
+                        ((cos(radian) * Companion.direction.x) - (sin(radian) * Companion.direction.y))
                     Companion.direction.y =
-                        ((CubismMath.sinF(radian) * Companion.direction.x) + (Companion.direction.y * CubismMath.cosF(
+                        ((sin(radian) * Companion.direction.x) + (Companion.direction.y * cos(
                             radian
                         )))
                 }
@@ -785,7 +788,7 @@ class Live2DPhysics {
                         previousParticle.position.y + (newDirectionY * currentParticle.radius)
                 }
 
-                if (CubismMath.absF(currentParticle.position.x) < thresholdValue) {
+                if (abs(currentParticle.position.x) < thresholdValue) {
                     currentParticle.position.x = 0.0f
                 }
 
@@ -849,7 +852,7 @@ class Live2DPhysics {
                     particle.position
                 )
 
-                if (CubismMath.absF(particle.position.x) < thresholdValue) {
+                if (abs(particle.position.x) < thresholdValue) {
                     particle.position.x = 0.0f
                 }
 

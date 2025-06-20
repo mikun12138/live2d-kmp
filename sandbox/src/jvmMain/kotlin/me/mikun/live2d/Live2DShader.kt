@@ -65,7 +65,7 @@ object Live2DShader {
                 glUniformMatrix4fv(
                     uniform(Uniform.MATRIX),
                     false,
-                    renderer.mvp.tr,
+                    renderer.mvp,
                 )
             }
             /*
@@ -229,7 +229,7 @@ object Live2DShader {
                 glUniformMatrix4fv(
                     uniform(Uniform.MATRIX),
                     false,
-                    renderer.mvp.tr,
+                    renderer.mvp,
                 )
             }
             /*

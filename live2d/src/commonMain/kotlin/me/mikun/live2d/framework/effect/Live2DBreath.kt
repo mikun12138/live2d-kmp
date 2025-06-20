@@ -7,7 +7,7 @@
 package me.mikun.live2d.framework.effect
 
 import me.mikun.live2d.framework.id.Live2DId
-import com.live2d.sdk.cubism.framework.math.CubismMath.PI
+import me.mikun.live2d.framework.math.CubismMath.PI
 import me.mikun.live2d.framework.model.Live2DModel
 import kotlin.math.sin
 

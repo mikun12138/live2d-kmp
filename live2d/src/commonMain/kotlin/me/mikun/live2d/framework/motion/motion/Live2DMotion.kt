@@ -3,7 +3,7 @@ package me.mikun.live2d.framework.motion.motion
 import me.mikun.live2d.framework.data.MotionJson
 import me.mikun.live2d.framework.id.Live2DId
 import me.mikun.live2d.framework.id.Live2DIdManager
-import com.live2d.sdk.cubism.framework.math.CubismMath
+import me.mikun.live2d.framework.math.CubismMath
 import me.mikun.live2d.framework.motion.ALive2DMotion
 import me.mikun.live2d.framework.motion.motion.Live2DMotionInternal.CubismMotionPoint
 import me.mikun.live2d.framework.motion.motion.Live2DMotionInternal.CubismMotionSegmentType

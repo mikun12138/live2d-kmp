@@ -4,7 +4,10 @@
  * Use of this source code is governed by the Live2D Open Software license
  * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
  */
-package com.live2d.sdk.cubism.framework.math
+package me.mikun.live2d.framework.math
+
+import kotlin.math.abs
+import kotlin.math.sqrt
 
 /**
  * This class provides face orientation control functionality.
@@ -43,12 +46,12 @@ class CubismTargetPoint {
         val dy = faceTargetY - this.y
 
         // In the case of there is no change.
-        if (CubismMath.absF(dx) <= EPSILON && CubismMath.absF(dy) <= EPSILON) {
+        if (abs(dx) <= EPSILON && abs(dy) <= EPSILON) {
             return
         }
 
         // If the speed is greater than the maximum speed, reduce the speed.
-        val d: Float = CubismMath.sqrtF((dx * dx) + (dy * dy))
+        val d: Float = sqrt((dx * dx) + (dy * dy))
 
         // Maximum velocity vector in the direction of travel.
         val vx = maxV * dx / d
@@ -58,7 +61,7 @@ class CubismTargetPoint {
         var ax = vx - faceVX
         var ay = vy - faceVY
 
-        val a: Float = CubismMath.sqrtF((ax * ax) + (ay * ay))
+        val a: Float = sqrt((ax * ax) + (ay * ay))
 
         // At acceleration.
         if (a < -maxA || a > maxA) {
@@ -84,8 +87,8 @@ class CubismTargetPoint {
             // (t=1)
             // Time t is calculated in advance as 1/60 (frame rate, no units) for acceleration and velocity. Therefore, it can be erased as t = 1 (unverified)
             val maxV2: Float =
-                0.5f * (CubismMath.sqrtF((maxA * maxA) + 16.0f * maxA * d - 8.0f * maxA * d) - maxA)
-            val curV: Float = CubismMath.sqrtF((faceVX * faceVX) + (faceVY * faceVY))
+                0.5f * (sqrt((maxA * maxA) + 16.0f * maxA * d - 8.0f * maxA * d) - maxA)
+            val curV: Float = sqrt((faceVX * faceVX) + (faceVY * faceVY))
 
             // Decelerate to maximum speed when current speed > maximum speed.
             if (curV > maxV2) {

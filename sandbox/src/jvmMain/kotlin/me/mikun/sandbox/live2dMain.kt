@@ -1,12 +1,18 @@
 package me.mikun.sandbox
 
 import me.mikun.live2d.framework.Live2DFramework
-import com.live2d.sdk.cubism.framework.math.CubismMatrix44
+import me.mikun.live2d.framework.math.CubismMatrix44
 import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.Live2DRenderer
+import me.mikun.live2d.framework.math.CubismModelMatrix
+import org.jetbrains.skia.Matrix44
+import org.joml.Matrix4f
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL46.*
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import java.nio.FloatBuffer
 
 fun live2dMain(
     resDirMoc: String,
@@ -75,22 +81,23 @@ fun live2dMain(
             glClearDepthf(1.0f)
 
             Timer.update()
-            // キャッシュ変数の定義を避けるために、multiplyByMatrix()ではなく、multiply()を使用する。
-            val matrix = CubismMatrix44.create().apply {
-                loadIdentity()
-                scale(
-                    1080.0f / 1920.0f,
-                    1.0f
-                )
-            }
-            CubismMatrix44.multiply(
-                model.modelMatrix!!.tr,
-                matrix.tr,
-                matrix.tr
+
+            val canvas = Matrix4f().scale(
+                1080.0f / 1920.0f,
+                1.0f,
+                1.0f
+            )
+
+            val modelMatrix = Matrix4f().scale(
+                2.0f / model.model.canvasHeight,
+                2.0f / model.model.canvasHeight,
+                1.0f
             )
 
             model.update(Timer.deltaF)
-            renderer.frame(matrix)
+            renderer.frame(
+                modelMatrix.mul(canvas, Matrix4f()).get(FloatArray(16))
+            )
 
             glfwSwapBuffers(handle)
             glfwPollEvents()

@@ -4,7 +4,7 @@
  * Use of this source code is governed by the Live2D Open Software license
  * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
  */
-package com.live2d.sdk.cubism.framework.math
+package me.mikun.live2d.framework.math
 
 /**
  * Utility class for 4x4 matrix.
@@ -234,20 +234,6 @@ open class CubismMatrix44 {
     }
 
     /**
-     * Constructs a new 4x4 matrix. It is initialized with a unit matrix represented by the float array that has a size of 16 passed for the argument.
-     *
-     *
-     *
-     * This is not a public method, therefore it does not expect that `null` value or other illegal value is passed.
-     *
-     * @param matrix the 4x4 (length == 16) matrix represented by 16 floating-point numbers array
-     */
-    protected constructor(matrix: FloatArray?) {
-        this.tr = FloatArray(16)
-        setMatrix(matrix)
-    }
-
-    /**
      * Return the matrix as an array of floating point numbers.
      *
      * @return the 4x4 matrix represented by 16 floating-point numbers array
@@ -267,38 +253,6 @@ open class CubismMatrix44 {
          */
         fun create(): CubismMatrix44 {
             return CubismMatrix44()
-        }
-
-        /**
-         * Creates a `CubismMatrix44` instance with float array (length == 16).
-         * If the argument (float array) is either `null` or it does not have a size of 16, throws `IllegalArgumentException`.
-         *
-         * @param matrix the 4x4 (length == 16) matrix represented by 16 floating-point numbers array
-         * @return a `CubismMatrix44` instance
-         *
-         * @throws IllegalArgumentException if the argument is either `null` or it does not have a size of 16.
-         */
-        fun create(matrix: FloatArray?): CubismMatrix44 {
-            require(!isNot4x4Matrix(matrix)) { "The passed array is either 'null' or does not have a size of 16." }
-            return CubismMatrix44(matrix)
-        }
-
-        /**
-         * Creates new `CubismMatrix44` instance with a `CubismMatrix44` instance.
-         * This method works the same as the copy method.
-         *
-         *
-         *
-         * If the argument `null`, throws `IllegalArgumentException`.
-         *
-         * @param matrix the 4x4 matrix represented by a `CubismMatrix44`
-         * @return a `CubismMatrix44` instance
-         *
-         * @throws IllegalArgumentException if the argument is either `null` or it does not have a size of 16.
-         */
-        fun create(matrix: CubismMatrix44): CubismMatrix44 {
-            requireNotNull(matrix) { "The passed CubismMatrix44 instance is 'null'" }
-            return CubismMatrix44(matrix.tr)
         }
 
         /**

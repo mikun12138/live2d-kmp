@@ -1,6 +1,6 @@
 package me.mikun.live2d.ex.model
 
-import com.live2d.sdk.cubism.framework.math.CubismModelMatrix
+import me.mikun.live2d.framework.math.CubismModelMatrix
 import me.mikun.live2d.framework.model.Live2DMoc
 import me.mikun.live2d.framework.model.Live2DModel
 import me.mikun.live2d.framework.motion.IBeganMotionCallback
@@ -84,7 +84,6 @@ abstract class ALive2DUserModel protected constructor() {
         this.model = moc.instantiateModel()
 
         this.model.saveParameters()
-        modelMatrix = CubismModelMatrix.Companion.create(this.model.canvasWidth, this.model.canvasHeight)
     }
 
     protected fun loadPose(buffer: ByteArray) {
@@ -150,8 +149,6 @@ abstract class ALive2DUserModel protected constructor() {
 
     lateinit var model: Live2DModel
         protected set
-
-    var modelMatrix: CubismModelMatrix? = null
 
     /*
         System

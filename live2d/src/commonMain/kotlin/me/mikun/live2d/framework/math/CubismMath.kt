@@ -4,7 +4,7 @@
  * Use of this source code is governed by the Live2D Open Software license
  * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
  */
-package com.live2d.sdk.cubism.framework.math
+package me.mikun.live2d.framework.math
 
 import me.mikun.live2d.framework.utils.Live2DLogger
 import kotlin.math.abs
@@ -23,64 +23,6 @@ object CubismMath {
     const val EPSILON: Float = 0.00001f
 
     /**
-     * Returns the value of the first argument in the range of minimum and maximum values.
-     *
-     * @param value target value
-     * @param min lower bound
-     * @param max upper bound
-     * @return value within the range of minimum and maximum values
-     */
-    fun rangeF(value: Float, min: Float, max: Float): Float {
-        var value = value
-        if (value < min) {
-            value = min
-        } else if (value > max) {
-            value = max
-        }
-        return value
-    }
-
-    /**
-     * Caluculate sine value from radian angle value.
-     *
-     * @param x angle(radian)
-     * @return sine value
-     */
-    fun sinF(x: Float): Float {
-        return (sin(x.toDouble())).toFloat()
-    }
-
-    /**
-     * Caluculate cosine value from radian angle value.
-     *
-     * @param x angle(radian)
-     * @return cosine value
-     */
-    fun cosF(x: Float): Float {
-        return (cos(x.toDouble())).toFloat()
-    }
-
-    /**
-     * Calculate the absolute value.
-     *
-     * @param x target value
-     * @return calculated absolute value
-     */
-    fun absF(x: Float): Float {
-        return abs(x)
-    }
-
-    /**
-     * Calculate the square root.
-     *
-     * @param x target value
-     * @return calculated square root value
-     */
-    fun sqrtF(x: Float): Float {
-        return (sqrt(x.toDouble())).toFloat()
-    }
-
-    /**
      * Calculate the easing processed sin. Can be used for easing during fade in/out.
      *
      * @param value target value
@@ -92,7 +34,7 @@ object CubismMath {
         } else if (value > 1.0f) {
             return 1.0f
         }
-        return (0.5f - 0.5f * cos((value * PI).toDouble())).toFloat()
+        return (0.5f - 0.5f * cos(value * PI))
     }
 
     /**
@@ -165,8 +107,8 @@ object CubismMath {
      * @return direction vector calculated from radian value
      */
     fun radianToDirection(totalAngle: Float, result: CubismVector2): CubismVector2 {
-        result.x = sinF(totalAngle)
-        result.y = cosF(totalAngle)
+        result.x = sin(totalAngle)
+        result.y = cos(totalAngle)
 
         return result
     }
@@ -180,13 +122,13 @@ object CubismMath {
      * @return solution of a quadratic equation
      */
     fun quadraticEquation(a: Float, b: Float, c: Float): Float {
-        if (absF(a) < EPSILON) {
-            if (absF(b) < EPSILON) {
+        if (abs(a) < EPSILON) {
+            if (abs(b) < EPSILON) {
                 return -c
             }
             return -c / b
         }
-        return -(b + sqrtF(b * b - 4.0f * a * c)) / (2.0f * a)
+        return -(b + sqrt(b * b - 4.0f * a * c)) / (2.0f * a)
     }
 
     /**
@@ -200,8 +142,8 @@ object CubismMath {
      * @return solution between 0.0~1.0
      */
     fun cardanoAlgorithmForBezier(a: Float, b: Float, c: Float, d: Float): Float {
-        if (absF(a) < EPSILON) {
-            return rangeF(quadraticEquation(b, c, d), 0.0f, 1.0f)
+        if (abs(a) < EPSILON) {
+            return quadraticEquation(b, c, d).coerceIn(0.0f, 1.0f)
         }
         val ba = b / a
         val ca = c / a
@@ -219,28 +161,27 @@ object CubismMath {
         if (discriminant < 0.0f) {
             val mp3 = -p / 3.0f
             val mp33 = mp3 * mp3 * mp3
-            val r = sqrtF(mp33)
+            val r = sqrt(mp33)
             val t = -q / (2.0f * r)
-            val cosphi = rangeF(
-                t,
+            val cosphi = t.coerceIn(
                 -1.0f, 1.0f
             )
             val phi = acos(cosphi.toDouble()).toFloat()
             val crtr = cbrt(r.toDouble()).toFloat()
             val t1 = 2.0f * crtr
 
-            val root1 = t1 * cosF(phi / 3.0f) - ba / 3.0f
+            val root1 = t1 * cos(phi / 3.0f) - ba / 3.0f
             if (abs(root1 - center) < threshold) {
-                return rangeF(root1, 0.0f, 1.0f)
+                return root1.coerceIn(0.0f, 1.0f)
             }
 
-            val root2 = t1 * cosF((phi + 2.0f * PI) / 3.0f) - ba / 3.0f
+            val root2 = t1 * cos((phi + 2.0f * PI) / 3.0f) - ba / 3.0f
             if (abs(root2 - center) < threshold) {
-                return rangeF(root2, 0.0f, 1.0f)
+                return root2.coerceIn(0.0f, 1.0f)
             }
 
-            val root3 = t1 * cosF((phi + 4.0f * PI) / 3.0f) - ba / 3.0f
-            return rangeF(root3, 0.0f, 1.0f)
+            val root3 = t1 * cos((phi + 4.0f * PI) / 3.0f) - ba / 3.0f
+            return root3.coerceIn(0.0f, 1.0f)
         }
 
         if (discriminant == 0.0f) {
@@ -253,18 +194,18 @@ object CubismMath {
 
             val root1 = 2.0f * u1 - ba / 3.0f
             if (abs(root1 - center) < threshold) {
-                return rangeF(root1, 0.0f, 1.0f)
+                return root1.coerceIn(0.0f, 1.0f)
             }
 
             val root2 = -u1 - ba / 3.0f
-            return rangeF(root2, 0.0f, 1.0f)
+            return root2.coerceIn(0.0f, 1.0f)
         }
 
-        val sd = sqrtF(discriminant)
+        val sd = sqrt(discriminant)
         val u1 = cbrt((sd - q2).toDouble()).toFloat()
         val v1 = cbrt((sd + q2).toDouble()).toFloat()
         val root1 = u1 - v1 - ba / 3.0f
-        return rangeF(root1, 0.0f, 1.0f)
+        return root1.coerceIn(0.0f, 1.0f)
     }
 
     /**

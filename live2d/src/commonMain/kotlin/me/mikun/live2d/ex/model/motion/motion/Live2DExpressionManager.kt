@@ -8,7 +8,7 @@
 package me.mikun.live2d.ex.model.motion.motion
 
 import me.mikun.live2d.framework.id.Live2DId
-import com.live2d.sdk.cubism.framework.math.CubismMath.getEasingSine
+import me.mikun.live2d.framework.math.CubismMath.getEasingSine
 import me.mikun.live2d.framework.model.Live2DModel
 import me.mikun.live2d.framework.motion.ALive2DMotion
 import me.mikun.live2d.ex.model.motion.ALive2DMotionManager

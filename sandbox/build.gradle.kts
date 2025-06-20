@@ -50,7 +50,6 @@ kotlin {
             implementation(compose.foundation)
             implementation(compose.preview)
 
-            implementation(compose.components.resources)
 
             implementation(projects.live2d)
         }
@@ -73,6 +72,9 @@ kotlin {
             runtimeOnly("org.lwjgl:lwjgl-glfw::$lwjglNatives")
             runtimeOnly("org.lwjgl:lwjgl-opengl::$lwjglNatives")
             runtimeOnly("org.lwjgl:lwjgl-stb::$lwjglNatives")
+
+            implementation("org.joml:joml:1.10.8")
+            implementation("org.joml:joml-primitives:1.10.0")
         }
     }
 
