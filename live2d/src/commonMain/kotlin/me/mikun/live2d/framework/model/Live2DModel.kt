@@ -69,9 +69,7 @@ class Live2DModel {
      */
     fun update() {
         model.update()
-        model.resetDrawableDynamicFlags()
     }
-
 
     /* ---------- *
      * PARAMETERS *
@@ -88,7 +86,7 @@ class Live2DModel {
         }
 
         val parameterIndex = model.parameterViews.size + notExistParameterIds.size
-        notExistParameterIds.put(parameterId, parameterIndex)
+        notExistParameterIds[parameterId] = parameterIndex
         notExistParameterIndices.add(parameterIndex)
         notExistParameterValues.add(0.0f)
 
@@ -187,7 +185,7 @@ class Live2DModel {
         }
 
         val partIndex = model.partViews.size + notExistPartIds.size
-        notExistPartIds.put(partId, partIndex)
+        notExistPartIds[partId] = partIndex
         notExistPartIndices.add(partIndex)
 
         notExistPartOpacities.add(0.0f)
@@ -394,31 +392,26 @@ class Live2DModel {
     }
 
 
-    // TODO:: remove 不知道为什么似乎不影响更新
-    fun loadParameters() {
-        var parameterCount = this.parameterCount
-        val savedParameterCount = savedParameters.size
-
-        if (parameterCount > savedParameterCount) {
-            parameterCount = savedParameterCount
-        }
-
-        for (i in 0..<parameterCount) {
-            model.parameterViews[i].value = savedParameters[i]
-        }
-    }
-
-    // TODO:: remove 不知道为什么似乎不影响更新
-    fun saveParameters() {
-        val parameterCount = this.parameterCount
-
-        if (savedParameters.size < parameterCount) {
-            savedParameters = FloatArray(parameterCount)
-        }
-        for (i in 0..<parameterCount) {
-            savedParameters[i] = model.parameterViews[i].value
-        }
-    }
+//    // TODO:: remove 不知道为什么似乎不影响更新
+//    fun loadParameters() {
+//        val parameterCount = this.parameterCount.coerceAtMost(savedParameters.size)
+//
+//        for (i in 0..<parameterCount) {
+//            model.parameterViews[i].value = savedParameters[i]
+//        }
+//    }
+//
+//    // TODO:: remove 不知道为什么似乎不影响更新
+//    fun saveParameters() {
+//        val parameterCount = this.parameterCount
+//
+//        if (savedParameters.size < parameterCount) {
+//            savedParameters = FloatArray(parameterCount)
+//        }
+//        for (i in 0..<parameterCount) {
+//            savedParameters[i] = model.parameterViews[i].value
+//        }
+//    }
 
     /**
      * Return true if the logical product of flag and mask matches the mask.
@@ -444,7 +437,7 @@ class Live2DModel {
     /**
      * Saved parameters
      */
-    private var savedParameters = FloatArray(1)
+//    private var savedParameters = FloatArray(1)
 
     private var userDrawableMultiplyColors: List<DrawableColorData>
     private var userDrawableScreenColors: List<DrawableColorData>

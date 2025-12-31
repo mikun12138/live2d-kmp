@@ -14,7 +14,7 @@ import me.mikun.live2d.framework.id.Live2DIdManager
 /**
  * This class offers auto eyeblink function.
  */
-class Live2DEyeBlink {
+class Live2DEyeBlink: Live2DEffect {
     constructor(modelJson: ModelJson) {
         modelJson.groups.find { it.name == "EyeBlink" }?.let { group ->
             parameterIds.addAll(group.ids.map { Live2DIdManager.id(it) })
@@ -51,7 +51,7 @@ class Live2DEyeBlink {
         OPENING
     }
 
-    fun update(model: Live2DModel, deltaSeconds: Float) {
+    override fun update(model: Live2DModel, deltaSeconds: Float) {
         userTimeSeconds += deltaSeconds
 
         when (blinkingState) {

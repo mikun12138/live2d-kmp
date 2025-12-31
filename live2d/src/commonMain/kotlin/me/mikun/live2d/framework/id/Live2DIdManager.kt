@@ -40,9 +40,5 @@ object Live2DIdManager {
         return ids.find { it == foundId }
     }
 
-    fun clear() {
-        ids.clear()
-    }
-
     private val ids: MutableSet<Live2DId> = mutableSetOf()
 }

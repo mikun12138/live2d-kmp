@@ -1,5 +1,6 @@
 package me.mikun.live2d.skiko
 
+import me.mikun.live2d.framework.model.ALive2DUserModel
 import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import org.jetbrains.skia.BlendMode
@@ -15,7 +16,7 @@ import org.jetbrains.skia.Shader
 import org.jetbrains.skia.VertexMode
 
 class SkikoRenderer(
-    appModel: Live2DUserModelImpl,
+    appModel: ALive2DUserModel,
 ) : ALive2DRenderer(
     appModel,
 ) {

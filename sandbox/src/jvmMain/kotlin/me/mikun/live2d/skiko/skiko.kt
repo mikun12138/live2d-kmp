@@ -1,5 +1,6 @@
 package me.mikun.live2d.skiko
 
+import me.mikun.live2d.framework.model.Live2DMoc
 import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.ex.rendering.Live2DColor
 import me.mikun.live2d.ex.rendering.Live2DDrawableContext
@@ -23,7 +24,8 @@ fun skiko(
     resDirMoc: String,
     mocName: String,
 ) {
-    val model = Live2DUserModelImpl(resDirMoc, "$mocName.model3.json")
+    val moc = Live2DMoc(resDirMoc, "$mocName.model3.json")
+    val model = moc.instantiateModel()
     val renderer = SkikoRenderer(model)
 
     Timer.update()

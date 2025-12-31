@@ -12,13 +12,6 @@ import me.mikun.live2d.framework.utils.Live2DLogger
 object Live2DFramework {
     const val VERTEX_OFFSET: Int = 0
     const val VERTEX_STEP: Int = 2
-
-    // TODO:: Is it necessary?
-    init {
-        Live2DIdManager.clear()
-    }
-
-
 }
 
 object Live2DFrameworkConfig {

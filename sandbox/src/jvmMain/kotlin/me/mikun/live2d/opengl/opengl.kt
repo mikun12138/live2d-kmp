@@ -1,6 +1,6 @@
 package me.mikun.live2d.opengl
 
-import me.mikun.live2d.framework.Live2DFramework
+import me.mikun.live2d.framework.model.Live2DMoc
 import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.sandbox.Timer
 import org.joml.Matrix4f
@@ -55,8 +55,8 @@ fun opengl(
             GL_SRC_ALPHA,
             GL_ONE_MINUS_SRC_ALPHA
         )
-
-        val model = Live2DUserModelImpl(resDirMoc, "$mocName.model3.json")
+        val moc = Live2DMoc(resDirMoc, "$mocName.model3.json")
+        val model = moc.instantiateModel()
 
         val renderer = OpenGLRenderer(model, 1)
 

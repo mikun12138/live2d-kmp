@@ -1,6 +1,6 @@
 package me.mikun.live2d.opengl
 
-import me.mikun.live2d.ex.model.ALive2DUserModel
+import me.mikun.live2d.framework.model.ALive2DUserModel
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import me.mikun.live2d.ex.rendering.Live2DDrawableContext
 import org.lwjgl.opengl.GL11.GL_NEAREST

@@ -1,28 +1,39 @@
-/*
- * Copyright(c) Live2D Inc. All rights reserved.
- *
- * Use of this source code is governed by the Live2D Open Software license
- * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
- */
 package me.mikun.live2d.framework.model
 
+import kotlinx.serialization.json.Json
 import me.mikun.live2d.core.CubismMoc
+import me.mikun.live2d.framework.model.ALive2DUserModel
+import me.mikun.live2d.ex.model.Live2DUserModelImpl
+import me.mikun.live2d.framework.data.ModelJson
+import kotlin.io.path.Path
+import kotlin.io.path.readBytes
 
 class Live2DMoc {
+
     val moc: CubismMoc
+    val dir: String
+    val modelJson: ModelJson
+    private val instantiatedModels: MutableList<ALive2DUserModel> = mutableListOf()
 
-    private val live2DModelList: MutableList<Live2DModel> = mutableListOf()
-
-    constructor(mocBytes: ByteArray, checkMocConsistency: Boolean = false) {
-        moc = CubismMoc(mocBytes, checkMocConsistency)
-    }
-
-    fun instantiateModel(): Live2DModel {
-        return Live2DModel(
-            moc.instantiateModel()
-        ).also {
-            live2DModelList.add(it)
+    constructor(dir: String, modelJsonFileName: String) {
+        val buffer = Path(dir, modelJsonFileName).readBytes()
+        this.dir = dir
+        this.modelJson = Json.Default.decodeFromString<ModelJson>(String(buffer))
+        modelJson.fileReferences.moc.let {
+            Path(dir, it).readBytes().let { buffer ->
+                moc = CubismMoc(buffer, true)
+            }
         }
     }
 
+    fun instantiateModel(): ALive2DUserModel {
+        return Live2DUserModelImpl(
+            Live2DModel(
+                moc.instantiateModel()
+            ),
+            this
+        ).also {
+            instantiatedModels.add(it)
+        }
+    }
 }

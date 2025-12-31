@@ -5,7 +5,7 @@ import me.mikun.live2d.framework.id.Live2DId
 import me.mikun.live2d.framework.id.Live2DIdManager
 import me.mikun.live2d.framework.model.Live2DModel
 
-class Live2DLipSync {
+class Live2DLipSync : Live2DEffect {
     val inputValue = 0.83121f
 
     constructor(modelJson: ModelJson) {
@@ -14,7 +14,7 @@ class Live2DLipSync {
         }
     }
 
-    fun update(model: Live2DModel, deltaSeconds: Float) {
+    override fun update(model: Live2DModel, deltaSeconds: Float) {
         parameterIds.forEach {
             model.setParameterValue(
                 it,

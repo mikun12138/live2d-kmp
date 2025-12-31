@@ -34,14 +34,14 @@ class CubismModel {
 
 
     fun update() {
-        this.throwIfAlreadyReleased()
         Live2DCoreImpl.syncToNativeModel(this)
         Live2DCoreImpl.updateModel(this.nativeHandle)
         Live2DCoreImpl.syncFromNativeModel(this)
+
+        resetDrawableDynamicFlags()
     }
 
-    fun resetDrawableDynamicFlags() {
-        this.throwIfAlreadyReleased()
+    private fun resetDrawableDynamicFlags() {
         Live2DCoreImpl.resetDrawableDynamicFlags(this.nativeHandle)
     }
 
@@ -73,7 +73,4 @@ class CubismModel {
         return null
     }
 
-    private fun throwIfAlreadyReleased() {
-        check(this.nativeHandle != 0L) { "This Model is Already Released." }
-    }
 }
