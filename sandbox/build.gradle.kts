@@ -47,11 +47,8 @@ kotlin {
         }
         commonMain.dependencies {
             implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.preview)
 
             implementation("org.jetbrains.skiko:skiko:0.9.4.2")
-
 
             implementation(projects.live2d)
         }

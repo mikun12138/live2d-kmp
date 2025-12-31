@@ -64,5 +64,5 @@ enum class Backends {
     OpenGL, Skiko
 }
 
-val backend = Backends.Skiko
+val backend = Backends.OpenGL
 

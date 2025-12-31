@@ -40,8 +40,6 @@ fun opengl(
     GL.createCapabilities()
 
     run {
-        Live2DFramework.init()
-
         glTexParameteri(
             GL_TEXTURE_2D,
             GL_TEXTURE_MAG_FILTER,
