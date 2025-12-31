@@ -56,8 +56,7 @@ fun opengl(
             GL_ONE_MINUS_SRC_ALPHA
         )
 
-        val model = Live2DUserModelImpl()
-        model.init(resDirMoc, "$mocName.model3.json")
+        val model = Live2DUserModelImpl(resDirMoc, "$mocName.model3.json")
 
         val renderer = OpenGLRenderer(model, 1)
 

@@ -23,8 +23,7 @@ fun skiko(
     resDirMoc: String,
     mocName: String,
 ) {
-    val model = Live2DUserModelImpl()
-    model.init(resDirMoc, "$mocName.model3.json")
+    val model = Live2DUserModelImpl(resDirMoc, "$mocName.model3.json")
     val renderer = SkikoRenderer(model)
 
     Timer.update()
