@@ -32,8 +32,6 @@ open class Live2DUserModelImpl : ALive2DUserModel {
         setupModel()
     }
 
-    // TODO::
-//    var isUsingHighPrecisionMask: Boolean = false
     protected var motionManager: Live2DMotionManager = Live2DMotionManager()
     protected var expressionManager: Live2DExpressionManager = Live2DExpressionManager()
 
@@ -211,7 +209,7 @@ open class Live2DUserModelImpl : ALive2DUserModel {
         physics?.update(model, deltaSeconds)
 
         // userData
-        // TODO::
+        // TODO:: userdata
 
         // eye blink
 
@@ -247,7 +245,6 @@ open class Live2DUserModelImpl : ALive2DUserModel {
         if (priority == MotionPriority.FORCE) {
             motionManager.reservePriority = priority.value
         } else if (!motionManager.reserveMotion(priority.value)) {
-            // TODO:: log
             return
         }
 

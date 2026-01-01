@@ -65,11 +65,7 @@ class Live2DMotionQueueEntry(
 
             if (motion.loop) {
                 duration += 1.0f / motion.motionData.fps
-                while (time > duration) {
-                    time -= duration
-                }
-                // TODO:: use this
-//                time %= duration
+                time %= duration
             }
 
             var eyeBlinkValue = 0f
@@ -102,7 +98,7 @@ class Live2DMotionQueueEntry(
 
                         Live2DIdManager.id(OpacityID.OPACITY.value) -> {
                             // 不透明度の値が存在すれば反映する。
-                            // TODO::
+                            // TODO:: impl opacity
 //                            model.modelOpacity = value
                         }
                     }
@@ -252,17 +248,12 @@ class Live2DMotionQueueEntry(
 
             MotionBehavior.MOTION_BEHAVIOR_V2 -> {
                 startTimePoint = totalSeconds - time //最初の状態へ
-                if (loopFadeIn) {
-                    //ループ中でループ用フェードインが有効のときは、フェードイン設定し直し
-                    // TODO:: 你知道我要todo什么
-//                    motionQueueEntry.setFadeInStartTime(totalSeconds - time)
-                }
             }
         }
     }
 
 
-    // TODO:: level: 114514
+    // TODO:: impl userdata
 //    val firedEvents: List<String>
 //        get() = run {
 ////            if ((event.fireTime > beforeCheckTimeSeconds) && (event.fireTime <= motionTimeSeconds)) {

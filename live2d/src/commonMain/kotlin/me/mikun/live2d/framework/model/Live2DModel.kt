@@ -392,27 +392,6 @@ class Live2DModel {
     }
 
 
-//    // TODO:: remove 不知道为什么似乎不影响更新
-//    fun loadParameters() {
-//        val parameterCount = this.parameterCount.coerceAtMost(savedParameters.size)
-//
-//        for (i in 0..<parameterCount) {
-//            model.parameterViews[i].value = savedParameters[i]
-//        }
-//    }
-//
-//    // TODO:: remove 不知道为什么似乎不影响更新
-//    fun saveParameters() {
-//        val parameterCount = this.parameterCount
-//
-//        if (savedParameters.size < parameterCount) {
-//            savedParameters = FloatArray(parameterCount)
-//        }
-//        for (i in 0..<parameterCount) {
-//            savedParameters[i] = model.parameterViews[i].value
-//        }
-//    }
-
     /**
      * Return true if the logical product of flag and mask matches the mask.
      *

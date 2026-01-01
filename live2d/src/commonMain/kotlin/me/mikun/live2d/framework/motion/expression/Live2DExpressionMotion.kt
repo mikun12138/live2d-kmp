@@ -76,42 +76,6 @@ class Live2DExpressionMotion : ALive2DMotion {
         val value: Float,
     )
 
-
-
-
-    // TODO:: never used
-//    override fun doUpdateParameters(
-//        model: CubismModel,
-//        userTimeSeconds: Float,
-//        weight: Float,
-//        motionQueueEntry: CubismMotionQueueEntry
-//    ) {
-//        for (i in parameters.indices) {
-//            val parameter = parameters.get(i)
-//            when (parameter.blendType) {
-//                ExpressionBlendType.ADD -> model.addParameterValue(
-//                    parameter.parameterId,
-//                    parameter.value,
-//                    weight
-//                )
-//
-//                ExpressionBlendType.MULTIPLY -> model.multiplyParameterValue(
-//                    parameter.parameterId,
-//                    parameter.value,
-//                    weight
-//                )
-//
-//                ExpressionBlendType.OVERWRITE -> model.setParameterValue(
-//                    parameter.parameterId,
-//                    parameter.value,
-//                    weight
-//                )
-//
-//            }
-//        }
-//    }
-
-
     val parameters: MutableList<ExpressionParameter> = ArrayList<ExpressionParameter>()
 
     companion object {

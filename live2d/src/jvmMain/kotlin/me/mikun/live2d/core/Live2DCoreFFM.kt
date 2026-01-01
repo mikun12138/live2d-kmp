@@ -137,13 +137,8 @@ sealed class Live2DCubismCoreFFM : LibraryFFM {
 
     @Suppress("UnsafeDynamicallyLoadedCode")
     companion object {
-        fun load(
-            pathString: String
-        ) {
-            // TODO:: 区分下架构
-            System.load(
-                Path(pathString, "Live2DCubismCore.dll").toString()
-            )
+        init {
+            System.loadLibrary("Live2DCubismCore")
         }
     }
 
