@@ -298,7 +298,7 @@ actual object Live2DCoreImpl {
                             m0.getAtIndex(
                                 ValueLayout.ADDRESS,
                                 i.toLong()
-                            ).reinterpret(Long.MAX_VALUE).getUtf8String(0)
+                            ).reinterpret(Long.MAX_VALUE).getString(0)
                     }
                 }
 
@@ -435,7 +435,7 @@ actual object Live2DCoreImpl {
                             partIds.getAtIndex(
                                 ValueLayout.ADDRESS,
                                 i.toLong()
-                            ).reinterpret(Long.MAX_VALUE).getUtf8String(0)
+                            ).reinterpret(Long.MAX_VALUE).getString(0)
                     }
                 }
 
@@ -484,7 +484,7 @@ actual object Live2DCoreImpl {
                             partIds.getAtIndex(
                                 ValueLayout.ADDRESS,
                                 i.toLong()
-                            ).reinterpret(Long.MAX_VALUE).getUtf8String(0)
+                            ).reinterpret(Long.MAX_VALUE).getString(0)
                     }
                 }
 
@@ -781,7 +781,7 @@ actual object Live2DCoreImpl {
         @JvmStatic
         fun print(memorySegment: MemorySegment) {
             logFunction(
-                memorySegment.reinterpret(Long.MAX_VALUE).getUtf8String(0)
+                memorySegment.reinterpret(Long.MAX_VALUE).getString(0)
             )
         }
     }

@@ -26,7 +26,7 @@ kotlin {
 
     android {
         namespace = "me.mikun.live2d"
-        compileSdk = 37
+        compileSdk = 36
         minSdk = 23
 
         withJava() // enable java compilation support

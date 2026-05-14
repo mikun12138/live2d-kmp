@@ -33,6 +33,10 @@ kotlin {
 //    }
 
     sourceSets {
+        androidMain.dependencies {
+            implementation(libs.androidx.activity.compose)
+            implementation(projects.live2d)
+        }
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -70,14 +74,14 @@ kotlin {
 }
 
 dependencies {
-    debugImplementation(compose.uiTooling)
+    debugImplementation("org.jetbrains.compose.ui:ui-tooling:1.11.0")
 }
 
 android {
-    namespace = "me.mikun.live2d"
+    namespace = "me.mikun.sandbox"
     compileSdk = 36
     defaultConfig {
-        applicationId = "me.mikun.live2d"
+        applicationId = "me.mikun.sandbox"
         minSdk = 23
         versionCode = 1
         versionName = "1.0"
