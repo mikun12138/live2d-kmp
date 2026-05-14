@@ -1,9 +1,10 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidLibrary)
-    kotlin("plugin.serialization") version "2.1.20"
+    alias(libs.plugins.kmp)
+    alias(libs.plugins.android.kmp.library)
+
+    kotlin("plugin.serialization") version "2.3.21"
 
     id("com.vanniktech.maven.publish") version "0.32.0"
 }
@@ -12,25 +13,29 @@ group = "me.mikun"
 version = "0.0.1"
 
 kotlin {
-    androidTarget {
-        compilations.all {
-            compileTaskProvider.configure {
-                compilerOptions {
-                    jvmTarget.set(JvmTarget.JVM_21)
-                }
-            }
-        }
-    }
 
     jvm {
         compilations.all {
             compileTaskProvider.configure {
                 compilerOptions {
-                    jvmTarget.set(JvmTarget.JVM_21)
+                    jvmTarget.set(JvmTarget.JVM_25)
                 }
             }
         }
     }
+
+    android {
+        namespace = "me.mikun.live2d"
+        compileSdk = 37
+        minSdk = 23
+
+        withJava() // enable java compilation support
+        withHostTestBuilder {}.configure {}
+        withDeviceTestBuilder {
+            sourceSetTreeName = "test"
+        }
+    }
+
 
 //    listOf(
 //        iosX64(),
@@ -56,15 +61,4 @@ kotlin {
 
 }
 
-android {
-    namespace = "me.mikun.live2d"
-    compileSdk = 36
-    defaultConfig {
-        minSdk = 23
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
-    }
-}
 

@@ -25,9 +25,9 @@ enum class Arch(
 val arch = Arch.byName(
     System.getProperty("os.arch").lowercase(getDefault())
 )
-val resDir = System.getProperty("compose.application.resources.dir")
-val resDirMoc = "$resDir/moc/"
-val resDirLib = "$resDir/lib/${arch.value}"
+val resDir = "/home/mikun/workspace/live2d-kmp/sandbox/build/libs/live2DCore/temp/CubismSdkForNative-5-r.4/Samples/Resources/"
+val resDirMoc = resDir
+
 val resMocHaru = "Haru"
 val resMocHiyori = "Hiyori"
 val resMocMao = "Mao"
@@ -37,9 +37,6 @@ val resMocRice = "Rice"
 val resMocWanko = "Wanko"
 
 fun main() {
-
-    Live2DCubismCoreFFM.load(resDirLib)
-
     val moc = resMocMao
 
     live2dMain(

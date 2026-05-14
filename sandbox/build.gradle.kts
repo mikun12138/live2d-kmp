@@ -3,28 +3,19 @@ import org.jetbrains.compose.desktop.tasks.AbstractComposeDesktopTask
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidApplication)
+    alias(libs.plugins.kmp)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.androidApplication)
 }
 
 kotlin {
-    androidTarget {
-        compilations.all {
-            compileTaskProvider.configure {
-                compilerOptions {
-                    jvmTarget.set(JvmTarget.JVM_21)
-                }
-            }
-        }
-    }
-
+    androidTarget()
     jvm {
         compilations.all {
             compileTaskProvider.configure {
                 compilerOptions {
-                    jvmTarget.set(JvmTarget.JVM_21)
+                    jvmTarget.set(JvmTarget.JVM_25)
                 }
             }
         }
@@ -42,9 +33,6 @@ kotlin {
 //    }
 
     sourceSets {
-        androidMain.dependencies {
-            implementation(libs.androidx.activity.compose)
-        }
         commonMain.dependencies {
             implementation(compose.runtime)
             implementation(compose.foundation)
@@ -58,10 +46,11 @@ kotlin {
             implementation(libs.kotlin.test)
         }
 
-        val lwjglVersion = "3.3.6"
-        val lwjglNatives = "natives-windows"
 
         jvmMain.dependencies {
+            val lwjglVersion = "3.4.1"
+            val lwjglNatives = "natives-linux"
+
             implementation(project.dependencies.platform("org.lwjgl:lwjgl-bom:$lwjglVersion"))
 
             implementation("org.lwjgl:lwjgl:${lwjglVersion}")
@@ -94,8 +83,8 @@ android {
         versionName = "1.0"
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_21
-        targetCompatibility = JavaVersion.VERSION_21
+        sourceCompatibility = JavaVersion.VERSION_25
+        targetCompatibility = JavaVersion.VERSION_25
     }
 }
 
@@ -181,5 +170,11 @@ tasks.register("downloadLive2DCore") {
     }
 }
 
-
+tasks.withType<JavaExec> {
+    systemProperty(
+        "java.library.path",
+        "/home/mikun/workspace/live2d-kmp/sandbox/build/libs/live2DCore/temp/CubismSdkForNative-5-r.4/Core/dll/linux/x86_64"
+    )
+//    environment("LD_LIBRARY_PATH", "/home/mikun/workspace/live2d-kmp/sandbox/build/libs/live2DCore/temp/CubismSdkForNative-5-r.4/Core/dll/linux/x86_64")
+}
 

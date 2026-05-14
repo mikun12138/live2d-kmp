@@ -12,6 +12,7 @@ fun live2dMain(
     resDirMoc: String,
     mocName: String,
 ) {
+    glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11)
     if (!glfwInit()) {
         throw Error("Unable to initialize GLFW")
     }
