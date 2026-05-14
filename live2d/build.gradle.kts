@@ -49,6 +49,9 @@ kotlin {
 //    }
 
     sourceSets {
+        androidMain.dependencies {
+            implementation(files("Live2DCubismCore.aar"))
+        }
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization.json)
         }

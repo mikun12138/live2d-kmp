@@ -36,6 +36,8 @@ kotlin {
         androidMain.dependencies {
             implementation(libs.androidx.activity.compose)
             implementation(projects.live2d)
+
+            implementation(files("Live2DCubismCore.aar"))
         }
         commonMain.dependencies {
             implementation(compose.runtime)

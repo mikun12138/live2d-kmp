@@ -54,6 +54,7 @@ import android.opengl.GLUtils
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
+import me.mikun.live2d.core.Live2DCoreImpl
 import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import me.mikun.live2d.ex.rendering.Live2DDrawableContext
