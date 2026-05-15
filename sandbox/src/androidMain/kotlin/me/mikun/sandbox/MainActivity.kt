@@ -53,7 +53,7 @@ import androidx.activity.ComponentActivity
 import me.mikun.live2d.framework.utils.math.CubismMatrix44
 import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
-import me.mikun.live2d.ex.rendering.Live2DDrawableContext
+import me.mikun.live2d.ex.rendering.context.Live2DDrawableContext
 import me.mikun.live2d.framework.Live2DFramework
 import java.io.File
 import java.nio.ByteBuffer

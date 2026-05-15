@@ -1,6 +1,27 @@
-package me.mikun.live2d.ex.rendering
+package me.mikun.live2d.ex.rendering.context
 
+import me.mikun.live2d.ex.model.ALive2DUserModel
+import me.mikun.live2d.ex.rendering.CubismBlendMode
+import me.mikun.live2d.ex.rendering.Live2DColor
 import me.mikun.live2d.framework.model.Live2DModel
+
+abstract class ALive2DModelRenderContext {
+    val drawableContextArray: Array<Live2DDrawableContext>
+
+    constructor(
+        userModel: ALive2DUserModel,
+    ) {
+        drawableContextArray = Array(userModel.model.drawableCount) {
+            Live2DDrawableContext(userModel.model, it)
+        }
+    }
+
+    open fun update() {
+        drawableContextArray.forEach {
+            it.update()
+        }
+    }
+}
 
 class Live2DDrawableContext(
     val model: Live2DModel,
@@ -10,30 +31,27 @@ class Live2DDrawableContext(
 
     val drawOrder = model.getDrawableDrawOrder(index)
     val renderOrder = model.getDrawableRenderOrder(index)
-    var opacity = 1.0f
+    var opacity = model.getDrawableOpacity(index)
     val masks = model.getDrawableMask(index)
 
     val vertex: Vertex = Vertex(model, index)
-    lateinit var baseColor: Live2DColor
-    lateinit var multiplyColor: Live2DColor
-    lateinit var screenColor: Live2DColor
+
 
     val blendMode: CubismBlendMode = model.getDrawableBlendMode(index)
     val isCulling = !model.getDrawableIsDoubleSided(index)
     val isInvertedMask = model.getDrawableInvertedMask(index)
 
     var isVisible = false
-
     var visibilityDidChange = false
-
     var opacityDidChange = false
-
     var drawOrderDidChange = false
-
     var renderOrderDidChange = false
     var vertexPositionDidChange = false
-
     var blendColorDidChange = false
+
+    lateinit var baseColor: Live2DColor
+    lateinit var multiplyColor: Live2DColor
+    lateinit var screenColor: Live2DColor
 
 
     fun update() {
@@ -45,7 +63,6 @@ class Live2DDrawableContext(
         vertexPositionDidChange = model.getDrawableDynamicFlagVertexPositionsDidChange(index)
         blendColorDidChange = model.getDrawableDynamicFlagBlendColorDidChange(index)
 
-        opacity = model.getDrawableOpacity(index)
         vertex.update()
         baseColor = model.getModelColorWithOpacity(opacity)
         multiplyColor = model.getDrawableMultiplyColors(index)!!.let {

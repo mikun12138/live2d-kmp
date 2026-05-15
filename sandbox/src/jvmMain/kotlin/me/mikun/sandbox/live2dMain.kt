@@ -1,7 +1,8 @@
 package me.mikun.sandbox
 
+import me.mikun.live2d.Live2DModelClipContext
+import me.mikun.live2d.Live2DModelRenderContext
 import me.mikun.live2d.framework.Live2DFramework
-import me.mikun.live2d.framework.utils.math.CubismMatrix44
 import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.Live2DRenderer
 import org.lwjgl.glfw.GLFW.*
@@ -43,58 +44,38 @@ fun live2dMain(
     run {
         Live2DFramework.init()
 
-        glTexParameteri(
-            GL_TEXTURE_2D,
-            GL_TEXTURE_MAG_FILTER,
-            GL_LINEAR
-        )
-        glTexParameteri(
-            GL_TEXTURE_2D,
-            GL_TEXTURE_MIN_FILTER,
-            GL_LINEAR
-        )
-        glEnable(GL_BLEND)
-        glBlendFunc(
-            GL_SRC_ALPHA,
-            GL_ONE_MINUS_SRC_ALPHA
-        )
-
-        val model = Live2DUserModelImpl()
-        model.init(resDirMoc, "$mocName.model3.json")
-
-        val renderer = Live2DRenderer(model, 1)
+        // model logic
+        val model = Live2DUserModelImpl().apply {
+            init(resDirMoc, "$mocName.model3.json")
+        }
+        // model render
+        val live2DModelRenderContext = Live2DModelRenderContext(model)
+        val live2DModelClipContext = Live2DModelClipContext(1, live2DModelRenderContext)
+        val renderer = Live2DRenderer()
 
         Timer.update()
         while (!glfwWindowShouldClose(handle)) {
-            glClearColor(
-                0.0f,
-                0.0f,
-                0.0f,
-                1.0f
-            )
-            glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
-            glClearDepthf(1.0f)
+            run {
+                glfwSwapBuffers(handle)
+                glfwPollEvents()
 
-            Timer.update()
-            // キャッシュ変数の定義を避けるために、multiplyByMatrix()ではなく、multiply()を使用する。
-            val matrix = CubismMatrix44().apply {
-                loadIdentity()
-                scale(
-                    1080.0f / 1920.0f,
+                Timer.update()
+
+                glClearColor(
+                    0.0f,
+                    0.0f,
+                    0.0f,
                     1.0f
                 )
+                glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+                glClearDepthf(1.0f)
             }
-            CubismMatrix44.multiply(
-                model.modelMatrix!!.tr,
-                matrix.tr,
-                matrix.tr
-            )
 
             model.update(Timer.deltaF)
-            renderer.frame(matrix)
 
-            glfwSwapBuffers(handle)
-            glfwPollEvents()
+            live2DModelRenderContext.update()
+            renderer.frame(live2DModelRenderContext, live2DModelClipContext)
+
         }
     }
 }

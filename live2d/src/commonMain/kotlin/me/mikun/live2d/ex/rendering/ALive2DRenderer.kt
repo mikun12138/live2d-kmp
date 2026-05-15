@@ -1,8 +1,9 @@
 package me.mikun.live2d.ex.rendering
 
+import me.mikun.live2d.ex.rendering.context.ALive2DModelClipContext
+import me.mikun.live2d.ex.rendering.context.ALive2DModelRenderContext
+import me.mikun.live2d.ex.rendering.context.Live2DDrawableContext
 import me.mikun.live2d.framework.utils.math.CubismMatrix44
-import me.mikun.live2d.ex.model.ALive2DUserModel
-import me.mikun.live2d.ex.rendering.ALive2DRenderer.PreClip.ClipContext.Companion.CHANNEL_FLAGS
 import me.mikun.live2d.framework.Live2DFramework.VERTEX_OFFSET
 import me.mikun.live2d.framework.Live2DFramework.VERTEX_STEP
 import me.mikun.live2d.framework.utils.math.csmRectF
@@ -10,179 +11,29 @@ import kotlin.math.max
 import kotlin.math.min
 
 abstract class ALive2DRenderer {
-    val drawableContextArray: Array<Live2DDrawableContext>
-
-    constructor(
-        userModel: ALive2DUserModel,
-    ) {
-        drawableContextArray = Array(userModel.model.drawableCount) {
-            Live2DDrawableContext(userModel.model, it)
-        }
-    }
-
-    protected fun doFrame() {
-        doUpdateData()
-        doRender()
-    }
-
-    protected open fun doUpdateData() {
-        drawableContextArray.forEach {
-            it.update()
-        }
-    }
-
-    protected abstract fun doRender()
-
 
     abstract class PreClip(
-        userModel: ALive2DUserModel,
-        val offscreenSurfacesCount: Int,
         val pushViewportFun: (Int, Int, Int, Int, () -> Unit) -> Unit,
         val pushFrameBufferFun: (() -> Unit) -> Unit,
-    ) : ALive2DRenderer(
-        userModel
-    ) {
-        abstract val offscreenSurfaces: Array<out ALive2DOffscreenSurface>
-        val drawableClipContextList: MutableList<ClipContext?> = mutableListOf()
-        val drawableClipContextNotNullSet: Set<ClipContext> by lazy {
-            drawableClipContextList.filterNotNull().toSet()
+    ) : ALive2DRenderer() {
+
+        fun frame(
+            renderContext: ALive2DModelRenderContext,
+            clipContext: ALive2DModelClipContext,
+        ) {
+            setupMask(renderContext, clipContext)
+            draw(renderContext, clipContext)
         }
 
-        init {
-            drawableContextArray.forEach { drawableContext ->
-                val drawableMask = drawableContext.masks
-                drawableClipContextList.add(
-                    if (drawableMask.isEmpty())
-                        null
-                    else
-                        drawableClipContextList.find {
-                            it?.maskIndexArray?.size == drawableMask.size
-                                    && it.maskIndexArray.all { drawableMask.contains(it) }
-                        } ?: ClipContext(drawableMask)
-                )
-            }
-            setupLayoutBounds(drawableClipContextNotNullSet.size)
-        }
-
-        private fun setupLayoutBounds(clipContextCount: Int) {
-
-            val result = Array(offscreenSurfacesCount) {
-                IntArray(4)
-            }
-
-            val div0 = clipContextCount / offscreenSurfacesCount
-            val mod0 = clipContextCount % offscreenSurfacesCount
-
-            repeat(offscreenSurfacesCount) { loop0 ->
-                val count0 = div0 + if (loop0 < mod0) 1 else 0
-
-                val div1 = count0 / 4
-                val mod1 = count0 % 4
-
-                repeat(4) { loop1 ->
-                    val count1 = div1 + if (loop1 < mod1) 1 else 0
-                    result[loop0][loop1] = count1
-                }
-            }
-
-            val iterator = drawableClipContextNotNullSet.iterator()
-
-            result.forEachIndexed { renderTextureIndex, texture ->
-                texture.forEachIndexed { channelIndex, count ->
-                    when (count) {
-                        0 -> {}
-                        1 -> {
-                            val cc: ClipContext = iterator.next()
-                            cc.colorChannel = CHANNEL_FLAGS[channelIndex]
-                            cc.layoutBounds = csmRectF(
-                                x = 0.0f,
-                                y = 0.0f,
-                                width = 1.0f,
-                                height = 1.0f
-                            )
-
-                            cc.bufferIndex = renderTextureIndex
-                        }
-
-                        2 -> {
-                            for (i in 0..<2) {
-                                val xpos = i % 2
-
-                                val cc: ClipContext = iterator.next()
-                                cc.colorChannel = CHANNEL_FLAGS[channelIndex]
-                                cc.layoutBounds = csmRectF(
-                                    x = xpos * 0.5f,
-                                    y = 0.0f,
-                                    width = 0.5f,
-                                    height = 1.0f
-                                )
-
-                                cc.bufferIndex = renderTextureIndex
-                            }
-                        }
-
-                        in 3..4 -> {
-                            for (i in 0..<count) {
-                                val xpos = i % 2
-                                val ypos = i / 2
-
-                                val cc: ClipContext = iterator.next()
-                                cc.colorChannel = CHANNEL_FLAGS[channelIndex]
-                                cc.layoutBounds = csmRectF(
-                                    x = xpos * 0.5f,
-                                    y = ypos * 0.5f,
-                                    width = 0.5f,
-                                    height = 0.5f
-
-                                )
-                                cc.bufferIndex = renderTextureIndex
-                            }
-                        }
-
-                        in 5..9 -> {
-                            for (i in 0..<count) {
-                                val xpos = i % 3
-                                val ypos = i / 3
-
-                                val cc: ClipContext = iterator.next()
-
-                                cc.colorChannel = CHANNEL_FLAGS[channelIndex]
-                                cc.layoutBounds = csmRectF(
-                                    x = xpos / 3.0f,
-                                    y = ypos / 3.0f,
-                                    width = 1.0f / 3.0f,
-                                    height = 1.0f / 3.0f
-                                )
-
-                                cc.bufferIndex = renderTextureIndex
-                            }
-                        }
-
-                        else -> error("Incorrect clipContextCount: $count")
-                    }
-                }
-            }
-        }
-
-
-        override fun doRender() {
-            setupMask()
-            draw()
-        }
-
-        /*
-            lazy cache
-        */
-        private val clipContext_2_drawableContextList: Map<ClipContext, List<Live2DDrawableContext>> by lazy {
-            drawableClipContextNotNullSet.associateWith { clipContext -> drawableContextArray.filter { drawableClipContextList[it.index] === clipContext } }
-        }
-
-        protected fun setupMask() {
+        protected fun setupMask(
+            renderContext: ALive2DModelRenderContext,
+            clipContext: ALive2DModelClipContext,
+        ) {
             pushViewportFun(
                 0, 0, 512, 512
             ) {
                 pushFrameBufferFun {
-                    clipContext_2_drawableContextList.forEach { (clipContext, drawableContextList) ->
+                    clipContext.clipContext_2_drawableContextList.forEach { (clipContext, drawableContextList) ->
                         run {
                             clipContext.calcClippedDrawTotalBounds(
                                 drawableContextList
@@ -193,19 +44,21 @@ abstract class ALive2DRenderer {
                         }
                     }
 
-                    drawableClipContextNotNullSet.groupBy { it.bufferIndex }
+                    clipContext.drawableClipContextNotNullSet.groupBy { it.bufferIndex }
                         .forEach { (bufferIndex, clipContextList) ->
-                            offscreenSurfaces[bufferIndex].let {
+                            clipContext.offscreenSurfaces[bufferIndex].let {
                                 it.draw {
-                                    clipContextList.forEach { clipContext ->
-                                        for (maskIndex in clipContext.maskIndexArray) {
-                                            val drawableContext = drawableContextArray[maskIndex]
+                                    clipContextList.forEach { drawableClipContext ->
+                                        for (maskIndex in drawableClipContext.maskIndexArray) {
+                                            val drawableContext =
+                                                renderContext.drawableContextArray[maskIndex]
 
                                             if (!drawableContext.vertexPositionDidChange) continue
 
                                             setupMaskDraw(
+                                                renderContext,
                                                 drawableContext,
-                                                clipContext
+                                                drawableClipContext
                                             )
                                         }
                                     }
@@ -217,24 +70,31 @@ abstract class ALive2DRenderer {
         }
 
         protected abstract fun setupMaskDraw(
+            renderContext: ALive2DModelRenderContext,
             drawableContext: Live2DDrawableContext,
-            clipContext: ClipContext,
+            drawableClipContext: ClipContext,
         )
 
-        protected fun draw() {
-            val sortedDrawableContextArray = drawableContextArray.sortedWith(
+        protected fun draw(
+            renderContext: ALive2DModelRenderContext,
+            clipContext: ALive2DModelClipContext,
+        ) {
+            val sortedDrawableContextArray = renderContext.drawableContextArray.sortedWith(
                 compareBy { it.renderOrder }
             )
 
             sortedDrawableContextArray.forEach { drawableContext ->
                 if (!drawableContext.isVisible) return@forEach
 
-                drawableClipContextList[drawableContext.index]?.let {
+                clipContext.drawableClipContextList[drawableContext.index]?.let {
                     maskDraw(
+                        renderContext,
+                        clipContext,
                         drawableContext
                     )
                 } ?: run {
                     simpleDraw(
+                        renderContext,
                         drawableContext
                     )
                 }
@@ -242,10 +102,13 @@ abstract class ALive2DRenderer {
         }
 
         protected abstract fun maskDraw(
+            renderContext: ALive2DModelRenderContext,
+            clipContext: ALive2DModelClipContext,
             drawableContext: Live2DDrawableContext,
         )
 
         protected abstract fun simpleDraw(
+            renderContext: ALive2DModelRenderContext,
             drawableContext: Live2DDrawableContext,
         )
 
