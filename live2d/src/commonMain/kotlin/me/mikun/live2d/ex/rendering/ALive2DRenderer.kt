@@ -260,23 +260,46 @@ abstract class ALive2DRenderer {
         }
     }
 
-    companion object {
+    abstract class JustDraw : ALive2DRenderer() {
 
-        /**
-         * 実験時に1チャンネルの場合は1、RGBだけの場合は3、アルファも含める場合は4
-         */
-        var COLOR_CHANNEL_COUNT: Int = 4
 
-        /**
-         * 通常のフレームバッファ1枚あたりのマスク最大数
-         */
-        var CLIPPING_MASK_MAX_COUNT_ON_DEFAULT: Int = 36
+        fun frame(
+            renderContext: ALive2DModelRenderContext,
+        ) {
+            draw(renderContext)
+        }
 
-        /**
-         * フレームバッファが2枚以上ある場合のフレームバッファ1枚あたりのマスク最大数
-         */
-        var CLIPPING_MASK_MAX_COUNT_ON_MULTI_RENDER_TEXTURE: Int = 32
+        protected fun draw(
+            renderContext: ALive2DModelRenderContext,
+        ) {
+            val sortedDrawableContextArray = renderContext.drawableContextArray.sortedWith(
+                compareBy { it.renderOrder }
+            )
+
+
+            sortedDrawableContextArray.forEach { drawableContext ->
+                if (!drawableContext.isVisible) return@forEach
+
+                if (drawableContext.masks.isNotEmpty()) return@forEach
+
+                simpleDraw(
+                    renderContext,
+                    drawableContext
+                )
+            }
+        }
+
+        protected abstract fun maskDraw(
+            renderContext: ALive2DModelRenderContext,
+            drawableContext: Live2DDrawableContext,
+        )
+
+        protected abstract fun simpleDraw(
+            renderContext: ALive2DModelRenderContext,
+            drawableContext: Live2DDrawableContext,
+        )
     }
+
 
 }
 

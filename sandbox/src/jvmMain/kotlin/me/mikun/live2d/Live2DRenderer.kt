@@ -101,3 +101,72 @@ class Live2DRenderer : ALive2DRenderer.PreClip(
 
 }
 
+class TestRenderer: ALive2DRenderer.JustDraw() {
+    override fun maskDraw(
+        renderContext: ALive2DModelRenderContext,
+        drawableContext: Live2DDrawableContext,
+    ) {
+        val offscreenSurfaces: Array<Live2DOffscreenSurface> = Array(8) {
+            Live2DOffscreenSurface().apply {
+                createOffscreenSurface(
+                    512.0f, 512.0f
+                )
+            }
+        }
+
+        Live2DShader.drawMasked(
+            renderContext as Live2DModelRenderContext,
+            drawableContext
+        )
+
+        drawMesh(
+            drawableContext
+        )
+    }
+
+    override fun simpleDraw(
+        renderContext: ALive2DModelRenderContext,
+        drawableContext: Live2DDrawableContext,
+    ) {
+        Live2DShader.drawSimple(
+            renderContext as Live2DModelRenderContext,
+            drawableContext
+        )
+
+        drawMesh(
+            drawableContext
+        )
+    }
+
+    private fun drawMesh(
+        drawableContext: Live2DDrawableContext,
+    ) {
+        glDisable(GL_SCISSOR_TEST)
+        glDisable(GL_STENCIL_TEST)
+        glDisable(GL_DEPTH_TEST)
+
+        glEnable(GL_BLEND)
+        glColorMask(
+            true,
+            true,
+            true,
+            true
+        )
+
+        if (drawableContext.isCulling) {
+            glEnable(GL_CULL_FACE)
+        } else {
+            glDisable(GL_CULL_FACE)
+        }
+        glFrontFace(GL_CCW)
+
+        glDrawElements(
+            GL_TRIANGLES,
+            drawableContext.vertex.indicesArray.size,
+            GL_UNSIGNED_SHORT,
+            0
+        )
+    }
+
+}
+

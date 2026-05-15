@@ -5,6 +5,7 @@ import me.mikun.live2d.Live2DModelRenderContext
 import me.mikun.live2d.framework.Live2DFramework
 import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.Live2DRenderer
+import me.mikun.live2d.TestRenderer
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL46.*
@@ -51,7 +52,8 @@ fun live2dMain(
         // model render
         val live2DModelRenderContext = Live2DModelRenderContext(model)
         val live2DModelClipContext = Live2DModelClipContext(1, live2DModelRenderContext)
-        val renderer = Live2DRenderer()
+        val live2DRenderer = Live2DRenderer()
+        val testRenderer = TestRenderer()
 
         Timer.update()
         while (!glfwWindowShouldClose(handle)) {
@@ -74,7 +76,8 @@ fun live2dMain(
             model.update(Timer.deltaF)
 
             live2DModelRenderContext.update()
-            renderer.frame(live2DModelRenderContext, live2DModelClipContext)
+//            live2DRenderer.frame(live2DModelRenderContext, live2DModelClipContext)
+            testRenderer.frame(live2DModelRenderContext)
 
         }
     }
