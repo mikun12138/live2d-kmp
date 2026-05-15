@@ -27,7 +27,7 @@ kotlin {
     android {
         namespace = "me.mikun.live2d"
         compileSdk = 36
-        minSdk = 23
+        minSdk = 26
 
         withJava() // enable java compilation support
         withHostTestBuilder {}.configure {}
@@ -50,7 +50,9 @@ kotlin {
 
     sourceSets {
         androidMain.dependencies {
-            implementation(files("Live2DCubismCore.aar"))
+            implementation("io.github.vova7878.panama:Core:v0.1.3")
+
+//            implementation(files("Live2DCubismCore.aar"))
         }
         commonMain.dependencies {
             implementation(libs.kotlinx.serialization.json)

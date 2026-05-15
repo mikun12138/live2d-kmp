@@ -84,7 +84,7 @@ android {
     compileSdk = 36
     defaultConfig {
         applicationId = "me.mikun.sandbox"
-        minSdk = 23
+        minSdk = 26
         versionCode = 1
         versionName = "1.0"
     }

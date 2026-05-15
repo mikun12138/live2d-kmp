@@ -82,6 +82,7 @@ fun copyAssets(context: Context, path: String) {
         }
     }
 }
+
 val userModel = Live2DUserModelImpl()
 
 class MainActivity : ComponentActivity() {
@@ -91,16 +92,18 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        println("version: " + Live2DCoreImpl.getVersion())
+
         copyAssets(this, "")
-
         userModel.init("${filesDir.absolutePath}/Mao", "Mao.model3.json")
-        _glSurfaceView = GLSurfaceView(this)
-        _glSurfaceView!!.setEGLContextClientVersion(2)
 
+        _glSurfaceView = GLSurfaceView(this)
+        _glSurfaceView!!.setEGLContextClientVersion(3)
         _glSurfaceView!!.setRenderer(GLRenderer)
         _glSurfaceView!!.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
 
         setContentView(_glSurfaceView)
+
     }
 }
 
@@ -126,7 +129,7 @@ object GLRenderer : ALive2DRenderer.PreClip(
         val matrix = CubismMatrix44.create().apply {
             loadIdentity()
             scale(
-                1080.0f / 1920.0f,
+                1920.0f / 1080.0f,
                 1.0f
             )
         }
@@ -171,17 +174,17 @@ object GLRenderer : ALive2DRenderer.PreClip(
             GL_SRC_ALPHA,
             GL_ONE_MINUS_SRC_ALPHA
         )
-
-
     }
 
     var mvp: CubismMatrix44 = CubismMatrix44.create()
 
-    override val offscreenSurfaces: Array<Live2DOffscreenSurface> = Array(1) {
-        Live2DOffscreenSurface().apply {
-            createOffscreenSurface(
-                512.0f, 512.0f
-            )
+    override val offscreenSurfaces: Array<Live2DOffscreenSurface> by lazy {
+        Array(1) {
+            Live2DOffscreenSurface().apply {
+                createOffscreenSurface(
+                    512.0f, 512.0f
+                )
+            }
         }
     }
 
@@ -244,6 +247,10 @@ object GLRenderer : ALive2DRenderer.PreClip(
         }
         glFrontFace(GL_CCW)
 
+        if (drawableContext.vertex.indicesArray.isEmpty()) {
+            // TODO::
+            return
+        }
         glDrawElements(
             GL_TRIANGLES,
             drawableContext.vertex.indicesArray.size,
@@ -254,7 +261,7 @@ object GLRenderer : ALive2DRenderer.PreClip(
 
     class Texture {
         val id: Int
-        val isPremultipliedAlpha: Boolean = false
+        val isPremultipliedAlpha: Boolean = true
 
         private constructor(bytes: ByteArray) {
             val textureIds = IntArray(1)
@@ -300,12 +307,14 @@ object GLRenderer : ALive2DRenderer.PreClip(
         }
     }
 
-    val drawableTextureArray: Array<Texture> = Array(userModel.model.drawableCount) {
-        val drawableContext = drawableContextArray[it]
-        Texture.create(
-            drawableContext.textureIndex,
-            userModel.textures[drawableContext.textureIndex]
-        )
+    val drawableTextureArray: Array<Texture> by lazy {
+        Array(userModel.model.drawableCount) {
+            val drawableContext = drawableContextArray[it]
+            Texture.create(
+                drawableContext.textureIndex,
+                userModel.textures[drawableContext.textureIndex]
+            )
+        }
     }
 
     class VertexArray {
@@ -323,103 +332,105 @@ object GLRenderer : ALive2DRenderer.PreClip(
         val ebos = IntArray(1)
     }
 
-    val drawableVertexArrayArray: Array<VertexArray> = Array(userModel.model.drawableCount) {
-        val drawableContext = drawableContextArray[it]
-        VertexArray().apply {
-            glGenVertexArrays(1, vaos, 0)
+    val drawableVertexArrayArray: Array<VertexArray> by lazy {
+        Array(userModel.model.drawableCount) {
+            val drawableContext = drawableContextArray[it]
+            VertexArray().apply {
+                glGenVertexArrays(1, vaos, 0)
 
-            vao = vaos[0]
+                vao = vaos[0]
 
-            glBindVertexArray(vao)
-            glGenBuffers(2, vbos, 0)
-            drawableContext.vertex.apply {
-                vboPosition = vbos[0]
+                glBindVertexArray(vao)
+                glGenBuffers(2, vbos, 0)
+                drawableContext.vertex.apply {
+                    vboPosition = vbos[0]
 
-                val dataSize = (positionsArray.size * 4).toLong()
+                    val dataSize = (positionsArray.size * 4).toLong()
 
-                glBindBuffer(GL_ARRAY_BUFFER, vboPosition)
-                glBufferData(
-                    GL_ARRAY_BUFFER,
-                    dataSize.toInt(),
-                    null,
-                    GL_DYNAMIC_DRAW
-                )
-
-                val mappedBuffer = glMapBufferRange(
-                    GL_ARRAY_BUFFER,
-                    0,
-                    dataSize.toInt(),
-                    GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT
-                ) as ByteBuffer
-
-                positionsBuffer = mappedBuffer.order(ByteOrder.nativeOrder()).asFloatBuffer()
-                positionsBuffer.put(positionsArray)
-                positionsBuffer.flip()
-
-                glUnmapBuffer(GL_ARRAY_BUFFER)
-
-                glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0)
-                glEnableVertexAttribArray(0)
-            }
-
-            drawableContext.vertex.apply {
-                vboTexCoord = vbos[1]
-                val texSize = (texCoordsArray.size * 4).toLong()
-
-                glBindBuffer(GL_ARRAY_BUFFER, vboTexCoord)
-                glBufferData(
-                    GL_ARRAY_BUFFER,
-                    texSize.toInt(),
-                    null,
-                    GL_DYNAMIC_DRAW
-                )
-                val mappedTexBuffer = glMapBufferRange(
-                    GL_ARRAY_BUFFER,
-                    0,
-                    texSize.toInt(),
-                    GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT
-                ) as ByteBuffer
-                texCoordsBuffer = mappedTexBuffer.order(ByteOrder.nativeOrder()).asFloatBuffer()
-                texCoordsBuffer.put(texCoordsArray)
-                texCoordsBuffer.flip()
-
-                glUnmapBuffer(GL_ARRAY_BUFFER)
-
-                glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0)
-                glEnableVertexAttribArray(1)
-            }
-
-            drawableContext.vertex.apply {
-                glGenBuffers(1, ebos, 0)
-                ebo = ebos[0]
-                glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
-
-                if (indicesArray.isNotEmpty()) {
-                    val dataSize = (indicesArray.size * 2) // Short
-
+                    glBindBuffer(GL_ARRAY_BUFFER, vboPosition)
                     glBufferData(
-                        GL_ELEMENT_ARRAY_BUFFER,
-                        dataSize,
+                        GL_ARRAY_BUFFER,
+                        dataSize.toInt(),
                         null,
-                        GL_STATIC_DRAW
+                        GL_DYNAMIC_DRAW
                     )
 
                     val mappedBuffer = glMapBufferRange(
-                        GL_ELEMENT_ARRAY_BUFFER,
+                        GL_ARRAY_BUFFER,
                         0,
-                        dataSize,
+                        dataSize.toInt(),
                         GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT
                     ) as ByteBuffer
 
-                    indicesBuffer = mappedBuffer.order(ByteOrder.nativeOrder()).asShortBuffer()
-                    indicesBuffer.put(indicesArray)
-                    indicesBuffer.flip()
+                    positionsBuffer = mappedBuffer.order(ByteOrder.nativeOrder()).asFloatBuffer()
+                    positionsBuffer.put(positionsArray)
+                    positionsBuffer.flip()
 
-                    glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER)
+                    glUnmapBuffer(GL_ARRAY_BUFFER)
+
+                    glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0)
+                    glEnableVertexAttribArray(0)
                 }
-            }
 
-            glBindVertexArray(0)
+                drawableContext.vertex.apply {
+                    vboTexCoord = vbos[1]
+                    val texSize = (texCoordsArray.size * 4).toLong()
+
+                    glBindBuffer(GL_ARRAY_BUFFER, vboTexCoord)
+                    glBufferData(
+                        GL_ARRAY_BUFFER,
+                        texSize.toInt(),
+                        null,
+                        GL_DYNAMIC_DRAW
+                    )
+                    val mappedTexBuffer = glMapBufferRange(
+                        GL_ARRAY_BUFFER,
+                        0,
+                        texSize.toInt(),
+                        GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT
+                    ) as ByteBuffer
+                    texCoordsBuffer = mappedTexBuffer.order(ByteOrder.nativeOrder()).asFloatBuffer()
+                    texCoordsBuffer.put(texCoordsArray)
+                    texCoordsBuffer.flip()
+
+                    glUnmapBuffer(GL_ARRAY_BUFFER)
+
+                    glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0)
+                    glEnableVertexAttribArray(1)
+                }
+
+                drawableContext.vertex.apply {
+                    glGenBuffers(1, ebos, 0)
+                    ebo = ebos[0]
+                    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo)
+
+                    if (indicesArray.isNotEmpty()) {
+                        val dataSize = (indicesArray.size * 2) // Short
+
+                        glBufferData(
+                            GL_ELEMENT_ARRAY_BUFFER,
+                            dataSize,
+                            null,
+                            GL_STATIC_DRAW
+                        )
+
+                        val mappedBuffer = glMapBufferRange(
+                            GL_ELEMENT_ARRAY_BUFFER,
+                            0,
+                            dataSize,
+                            GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT
+                        ) as ByteBuffer
+
+                        indicesBuffer = mappedBuffer.order(ByteOrder.nativeOrder()).asShortBuffer()
+                        indicesBuffer.put(indicesArray)
+                        indicesBuffer.flip()
+
+                        glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER)
+                    }
+                }
+
+                glBindVertexArray(0)
+            }
         }
     }
 }

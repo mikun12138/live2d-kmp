@@ -711,7 +711,7 @@ fun fwCompileShader(
             status,
             0
         )
-        if (status[0] != 0) {
+        if (status[0] == 0) {
             throw IllegalStateException(
                 "Could not compile shader: ${
                     glGetShaderInfoLog(
@@ -737,7 +737,7 @@ fun fwLinkProgram(
             status,
             0
         )
-        if (status[0] != 0) {
+        if (status[0] == 0) {
             throw IllegalStateException(
                 "Could not link program: ${
                     glGetProgramInfoLog(
