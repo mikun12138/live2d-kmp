@@ -8,8 +8,8 @@
  */
 package me.mikun.live2d.framework.physics
 
-import com.live2d.sdk.cubism.framework.math.CubismMath
-import com.live2d.sdk.cubism.framework.math.CubismVector2
+import me.mikun.live2d.framework.utils.math.CubismMath
+import me.mikun.live2d.framework.utils.math.CubismVector2
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min

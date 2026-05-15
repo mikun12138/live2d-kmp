@@ -1,6 +1,6 @@
 package me.mikun.live2d
 
-import com.live2d.sdk.cubism.framework.math.CubismMatrix44
+import me.mikun.live2d.framework.utils.math.CubismMatrix44
 import me.mikun.live2d.ex.model.ALive2DUserModel
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import me.mikun.live2d.ex.rendering.Live2DDrawableContext

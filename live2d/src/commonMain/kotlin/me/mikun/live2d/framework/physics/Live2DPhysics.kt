@@ -6,8 +6,8 @@
  */
 package me.mikun.live2d.framework.physics
 
-import com.live2d.sdk.cubism.framework.math.CubismMath
-import com.live2d.sdk.cubism.framework.math.CubismVector2
+import me.mikun.live2d.framework.utils.math.CubismMath
+import me.mikun.live2d.framework.utils.math.CubismVector2
 import kotlinx.serialization.json.Json
 import me.mikun.live2d.framework.data.PhysicsJson
 import me.mikun.live2d.framework.id.Live2DId
@@ -332,9 +332,8 @@ class Live2DPhysics {
 
                 val translation = CubismVector2()
                 translation.set(
-                    physicsRig.particles.get(baseParticleIndex + particleIndex).position minus physicsRig.particles.get(
-                        baseParticleIndex + particleIndex - 1
-                    ).position
+                    physicsRig.particles.get(baseParticleIndex + particleIndex).position minus
+                            physicsRig.particles.get(baseParticleIndex + particleIndex - 1).position
                 )
 
                 outputValue = currentOutput.getValue.getValue(
@@ -733,8 +732,14 @@ class Live2DPhysics {
                 )
 
                 run {
-                    currentParticle.force.set(currentGravity times currentParticle.acceleration) += windDirection
+                    currentParticle.force.set(
+                        currentGravity.x * currentParticle.acceleration,
+                        currentGravity.y * currentParticle.acceleration
+                    )
+                    currentParticle.force += windDirection
+
                     delay = currentParticle.delay * deltaTimeSeconds * 30.0f
+
                     direction.set(currentParticle.position minus previousParticle.position)
                 }
                 run {
@@ -742,18 +747,17 @@ class Live2DPhysics {
                         currentParticle.lastGravity,
                         currentGravity
                     ) / airResistance
-                    direction.x =
-                        ((cos(radian) * direction.x) - (sin(radian) * direction.y))
-                    direction.y =
-                        ((sin(radian) * direction.x) + (direction.y * cos(
-                            radian
-                        )))
+
+                    direction.x = ((cos(radian) * direction.x) - (sin(radian) * direction.y))
+                    direction.y = ((sin(radian) * direction.x) + (direction.y * cos(radian)))
                 }
                 run {
                     currentParticle.position.set(previousParticle.position plus direction)
                     velocity.set(currentParticle.velocity times delay)
-                    force.set(currentParticle.force times delay) *= delay
-                    currentParticle.position += velocity plus force
+                    force.set(currentParticle.force times (delay * delay))
+
+                    currentParticle.position += velocity
+                    currentParticle.position += force
                 }
                 run {
                     var newDirectionX: Float =

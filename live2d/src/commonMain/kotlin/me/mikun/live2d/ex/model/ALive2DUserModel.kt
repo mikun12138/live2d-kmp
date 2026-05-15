@@ -1,6 +1,6 @@
 package me.mikun.live2d.ex.model
 
-import com.live2d.sdk.cubism.framework.math.CubismModelMatrix
+import me.mikun.live2d.framework.utils.math.CubismModelMatrix
 import me.mikun.live2d.framework.model.Live2DMoc
 import me.mikun.live2d.framework.model.Live2DModel
 import me.mikun.live2d.framework.motion.IBeganMotionCallback
@@ -17,7 +17,7 @@ abstract class ALive2DUserModel protected constructor() {
     var totalSeconds = 0.0f
     var lastTotalSeconds = 0.0f
 
-    protected fun loadModel(buffer: ByteArray, shouldCheckMocConsistency: Boolean = false) {
+    protected fun loadModel(buffer: ByteArray, shouldCheckMocConsistency: Boolean = true) {
         val moc = Live2DMoc(buffer, shouldCheckMocConsistency)
 
         this.model = moc.instantiateModel()
@@ -31,7 +31,7 @@ abstract class ALive2DUserModel protected constructor() {
                 init(model)
             }
         } catch (e: Exception) {
-            Live2DLogger.Companion.error("Failed to loadPose(). ${e.message}")
+            Live2DLogger.error("Failed to loadPose(). ${e.message}")
         }
     }
 
@@ -44,7 +44,7 @@ abstract class ALive2DUserModel protected constructor() {
             return Live2DMotion(buffer, onFinishedMotionHandler, onBeganMotionHandler)
         } catch (e: Exception) {
             e.printStackTrace()
-            Live2DLogger.Companion.error("Failed to loadMotion(). ${e.message}")
+            Live2DLogger.error("Failed to loadMotion(). ${e.message}")
             return null
         }
     }
@@ -53,7 +53,7 @@ abstract class ALive2DUserModel protected constructor() {
         try {
             return Live2DExpressionMotion(buffer)
         } catch (e: Exception) {
-            Live2DLogger.Companion.error("Failed to loadExpressionMotion(). ${e.message}")
+            Live2DLogger.error("Failed to loadExpressionMotion(). ${e.message}")
             return null
         }
     }
@@ -62,7 +62,7 @@ abstract class ALive2DUserModel protected constructor() {
         try {
             physics = Live2DPhysics(buffer)
         } catch (e: Exception) {
-            Live2DLogger.Companion.error("Failed to loadPhysics(). ${e.message}")
+            Live2DLogger.error("Failed to loadPhysics(). ${e.message}")
         }
     }
 
@@ -70,7 +70,7 @@ abstract class ALive2DUserModel protected constructor() {
         try {
             modelUserData = Live2DModelUserData(buffer)
         } catch (e: Exception) {
-            Live2DLogger.Companion.error("Failed to loadUserData(). ${e.message}")
+            Live2DLogger.error("Failed to loadUserData(). ${e.message}")
         }
     }
 

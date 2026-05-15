@@ -4,9 +4,8 @@
  * Use of this source code is governed by the Live2D Open Software license
  * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
  */
-package com.live2d.sdk.cubism.framework.math
+package me.mikun.live2d.framework.utils.math
 
-import me.mikun.live2d.framework.utils.Live2DLogger
 import kotlin.math.abs
 import kotlin.math.acos
 import kotlin.math.atan2
@@ -15,30 +14,9 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-/**
- * Utility class used for numerical calculations, etc.
- */
 object CubismMath {
-    const val PI: Float = 3.1415926535897932384626433832795f
+    const val PI: Float = kotlin.math.PI.toFloat()
     const val EPSILON: Float = 0.00001f
-
-    /**
-     * Returns the value of the first argument in the range of minimum and maximum values.
-     *
-     * @param value target value
-     * @param min lower bound
-     * @param max upper bound
-     * @return value within the range of minimum and maximum values
-     */
-    fun rangeF(value: Float, min: Float, max: Float): Float {
-        var value = value
-        if (value < min) {
-            value = min
-        } else if (value > max) {
-            value = max
-        }
-        return value
-    }
 
     fun getEasingSine(value: Float): Float {
         if (value < 0.0f) {
@@ -46,7 +24,7 @@ object CubismMath {
         } else if (value > 1.0f) {
             return 1.0f
         }
-        return (0.5f - 0.5f * cos((value * PI).toDouble())).toFloat()
+        return (0.5f - 0.5f * cos((value * PI)))
     }
 
     fun degreesToRadian(degrees: Float): Float {
@@ -104,7 +82,7 @@ object CubismMath {
 
     fun cardanoAlgorithmForBezier(a: Float, b: Float, c: Float, d: Float): Float {
         if (abs(a) < EPSILON) {
-            return rangeF(quadraticEquation(b, c, d), 0.0f, 1.0f)
+            return quadraticEquation(b, c, d).coerceIn(0.0f, 1.0f)
         }
         val ba = b / a
         val ca = c / a
@@ -124,49 +102,46 @@ object CubismMath {
             val mp33 = mp3 * mp3 * mp3
             val r = sqrt(mp33)
             val t = -q / (2.0f * r)
-            val cosphi = rangeF(
-                t,
-                -1.0f, 1.0f
-            )
-            val phi = acos(cosphi.toDouble()).toFloat()
-            val crtr = cbrt(r.toDouble()).toFloat()
+            val cosphi = t.coerceIn(-1.0f, 1.0f)
+            val phi = acos(cosphi)
+            val crtr = cbrt(r)
             val t1 = 2.0f * crtr
 
             val root1 = t1 * cos(phi / 3.0f) - ba / 3.0f
             if (abs(root1 - center) < threshold) {
-                return rangeF(root1, 0.0f, 1.0f)
+                return root1.coerceIn(0.0f, 1.0f)
             }
 
             val root2 = t1 * cos((phi + 2.0f * PI) / 3.0f) - ba / 3.0f
             if (abs(root2 - center) < threshold) {
-                return rangeF(root2, 0.0f, 1.0f)
+                return root2.coerceIn(0.0f, 1.0f)
             }
 
             val root3 = t1 * cos((phi + 4.0f * PI) / 3.0f) - ba / 3.0f
-            return rangeF(root3, 0.0f, 1.0f)
+            return root3.coerceIn(0.0f, 1.0f)
         }
 
         if (discriminant == 0.0f) {
             val u1: Float
             if (q2 < 0.0f) {
-                u1 = cbrt(-q2.toDouble()).toFloat()
+                u1 = cbrt(-q2)
             } else {
-                u1 = -cbrt(q2.toDouble()).toFloat()
+                u1 = -cbrt(q2)
             }
 
             val root1 = 2.0f * u1 - ba / 3.0f
             if (abs(root1 - center) < threshold) {
-                return rangeF(root1, 0.0f, 1.0f)
+                return root1.coerceIn(0.0f, 1.0f)
             }
 
             val root2 = -u1 - ba / 3.0f
-            return rangeF(root2, 0.0f, 1.0f)
+            return root2.coerceIn(0.0f, 1.0f)
         }
 
         val sd = sqrt(discriminant)
-        val u1 = cbrt((sd - q2).toDouble()).toFloat()
-        val v1 = cbrt((sd + q2).toDouble()).toFloat()
+        val u1 = cbrt((sd - q2))
+        val v1 = cbrt((sd + q2))
         val root1 = u1 - v1 - ba / 3.0f
-        return rangeF(root1, 0.0f, 1.0f)
+        return root1.coerceIn(0.0f, 1.0f)
     }
 }

@@ -1,6 +1,6 @@
 package me.mikun.live2d.ex.rendering
 
-import com.live2d.sdk.cubism.framework.math.CubismMatrix44
+import me.mikun.live2d.framework.utils.math.CubismMatrix44
 import me.mikun.live2d.ex.model.ALive2DUserModel
 import me.mikun.live2d.ex.rendering.ALive2DRenderer.PreClip.ClipContext.Companion.CHANNEL_FLAGS
 import me.mikun.live2d.framework.Live2DFramework.VERTEX_OFFSET
@@ -303,17 +303,17 @@ abstract class ALive2DRenderer {
         fun ClipContext.calcClippedDrawTotalBounds(
             drawableContextList: List<Live2DDrawableContext>,
         ): csmRectF {
-            var clippedDrawTotalMinX = Float.Companion.MAX_VALUE
-            var clippedDrawTotalMinY = Float.Companion.MAX_VALUE
-            var clippedDrawTotalMaxX = -Float.Companion.MAX_VALUE
-            var clippedDrawTotalMaxY = -Float.Companion.MAX_VALUE
+            var clippedDrawTotalMinX = Float.MAX_VALUE
+            var clippedDrawTotalMinY = Float.MAX_VALUE
+            var clippedDrawTotalMaxX = -Float.MAX_VALUE
+            var clippedDrawTotalMaxY = -Float.MAX_VALUE
 
             for (drawableContext in drawableContextList) {
 
-                var minX = Float.Companion.MAX_VALUE
-                var minY = Float.Companion.MAX_VALUE
-                var maxX = -Float.Companion.MAX_VALUE
-                var maxY = -Float.Companion.MAX_VALUE
+                var minX = Float.MAX_VALUE
+                var minY = Float.MAX_VALUE
+                var maxX = -Float.MAX_VALUE
+                var maxY = -Float.MAX_VALUE
 
                 val loop = drawableContext.vertex.count * VERTEX_STEP
                 var pi = VERTEX_OFFSET
@@ -327,7 +327,7 @@ abstract class ALive2DRenderer {
                     pi += VERTEX_STEP
                 }
 
-                if (minX == Float.Companion.MAX_VALUE) {
+                if (minX == Float.MAX_VALUE) {
                     continue
                 }
 
@@ -337,7 +337,7 @@ abstract class ALive2DRenderer {
                 clippedDrawTotalMaxY = max(clippedDrawTotalMaxY, maxY)
             }
 
-            if (clippedDrawTotalMinX == Float.Companion.MAX_VALUE) {
+            if (clippedDrawTotalMinX == Float.MAX_VALUE) {
                 return error("")
             } else {
                 val w = clippedDrawTotalMaxX - clippedDrawTotalMinX
