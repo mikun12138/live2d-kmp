@@ -5,7 +5,7 @@ import me.mikun.live2d.ex.model.ALive2DUserModel
 import me.mikun.live2d.ex.rendering.ALive2DRenderer.PreClip.ClipContext.Companion.CHANNEL_FLAGS
 import me.mikun.live2d.framework.Live2DFramework.VERTEX_OFFSET
 import me.mikun.live2d.framework.Live2DFramework.VERTEX_STEP
-import me.mikun.live2d.framework.type.csmRectF
+import me.mikun.live2d.framework.utils.math.csmRectF
 import kotlin.math.max
 import kotlin.math.min
 

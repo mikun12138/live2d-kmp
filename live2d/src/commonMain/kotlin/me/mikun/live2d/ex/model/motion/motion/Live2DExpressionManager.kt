@@ -10,10 +10,10 @@ package me.mikun.live2d.ex.model.motion.motion
 import me.mikun.live2d.framework.id.Live2DId
 import me.mikun.live2d.framework.utils.math.CubismMath.getEasingSine
 import me.mikun.live2d.framework.model.Live2DModel
-import me.mikun.live2d.framework.motion.ALive2DMotion
+import me.mikun.live2d.framework.plugin.motion.ALive2DMotion
 import me.mikun.live2d.ex.model.motion.ALive2DMotionManager
 import me.mikun.live2d.ex.model.motion.ALive2DMotionQueueEntry
-import me.mikun.live2d.framework.motion.expression.Live2DExpressionMotion
+import me.mikun.live2d.framework.plugin.motion.expression.Live2DExpressionMotion
 import me.mikun.live2d.framework.utils.switchStateTo
 import kotlin.math.min
 

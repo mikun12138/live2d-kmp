@@ -3,8 +3,6 @@ package me.mikun.sandbox
 import android.opengl.GLES20.GL_ARRAY_BUFFER
 import android.opengl.GLES20.GL_COMPILE_STATUS
 import android.opengl.GLES20.GL_DST_COLOR
-import android.opengl.GLES20.GL_DYNAMIC_DRAW
-import android.opengl.GLES20.GL_FLOAT
 import android.opengl.GLES20.GL_FRAGMENT_SHADER
 import android.opengl.GLES20.GL_LINK_STATUS
 import android.opengl.GLES20.GL_ONE
@@ -24,7 +22,6 @@ import android.opengl.GLES20.glCreateProgram
 import android.opengl.GLES20.glCreateShader
 import android.opengl.GLES20.glDeleteShader
 import android.opengl.GLES20.glDetachShader
-import android.opengl.GLES20.glEnableVertexAttribArray
 import android.opengl.GLES20.glGetAttribLocation
 import android.opengl.GLES20.glGetProgramInfoLog
 import android.opengl.GLES20.glGetProgramiv
@@ -37,19 +34,14 @@ import android.opengl.GLES20.glUniform1i
 import android.opengl.GLES20.glUniform4f
 import android.opengl.GLES20.glUniformMatrix4fv
 import android.opengl.GLES20.glUseProgram
-import android.opengl.GLES20.glVertexAttribPointer
 import android.opengl.GLES30
-import android.opengl.GLES30.GL_MAP_INVALIDATE_BUFFER_BIT
-import android.opengl.GLES30.GL_MAP_WRITE_BIT
 import android.opengl.GLES30.glBindVertexArray
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import me.mikun.live2d.ex.rendering.CubismBlendMode
 import me.mikun.live2d.ex.rendering.Live2DDrawableContext
-import me.mikun.live2d.framework.type.bottom
-import me.mikun.live2d.framework.type.right
-import me.mikun.live2d.framework.type.csmRectF
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
+import me.mikun.live2d.framework.utils.math.bottom
+import me.mikun.live2d.framework.utils.math.right
+import me.mikun.live2d.framework.utils.math.csmRectF
 
 object Live2DShader {
 

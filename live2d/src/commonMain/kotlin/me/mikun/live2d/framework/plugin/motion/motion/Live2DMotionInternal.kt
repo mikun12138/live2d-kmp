@@ -1,4 +1,4 @@
-package me.mikun.live2d.framework.motion.motion
+package me.mikun.live2d.framework.plugin.motion.motion
 
 import me.mikun.live2d.framework.id.Live2DId
 

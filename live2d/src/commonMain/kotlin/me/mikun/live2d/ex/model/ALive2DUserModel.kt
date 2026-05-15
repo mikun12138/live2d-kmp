@@ -3,13 +3,13 @@ package me.mikun.live2d.ex.model
 import me.mikun.live2d.framework.utils.math.CubismModelMatrix
 import me.mikun.live2d.framework.model.Live2DMoc
 import me.mikun.live2d.framework.model.Live2DModel
-import me.mikun.live2d.framework.motion.IBeganMotionCallback
-import me.mikun.live2d.framework.motion.IFinishedMotionCallback
-import me.mikun.live2d.framework.motion.expression.Live2DExpressionMotion
-import me.mikun.live2d.framework.motion.motion.Live2DMotion
-import me.mikun.live2d.framework.physics.Live2DPhysics
-import me.mikun.live2d.framework.pose.Live2DPose
-import me.mikun.live2d.framework.userdata.Live2DModelUserData
+import me.mikun.live2d.framework.plugin.motion.IBeganMotionCallback
+import me.mikun.live2d.framework.plugin.motion.IFinishedMotionCallback
+import me.mikun.live2d.framework.plugin.motion.expression.Live2DExpressionMotion
+import me.mikun.live2d.framework.plugin.motion.motion.Live2DMotion
+import me.mikun.live2d.framework.plugin.physics.Live2DPhysics
+import me.mikun.live2d.framework.plugin.pose.Live2DPose
+import me.mikun.live2d.framework.plugin.userdata.Live2DModelUserData
 import me.mikun.live2d.framework.utils.Live2DLogger
 
 abstract class ALive2DUserModel protected constructor() {

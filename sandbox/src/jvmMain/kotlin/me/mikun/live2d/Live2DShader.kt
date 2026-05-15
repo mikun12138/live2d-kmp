@@ -3,9 +3,9 @@ package me.mikun.live2d
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import me.mikun.live2d.ex.rendering.CubismBlendMode
 import me.mikun.live2d.ex.rendering.Live2DDrawableContext
-import me.mikun.live2d.framework.type.bottom
-import me.mikun.live2d.framework.type.right
-import me.mikun.live2d.framework.type.csmRectF
+import me.mikun.live2d.framework.utils.math.bottom
+import me.mikun.live2d.framework.utils.math.right
+import me.mikun.live2d.framework.utils.math.csmRectF
 import org.lwjgl.opengl.GL46.*
 
 object Live2DShader {

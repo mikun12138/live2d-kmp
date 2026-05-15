@@ -1,4 +1,4 @@
-package me.mikun.live2d.framework.pose
+package me.mikun.live2d.framework.plugin.pose
 
 import kotlinx.serialization.json.Json
 import me.mikun.live2d.framework.data.PoseJson

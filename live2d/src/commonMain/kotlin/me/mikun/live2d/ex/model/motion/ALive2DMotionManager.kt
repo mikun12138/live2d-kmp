@@ -1,7 +1,7 @@
 package me.mikun.live2d.ex.model.motion
 
 import me.mikun.live2d.framework.model.Live2DModel
-import me.mikun.live2d.framework.motion.ALive2DMotion
+import me.mikun.live2d.framework.plugin.motion.ALive2DMotion
 import me.mikun.live2d.framework.utils.switchStateTo
 
 /**

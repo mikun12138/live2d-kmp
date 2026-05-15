@@ -2,16 +2,16 @@ package me.mikun.live2d.ex.model
 
 import me.mikun.live2d.framework.id.Live2DDefaultParameterId
 import me.mikun.live2d.framework.data.ModelJson
-import me.mikun.live2d.framework.effect.Live2DBreath
-import me.mikun.live2d.framework.effect.Live2DBreath.BreathParameterData
-import me.mikun.live2d.framework.effect.Live2DEyeBlink
-import me.mikun.live2d.framework.effect.Live2DLipSync
+import me.mikun.live2d.framework.plugin.effect.Live2DBreath
+import me.mikun.live2d.framework.plugin.effect.Live2DBreath.BreathParameterData
+import me.mikun.live2d.framework.plugin.effect.Live2DEyeBlink
+import me.mikun.live2d.framework.plugin.effect.Live2DLipSync
 import me.mikun.live2d.framework.id.Live2DIdManager
 import me.mikun.live2d.ex.model.Live2DUserModelImpl.MotionGroup.IDLE
-import me.mikun.live2d.framework.motion.IBeganMotionCallback
-import me.mikun.live2d.framework.motion.IFinishedMotionCallback
+import me.mikun.live2d.framework.plugin.motion.IBeganMotionCallback
+import me.mikun.live2d.framework.plugin.motion.IFinishedMotionCallback
 import me.mikun.live2d.ex.model.motion.motion.Live2DExpressionManager
-import me.mikun.live2d.framework.motion.motion.Live2DMotion
+import me.mikun.live2d.framework.plugin.motion.motion.Live2DMotion
 import me.mikun.live2d.ex.model.motion.expression.Live2DMotionManager
 import kotlinx.serialization.json.Json
 import kotlin.collections.getOrPut

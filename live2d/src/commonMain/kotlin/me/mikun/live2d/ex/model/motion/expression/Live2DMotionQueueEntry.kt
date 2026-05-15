@@ -4,11 +4,11 @@ import me.mikun.live2d.framework.id.Live2DIdManager
 import me.mikun.live2d.framework.utils.math.CubismMath.getEasingSine
 import me.mikun.live2d.framework.model.Live2DModel
 import me.mikun.live2d.ex.model.motion.ALive2DMotionQueueEntry
-import me.mikun.live2d.framework.motion.motion.Live2DMotion
-import me.mikun.live2d.framework.motion.motion.Live2DMotionInternal.CubismMotionCurveTarget
-import me.mikun.live2d.framework.motion.motion.Live2DMotion.Companion.EffectID
-import me.mikun.live2d.framework.motion.motion.Live2DMotion.Companion.MotionBehavior
-import me.mikun.live2d.framework.motion.motion.Live2DMotion.Companion.OpacityID
+import me.mikun.live2d.framework.plugin.motion.motion.Live2DMotion
+import me.mikun.live2d.framework.plugin.motion.motion.Live2DMotionInternal.CubismMotionCurveTarget
+import me.mikun.live2d.framework.plugin.motion.motion.Live2DMotion.Companion.EffectID
+import me.mikun.live2d.framework.plugin.motion.motion.Live2DMotion.Companion.MotionBehavior
+import me.mikun.live2d.framework.plugin.motion.motion.Live2DMotion.Companion.OpacityID
 import me.mikun.live2d.framework.utils.switchStateTo
 
 class Live2DMotionQueueEntry(

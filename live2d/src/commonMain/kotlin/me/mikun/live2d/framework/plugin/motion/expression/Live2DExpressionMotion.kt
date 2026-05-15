@@ -4,10 +4,10 @@
  * Use of this source code is governed by the Live2D Open Software license
  * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
  */
-package me.mikun.live2d.framework.motion.expression
+package me.mikun.live2d.framework.plugin.motion.expression
 
 import me.mikun.live2d.framework.id.Live2DId
-import me.mikun.live2d.framework.motion.ALive2DMotion
+import me.mikun.live2d.framework.plugin.motion.ALive2DMotion
 import me.mikun.live2d.framework.data.ExpressionJson
 import me.mikun.live2d.framework.id.Live2DIdManager
 import kotlinx.serialization.json.Json

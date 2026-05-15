@@ -1,14 +1,14 @@
-package me.mikun.live2d.framework.motion.motion
+package me.mikun.live2d.framework.plugin.motion.motion
 
 import me.mikun.live2d.framework.data.MotionJson
 import me.mikun.live2d.framework.id.Live2DId
 import me.mikun.live2d.framework.id.Live2DIdManager
 import me.mikun.live2d.framework.utils.math.CubismMath
-import me.mikun.live2d.framework.motion.ALive2DMotion
-import me.mikun.live2d.framework.motion.motion.Live2DMotionInternal.CubismMotionPoint
-import me.mikun.live2d.framework.motion.motion.Live2DMotionInternal.CubismMotionSegmentType
-import me.mikun.live2d.framework.motion.IBeganMotionCallback
-import me.mikun.live2d.framework.motion.IFinishedMotionCallback
+import me.mikun.live2d.framework.plugin.motion.ALive2DMotion
+import me.mikun.live2d.framework.plugin.motion.motion.Live2DMotionInternal.CubismMotionPoint
+import me.mikun.live2d.framework.plugin.motion.motion.Live2DMotionInternal.CubismMotionSegmentType
+import me.mikun.live2d.framework.plugin.motion.IBeganMotionCallback
+import me.mikun.live2d.framework.plugin.motion.IFinishedMotionCallback
 import kotlinx.serialization.json.Json
 import kotlin.math.max
 

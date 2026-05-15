@@ -1,4 +1,4 @@
-package me.mikun.live2d.framework.effect
+package me.mikun.live2d.framework.plugin.effect
 
 import me.mikun.live2d.framework.data.ModelJson
 import me.mikun.live2d.framework.id.Live2DId

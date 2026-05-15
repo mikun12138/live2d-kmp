@@ -1,4 +1,4 @@
-package me.mikun.live2d.framework.userdata
+package me.mikun.live2d.framework.plugin.userdata
 
 import me.mikun.live2d.framework.data.UserDataJson
 import me.mikun.live2d.framework.id.Live2DId

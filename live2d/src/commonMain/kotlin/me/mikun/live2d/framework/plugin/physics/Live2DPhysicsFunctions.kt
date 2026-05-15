@@ -6,7 +6,7 @@
  *  * that can be found at http://live2d.com/eula/live2d-open-software-license-agreement_en.html.
  *
  */
-package me.mikun.live2d.framework.physics
+package me.mikun.live2d.framework.plugin.physics
 
 import me.mikun.live2d.framework.utils.math.CubismMath
 import me.mikun.live2d.framework.utils.math.CubismVector2
