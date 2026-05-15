@@ -2,6 +2,7 @@ package me.mikun.sandbox
 
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.opengl.EGL14
 import android.opengl.GLES20.GL_ARRAY_BUFFER
 import android.opengl.GLES20.GL_BLEND
 import android.opengl.GLES20.GL_CCW
@@ -43,18 +44,15 @@ import android.opengl.GLES20.glGenerateMipmap
 import android.opengl.GLES20.glTexParameteri
 import android.opengl.GLES20.glVertexAttribPointer
 import android.opengl.GLES20.glViewport
-import android.opengl.GLES30.GL_MAP_INVALIDATE_BUFFER_BIT
-import android.opengl.GLES30.GL_MAP_WRITE_BIT
 import android.opengl.GLES30.glBindVertexArray
 import android.opengl.GLES30.glGenVertexArrays
-import android.opengl.GLES30.glMapBufferRange
-import android.opengl.GLES30.glUnmapBuffer
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.os.Bundle
+import android.view.Surface
+import android.view.SurfaceHolder
 import androidx.activity.ComponentActivity
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
-import me.mikun.live2d.core.Live2DCoreImpl
 import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import me.mikun.live2d.ex.rendering.Live2DDrawableContext
@@ -92,8 +90,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        println("version: " + Live2DCoreImpl.getVersion())
-
         copyAssets(this, "")
         userModel.init("${filesDir.absolutePath}/Mao", "Mao.model3.json")
 
@@ -103,7 +99,6 @@ class MainActivity : ComponentActivity() {
         _glSurfaceView!!.renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
 
         setContentView(_glSurfaceView)
-
     }
 }
 
@@ -114,7 +109,6 @@ object GLRenderer : ALive2DRenderer.PreClip(
     pushFrameBufferFun = Live2DRenderState::pushFrameBuffer,
 ), GLSurfaceView.Renderer {
     override fun onDrawFrame(p0: GL10?) {
-
         glClearColor(
             0.0f,
             0.0f,
@@ -129,7 +123,7 @@ object GLRenderer : ALive2DRenderer.PreClip(
         val matrix = CubismMatrix44.create().apply {
             loadIdentity()
             scale(
-                1920.0f / 1080.0f,
+                1080.0f / 1920.0f,
                 1.0f
             )
         }
@@ -143,6 +137,7 @@ object GLRenderer : ALive2DRenderer.PreClip(
 
         this.mvp.setMatrix(matrix)
         doFrame()
+
     }
 
     override fun onSurfaceChanged(
@@ -157,8 +152,10 @@ object GLRenderer : ALive2DRenderer.PreClip(
         p0: GL10?,
         p1: EGLConfig?,
     ) {
-        Live2DFramework.init()
+        val eglDisplay = EGL14.eglGetDisplay(EGL14.EGL_DEFAULT_DISPLAY)
+        EGL14.eglSwapInterval(eglDisplay, 0)
 
+        Live2DFramework.init()
         glTexParameteri(
             GL_TEXTURE_2D,
             GL_TEXTURE_MAG_FILTER,
@@ -184,6 +181,31 @@ object GLRenderer : ALive2DRenderer.PreClip(
                 createOffscreenSurface(
                     512.0f, 512.0f
                 )
+            }
+        }
+    }
+
+    override fun doUpdateData() {
+        super.doUpdateData()
+        drawableVertexArrayArray.forEachIndexed { index, vertexArray ->
+            with(drawableContextArray[index].vertex) {
+                vertexArray.positionsBuffer
+                    .clear()
+                vertexArray.positionsBuffer
+                    .put(positionsArray)
+                    .position(0)
+
+                vertexArray.texCoordsBuffer
+                    .clear()
+                vertexArray.texCoordsBuffer
+                    .put(texCoordsArray)
+                    .position(0)
+
+                vertexArray.indicesBuffer
+                    ?.clear()
+                vertexArray.indicesBuffer
+                    ?.put(indicesArray)
+                    ?.position(0)
             }
         }
     }
@@ -261,7 +283,7 @@ object GLRenderer : ALive2DRenderer.PreClip(
 
     class Texture {
         val id: Int
-        val isPremultipliedAlpha: Boolean = true
+        val isPremultipliedAlpha: Boolean = false
 
         private constructor(bytes: ByteArray) {
             val textureIds = IntArray(1)
@@ -272,7 +294,12 @@ object GLRenderer : ALive2DRenderer.PreClip(
                 throw RuntimeException("Error generating texture name.")
             }
 
-            val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            val bitmap = BitmapFactory.decodeByteArray(
+                bytes, 0, bytes.size,
+                BitmapFactory.Options().apply {
+                    inPremultiplied = false
+                }
+            )
 
             glBindTexture(
                 GL_TEXTURE_2D,
@@ -328,7 +355,7 @@ object GLRenderer : ALive2DRenderer.PreClip(
         val vbos = IntArray(2)
 
         var ebo: Int = -1
-        lateinit var indicesBuffer: ShortBuffer
+        var indicesBuffer: ShortBuffer? = null
         val ebos = IntArray(1)
     }
 
@@ -348,25 +375,16 @@ object GLRenderer : ALive2DRenderer.PreClip(
                     val dataSize = (positionsArray.size * 4).toLong()
 
                     glBindBuffer(GL_ARRAY_BUFFER, vboPosition)
+                    positionsBuffer = ByteBuffer.allocateDirect(dataSize.toInt())
+                        .order(ByteOrder.nativeOrder())
+                        .asFloatBuffer()
+                    positionsBuffer.put(0, positionsArray)
                     glBufferData(
                         GL_ARRAY_BUFFER,
                         dataSize.toInt(),
-                        null,
+                        positionsBuffer,
                         GL_DYNAMIC_DRAW
                     )
-
-                    val mappedBuffer = glMapBufferRange(
-                        GL_ARRAY_BUFFER,
-                        0,
-                        dataSize.toInt(),
-                        GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT
-                    ) as ByteBuffer
-
-                    positionsBuffer = mappedBuffer.order(ByteOrder.nativeOrder()).asFloatBuffer()
-                    positionsBuffer.put(positionsArray)
-                    positionsBuffer.flip()
-
-                    glUnmapBuffer(GL_ARRAY_BUFFER)
 
                     glVertexAttribPointer(0, 2, GL_FLOAT, false, 0, 0)
                     glEnableVertexAttribArray(0)
@@ -377,23 +395,16 @@ object GLRenderer : ALive2DRenderer.PreClip(
                     val texSize = (texCoordsArray.size * 4).toLong()
 
                     glBindBuffer(GL_ARRAY_BUFFER, vboTexCoord)
+                    texCoordsBuffer = ByteBuffer.allocateDirect(texSize.toInt())
+                        .order(ByteOrder.nativeOrder())
+                        .asFloatBuffer()
+                    texCoordsBuffer.put(0, texCoordsArray)
                     glBufferData(
                         GL_ARRAY_BUFFER,
                         texSize.toInt(),
-                        null,
+                        texCoordsBuffer,
                         GL_DYNAMIC_DRAW
                     )
-                    val mappedTexBuffer = glMapBufferRange(
-                        GL_ARRAY_BUFFER,
-                        0,
-                        texSize.toInt(),
-                        GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT
-                    ) as ByteBuffer
-                    texCoordsBuffer = mappedTexBuffer.order(ByteOrder.nativeOrder()).asFloatBuffer()
-                    texCoordsBuffer.put(texCoordsArray)
-                    texCoordsBuffer.flip()
-
-                    glUnmapBuffer(GL_ARRAY_BUFFER)
 
                     glVertexAttribPointer(1, 2, GL_FLOAT, false, 0, 0)
                     glEnableVertexAttribArray(1)
@@ -407,25 +418,17 @@ object GLRenderer : ALive2DRenderer.PreClip(
                     if (indicesArray.isNotEmpty()) {
                         val dataSize = (indicesArray.size * 2) // Short
 
+                        indicesBuffer = ByteBuffer.allocateDirect(dataSize.toInt())
+                            .order(ByteOrder.nativeOrder())
+                            .asShortBuffer()
+                        indicesBuffer!!.put(0, indicesArray)
+
                         glBufferData(
                             GL_ELEMENT_ARRAY_BUFFER,
                             dataSize,
-                            null,
+                            indicesBuffer,
                             GL_STATIC_DRAW
                         )
-
-                        val mappedBuffer = glMapBufferRange(
-                            GL_ELEMENT_ARRAY_BUFFER,
-                            0,
-                            dataSize,
-                            GL_MAP_WRITE_BIT or GL_MAP_INVALIDATE_BUFFER_BIT
-                        ) as ByteBuffer
-
-                        indicesBuffer = mappedBuffer.order(ByteOrder.nativeOrder()).asShortBuffer()
-                        indicesBuffer.put(indicesArray)
-                        indicesBuffer.flip()
-
-                        glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER)
                     }
                 }
 
@@ -436,10 +439,28 @@ object GLRenderer : ALive2DRenderer.PreClip(
 }
 
 object Timer {
+    val start = System.nanoTime()
+
+    object Fps {
+        var lastC = start
+        var v = 0
+        var now = start
+    }
+
     fun update() {
         current = System.nanoTime()
         delta = current - last
         last = current
+
+        with(Fps) {
+            v++
+            if (now - lastC > 1000000000) {
+                lastC += 1000000000
+                println(v)
+                v = 0
+            }
+            now = System.nanoTime()
+        }
     }
 
     var current: Long = 0

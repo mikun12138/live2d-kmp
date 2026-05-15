@@ -81,137 +81,70 @@ actual object Live2DCoreImpl {
             Live2DCubismCoreFFM.csmGetParameterValues(model.nativeHandle).also { values ->
                 val values =
                     values.reinterpret(parameterCount * ValueLayout.JAVA_FLOAT.byteSize())
-                for (i in 0 until parameterCount) {
-                    model.parameters.values[i] =
-                        values.getAtIndex(
-                            ValueLayout.JAVA_FLOAT,
-                            i.toLong()
-                        )
-                }
+                MemorySegment.copy(values, ValueLayout.JAVA_FLOAT, 0L, model.parameters.values, 0, parameterCount)
             }
         }
 
-        Live2DCubismCoreFFM.csmGetPartCount(model.nativeHandle).let { parameterCount ->
+        Live2DCubismCoreFFM.csmGetPartCount(model.nativeHandle).let { partCount ->
             Live2DCubismCoreFFM.csmGetPartOpacities(model.nativeHandle).also { values ->
                 val values =
-                    values.reinterpret(parameterCount * ValueLayout.JAVA_FLOAT.byteSize())
-                for (i in 0 until parameterCount) {
-                    model.parts.opacities[i] =
-                        values.getAtIndex(
-                            ValueLayout.JAVA_FLOAT,
-                            i.toLong()
-                        )
-                }
+                    values.reinterpret(partCount * ValueLayout.JAVA_FLOAT.byteSize())
+                MemorySegment.copy(values, ValueLayout.JAVA_FLOAT, 0L, model.parts.opacities, 0, partCount)
             }
         }
 
         Live2DCubismCoreFFM.csmGetDrawableCount(model.nativeHandle).let { drawableCount ->
-
             Live2DCubismCoreFFM.csmGetDrawableConstantFlags(model.nativeHandle).also { flags ->
                 val flags = flags.reinterpret(drawableCount * ValueLayout.JAVA_BYTE.byteSize())
-                for (i in 0 until drawableCount) {
-                    model.drawables.constantFlags[i] =
-                        flags.getAtIndex(
-                            ValueLayout.JAVA_BYTE,
-                            i.toLong()
-                        )
-                }
+                MemorySegment.copy(flags, ValueLayout.JAVA_BYTE, 0L, model.drawables.constantFlags, 0, drawableCount)
             }
-
             Live2DCubismCoreFFM.csmGetDrawableDynamicFlags(model.nativeHandle).also { flags ->
                 val flags = flags.reinterpret(drawableCount * ValueLayout.JAVA_BYTE.byteSize())
-                for (i in 0 until drawableCount) {
-                    model.drawables.dynamicFlags[i] =
-                        flags.getAtIndex(
-                            ValueLayout.JAVA_BYTE,
-                            i.toLong()
-                        )
-                }
+                MemorySegment.copy(flags, ValueLayout.JAVA_BYTE, 0L, model.drawables.dynamicFlags, 0, drawableCount)
             }
 
             Live2DCubismCoreFFM.csmGetDrawableDrawOrders(model.nativeHandle)
                 .also { drawOrders ->
                     val textureIndices =
                         drawOrders.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
-                    for (i in 0 until drawableCount) {
-                        model.drawables.drawOrders[i] =
-                            textureIndices.getAtIndex(
-                                ValueLayout.JAVA_INT,
-                                i.toLong()
-                            )
-                    }
+                    MemorySegment.copy(textureIndices, ValueLayout.JAVA_INT, 0L, model.drawables.drawOrders, 0, drawableCount)
                 }
 
             Live2DCubismCoreFFM.csmGetDrawableRenderOrders(model.nativeHandle)
                 .also { renderOrders ->
                     val textureIndices =
                         renderOrders.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
-                    for (i in 0 until drawableCount) {
-                        model.drawables.renderOrders[i] =
-                            textureIndices.getAtIndex(
-                                ValueLayout.JAVA_INT,
-                                i.toLong()
-                            )
-                    }
+                    MemorySegment.copy(textureIndices, ValueLayout.JAVA_INT, 0L, model.drawables.renderOrders, 0, drawableCount)
                 }
 
             Live2DCubismCoreFFM.csmGetDrawableOpacities(model.nativeHandle).also { opacities ->
                 val textureIndices =
                     opacities.reinterpret(drawableCount * ValueLayout.JAVA_FLOAT.byteSize())
-                for (i in 0 until drawableCount) {
-                    model.drawables.opacities[i] =
-                        textureIndices.getAtIndex(
-                            ValueLayout.JAVA_FLOAT,
-                            i.toLong()
-                        )
-                }
-
+                MemorySegment.copy(textureIndices, ValueLayout.JAVA_FLOAT, 0L, model.drawables.opacities, 0, drawableCount)
             }
 
-            val vertexCountsList = mutableListOf<Int>()
             Live2DCubismCoreFFM.csmGetDrawableVertexCounts(model.nativeHandle)
                 .also { vertexCounts ->
                     val vertexCounts =
                         vertexCounts.reinterpret(drawableCount * ValueLayout.JAVA_INT.byteSize())
-                    for (i in 0 until drawableCount) {
-                        model.drawables.vertexCounts[i] =
-                            vertexCounts.getAtIndex(
-                                ValueLayout.JAVA_INT,
-                                i.toLong()
-                            ).also {
-                                vertexCountsList.add(it)
-                            }
-                    }
+                    MemorySegment.copy(vertexCounts, ValueLayout.JAVA_INT, 0L, model.drawables.vertexCounts, 0, drawableCount)
                 }
-
 
             Live2DCubismCoreFFM.csmGetDrawableVertexPositions(model.nativeHandle)
                 .also { vertexPositions ->
                     val m0 =
                         vertexPositions.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize())
-                    for (i in 0 until drawableCount) {
-                        val vertexPosition = m0.getAtIndex(
-                            ValueLayout.ADDRESS,
-                            i.toLong()
-                        )
 
-                        vertexPosition.reinterpret(vertexCountsList.get(i) * ValueLayout.JAVA_FLOAT.byteSize() * 2)
-                            .let {
-                                model.drawables.vertexPositions[i] =
-                                    FloatArray(size = vertexCountsList.get(i) * 2)
-                                for (j in 0 until vertexCountsList.get(i)) {
-                                    model.drawables.vertexPositions[i]!![j * 2] =
-                                        it.getAtIndex(
-                                            ValueLayout.JAVA_FLOAT,
-                                            j * 2L
-                                        )
-                                    model.drawables.vertexPositions[i]!![j * 2 + 1] =
-                                        it.getAtIndex(
-                                            ValueLayout.JAVA_FLOAT,
-                                            j * 2L + 1L
-                                        )
-                                }
-                            }
+                    for (i in 0 until drawableCount) {
+                        val vertexCount = model.drawables.vertexCounts[i]
+                        val floatCount = vertexCount * 2
+
+                        val singleVertexPtr = m0.getAtIndex(ValueLayout.ADDRESS, i.toLong())
+                            .reinterpret(floatCount * ValueLayout.JAVA_FLOAT.byteSize())
+
+                        val targetArray = model.drawables.vertexPositions[i]
+
+                        MemorySegment.copy(singleVertexPtr, ValueLayout.JAVA_FLOAT, 0L, targetArray, 0, floatCount)
                     }
                 }
 
@@ -220,15 +153,11 @@ actual object Live2DCoreImpl {
                     val multiplyColors =
                         multiplyColors.reinterpret(drawableCount * ValueLayout.ADDRESS.byteSize() * 4)
                     for (i in 0 until drawableCount) {
-                        model.drawables.multiplyColors[i] = FloatArray(size = 4)
-                        for (j in 0 until 4) {
-                            model.drawables.multiplyColors[i]!![j] = multiplyColors.getAtIndex(
-                                ValueLayout.JAVA_FLOAT,
-                                i * 4 + j.toLong()
-                            )
-                        }
+                        val targetColorArray = model.drawables.multiplyColors[i] ?: continue
+                        MemorySegment.copy(multiplyColors, ValueLayout.JAVA_FLOAT, i * 4L * ValueLayout.JAVA_FLOAT.byteSize(), targetColorArray, 0, 4)
                     }
                 }
+
         }
     }
 
