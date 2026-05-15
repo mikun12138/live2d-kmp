@@ -11,18 +11,14 @@ import me.mikun.live2d.core.CubismMoc
 class Live2DMoc {
     val moc: CubismMoc
 
-    private val live2DModelList: MutableList<Live2DModel> = mutableListOf()
-
-    constructor(mocBytes: ByteArray, checkMocConsistency: Boolean = false) {
+    constructor(mocBytes: ByteArray, checkMocConsistency: Boolean = true) {
         moc = CubismMoc(mocBytes, checkMocConsistency)
     }
 
     fun instantiateModel(): Live2DModel {
         return Live2DModel(
             moc.instantiateModel()
-        ).also {
-            live2DModelList.add(it)
-        }
+        )
     }
 
 }

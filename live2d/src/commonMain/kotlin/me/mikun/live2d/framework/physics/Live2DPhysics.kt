@@ -347,7 +347,7 @@ class Live2DPhysics {
 
                 // TODO:: 真的需要在这里set吗
                 model.setParameterValue(
-                    model.getParameterIndex(currentOutput.destination.id),
+                    model.getParameterIndexOrCreate(currentOutput.destination.id),
                     updateOutputParameterValue(
                         model.getParameterValue(currentOutput.destination.id),
                         model.getParameterMinimumValue(currentOutput.destination.id),

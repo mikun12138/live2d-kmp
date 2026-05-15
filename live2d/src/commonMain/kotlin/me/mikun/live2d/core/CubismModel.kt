@@ -14,7 +14,7 @@ class CubismModel {
     lateinit var drawables: CubismDrawables
         internal set
 
-    val nativeHandle: Long
+    internal val nativeHandle: Long
 
     internal constructor(nativeHandle: Long) {
         this.nativeHandle = nativeHandle

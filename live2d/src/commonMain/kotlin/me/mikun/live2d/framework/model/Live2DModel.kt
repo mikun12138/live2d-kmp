@@ -9,90 +9,48 @@ package me.mikun.live2d.framework.model
 import me.mikun.live2d.core.CubismDrawableFlag.ConstantFlag
 import me.mikun.live2d.core.CubismDrawableFlag.DynamicFlag
 import me.mikun.live2d.core.CubismModel
-import me.mikun.live2d.core.CubismParameterView
 import me.mikun.live2d.core.CubismPartView
-import me.mikun.live2d.framework.id.Live2DId
 import me.mikun.live2d.ex.rendering.CubismBlendMode
 import me.mikun.live2d.ex.rendering.Live2DColor
-import kotlin.collections.mutableListOf
+import me.mikun.live2d.framework.id.Live2DId
 import kotlin.experimental.and
 
 class Live2DModel {
     private val model: CubismModel
 
-    constructor(model: CubismModel) {
+    internal constructor(model: CubismModel) {
         this.model = model
-
-        val multiplyColor = Live2DColor(
-            1.0f,
-            1.0f,
-            1.0f,
-            1.0f
-        )
-        val screenColor = Live2DColor(
-            0.0f,
-            0.0f,
-            0.0f,
-            1.0f
-        )
-
-        model.drawableViews.let { drawableViews ->
-            userDrawableMultiplyColors = List(drawableViews.size) {
-                DrawableColorData(multiplyColor)
-            }
-            userDrawableScreenColors = List(drawableViews.size) {
-                DrawableColorData(screenColor)
-            }
-            userDrawableCullings = List(drawableViews.size) {
-                DrawableCullingData()
-            }
-        }
     }
 
-    data class DrawableColorData(
-        var color: Live2DColor,
-        var isOverwritten: Boolean = false,
-    )
-
-    data class PartColorData(
-        var color: Live2DColor,
-        var isOverwritten: Boolean = false,
-    )
-
-    data class DrawableCullingData(
-        var isCulling: Boolean = false,
-        var isOverWritten: Boolean = false,
-    )
-
-    /**
-     * Update model's parameters.
-     */
     fun update() {
         model.update()
         model.resetDrawableDynamicFlags()
     }
 
-
     /* ---------- *
      * PARAMETERS *
      * ---------- */
 
-    fun getParameterIndex(parameterId: Live2DId): Int {
-        val parameterView: CubismParameterView? = model.findParameterView(parameterId.value)
-        if (parameterView != null) {
-            return parameterView.index
+    private fun createParameter(parameterId: Live2DId): Int {
+        val parameterIndex = model.parameterViews.size + notExistParameterId2Index.size
+        notExistParameterId2Index[parameterId] = parameterIndex
+        notExistParameterIndices.add(parameterIndex)
+        notExistParameterValues.add(0.0f)
+        return parameterIndex
+    }
+
+    fun getParameterIndexOrCreate(parameterId: Live2DId): Int {
+        model.findParameterView(parameterId.value)?.let {
+            return it.index
         }
 
-        notExistParameterIds[parameterId]?.let {
+        notExistParameterId2Index[parameterId]?.let {
             return it
         }
 
-        val parameterIndex = model.parameterViews.size + notExistParameterIds.size
-        notExistParameterIds.put(parameterId, parameterIndex)
-        notExistParameterIndices.add(parameterIndex)
-        notExistParameterValues.add(0.0f)
-
-        return parameterIndex
+        createParameter(parameterId).let {
+            return it
+        }
     }
 
     val parameterCount: Int
@@ -104,7 +62,7 @@ class Live2DModel {
 
     fun getParameterMinimumValue(parameterId: Live2DId): Float {
         return getParameterMinimumValue(
-            getParameterIndex(parameterId)
+            getParameterIndexOrCreate(parameterId)
         )
     }
 
@@ -114,7 +72,7 @@ class Live2DModel {
 
     fun getParameterMaximumValue(parameterId: Live2DId): Float {
         return getParameterMaximumValue(
-            getParameterIndex(parameterId)
+            getParameterIndexOrCreate(parameterId)
         )
     }
 
@@ -124,13 +82,13 @@ class Live2DModel {
 
     fun getParameterDefaultValue(parameterId: Live2DId): Float {
         return getParameterDefaultValue(
-            getParameterIndex(parameterId)
+            getParameterIndexOrCreate(parameterId)
         )
     }
 
     fun getParameterValue(parameterId: Live2DId): Float {
         return getParameterValue(
-            getParameterIndex(parameterId)
+            getParameterIndexOrCreate(parameterId)
         )
     }
 
@@ -145,7 +103,7 @@ class Live2DModel {
     }
 
     fun setParameterValue(parameterId: Live2DId, value: Float, weight: Float = 1.0f) {
-        val index = getParameterIndex(parameterId)
+        val index = getParameterIndexOrCreate(parameterId)
         setParameterValue(index, value, weight)
     }
 
@@ -433,7 +391,7 @@ class Live2DModel {
     /**
      * List of IDs for non-existent parameters
      */
-    private val notExistParameterIds: MutableMap<Live2DId, Int> = HashMap()
+    private val notExistParameterId2Index: MutableMap<Live2DId, Int> = HashMap()
     private val notExistParameterIndices = mutableListOf<Int>()
     private var notExistParameterValues = mutableListOf<Float>()
 
@@ -446,8 +404,5 @@ class Live2DModel {
      */
     private var savedParameters = FloatArray(1)
 
-    private var userDrawableMultiplyColors: List<DrawableColorData>
-    private var userDrawableScreenColors: List<DrawableColorData>
-    private var userDrawableCullings: List<DrawableCullingData>
 }
 
