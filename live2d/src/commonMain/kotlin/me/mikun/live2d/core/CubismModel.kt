@@ -1,9 +1,6 @@
 package me.mikun.live2d.core
 
 class CubismModel {
-    val parameterViews: Array<CubismParameterView>
-    val partViews: Array<CubismPartView>
-    val drawableViews: Array<CubismDrawableView>
 
     lateinit var canvasInfo: CubismCanvasInfo
         internal set
@@ -20,16 +17,6 @@ class CubismModel {
         this.nativeHandle = nativeHandle
 
         Live2DCoreImpl.initializeJavaModelWithNativeModel(this)
-
-        this.parameterViews = Array(this.parameters.count) {
-            CubismParameterView(it, this.parameters)
-        }
-        this.partViews = Array(this.parts.count) {
-            CubismPartView(it, this.parts)
-        }
-        this.drawableViews = Array(this.drawables.count) {
-            CubismDrawableView(it, this.drawables)
-        }
     }
 
 
@@ -43,34 +30,6 @@ class CubismModel {
     fun resetDrawableDynamicFlags() {
         this.throwIfAlreadyReleased()
         Live2DCoreImpl.resetDrawableDynamicFlags(this.nativeHandle)
-    }
-
-
-    fun findParameterView(id: String): CubismParameterView? {
-        repeat(this.parameters.count) {
-            if (this.parameters.ids[it].equals(id)) {
-                return this.parameterViews[it]
-            }
-        }
-        return null
-    }
-
-    fun findPartView(id: String): CubismPartView? {
-        repeat(this.parts.count) {
-            if (this.parts.ids[it].equals(id)) {
-                return this.partViews[it]
-            }
-        }
-        return null
-    }
-
-    fun findDrawableView(id: String): CubismDrawableView? {
-        repeat(this.drawables.count) {
-            if (this.drawables.ids[it].equals(id)) {
-                return this.drawableViews[it]
-            }
-        }
-        return null
     }
 
     private fun throwIfAlreadyReleased() {

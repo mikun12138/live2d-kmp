@@ -40,52 +40,6 @@ object CubismMath {
         return value
     }
 
-    /**
-     * Caluculate sine value from radian angle value.
-     *
-     * @param x angle(radian)
-     * @return sine value
-     */
-    fun sinF(x: Float): Float {
-        return (sin(x.toDouble())).toFloat()
-    }
-
-    /**
-     * Caluculate cosine value from radian angle value.
-     *
-     * @param x angle(radian)
-     * @return cosine value
-     */
-    fun cosF(x: Float): Float {
-        return (cos(x.toDouble())).toFloat()
-    }
-
-    /**
-     * Calculate the absolute value.
-     *
-     * @param x target value
-     * @return calculated absolute value
-     */
-    fun absF(x: Float): Float {
-        return abs(x)
-    }
-
-    /**
-     * Calculate the square root.
-     *
-     * @param x target value
-     * @return calculated square root value
-     */
-    fun sqrtF(x: Float): Float {
-        return (sqrt(x.toDouble())).toFloat()
-    }
-
-    /**
-     * Calculate the easing processed sin. Can be used for easing during fade in/out.
-     *
-     * @param value target value
-     * @return eased sin value
-     */
     fun getEasingSine(value: Float): Float {
         if (value < 0.0f) {
             return 0.0f
@@ -95,36 +49,17 @@ object CubismMath {
         return (0.5f - 0.5f * cos((value * PI).toDouble())).toFloat()
     }
 
-    /**
-     * Convert an angle value to a radian value.
-     *
-     * @param degrees angle value[degree]
-     * @return radian value converted from angle value
-     */
     fun degreesToRadian(degrees: Float): Float {
         return (degrees / 180.0f) * PI
     }
 
-    /**
-     * Convert a radian value to an angle value
-     *
-     * @param radian radian value[rad]
-     * @return angle value converted from radian value
-     */
     fun radianToDegrees(radian: Float): Float {
         return (radian * 180.0f) / PI
     }
 
-    /**
-     * Calculate a radian value from two vectors.
-     *
-     * @param from position vector of a starting point
-     * @param to position vector of an end point
-     * @return direction vector calculated from radian value
-     */
     fun directionToRadian(from: CubismVector2, to: CubismVector2): Float {
-        val q1 = atan2(to.y, to.x).toFloat()
-        val q2 = atan2(from.y, from.x).toFloat()
+        val q1 = atan2(to.y, to.x)
+        val q2 = atan2(from.y, from.x)
 
         var radian = q1 - q2
 
@@ -139,13 +74,6 @@ object CubismMath {
         return radian
     }
 
-    /**
-     * Calculate an angle value from two vectors.
-     *
-     * @param from position vector of a starting point
-     * @param to position vector of an end point
-     * @return direction vector calculated from angle value
-     */
     fun directionToDegrees(from: CubismVector2, to: CubismVector2): Float {
         val radian = directionToRadian(from, to)
         var degree = radianToDegrees(radian)
@@ -157,50 +85,25 @@ object CubismMath {
         return degree
     }
 
-    /**
-     * Convert a radian value to a direction vector.
-     *
-     * @param totalAngle radian value
-     * @param result CubismVector2 instance for storing calculation results
-     * @return direction vector calculated from radian value
-     */
     fun radianToDirection(totalAngle: Float, result: CubismVector2): CubismVector2 {
-        result.x = sinF(totalAngle)
-        result.y = cosF(totalAngle)
+        result.x = sin(totalAngle)
+        result.y = cos(totalAngle)
 
         return result
     }
 
-    /**
-     * Calculate the solution to the quadratic equation.
-     *
-     * @param a coefficient value of quadratic term
-     * @param b coefficient value of the first order term
-     * @param c value of constant term
-     * @return solution of a quadratic equation
-     */
     fun quadraticEquation(a: Float, b: Float, c: Float): Float {
-        if (absF(a) < EPSILON) {
-            if (absF(b) < EPSILON) {
+        if (abs(a) < EPSILON) {
+            if (abs(b) < EPSILON) {
                 return -c
             }
             return -c / b
         }
-        return -(b + sqrtF(b * b - 4.0f * a * c)) / (2.0f * a)
+        return -(b + sqrt(b * b - 4.0f * a * c)) / (2.0f * a)
     }
 
-    /**
-     * Calculate the solution of the cubic equation corresponding to the Bezier's t-value by the Cardano's formula.
-     * Returns a solution that has a value of 0.0~1.0 when it is a multiple solution.
-     *
-     * @param a coefficient value of cubic term
-     * @param b coefficient value of quadratic term
-     * @param c coefficient value of the first order term
-     * @param d value of constant term
-     * @return solution between 0.0~1.0
-     */
     fun cardanoAlgorithmForBezier(a: Float, b: Float, c: Float, d: Float): Float {
-        if (absF(a) < EPSILON) {
+        if (abs(a) < EPSILON) {
             return rangeF(quadraticEquation(b, c, d), 0.0f, 1.0f)
         }
         val ba = b / a
@@ -219,7 +122,7 @@ object CubismMath {
         if (discriminant < 0.0f) {
             val mp3 = -p / 3.0f
             val mp33 = mp3 * mp3 * mp3
-            val r = sqrtF(mp33)
+            val r = sqrt(mp33)
             val t = -q / (2.0f * r)
             val cosphi = rangeF(
                 t,
@@ -229,17 +132,17 @@ object CubismMath {
             val crtr = cbrt(r.toDouble()).toFloat()
             val t1 = 2.0f * crtr
 
-            val root1 = t1 * cosF(phi / 3.0f) - ba / 3.0f
+            val root1 = t1 * cos(phi / 3.0f) - ba / 3.0f
             if (abs(root1 - center) < threshold) {
                 return rangeF(root1, 0.0f, 1.0f)
             }
 
-            val root2 = t1 * cosF((phi + 2.0f * PI) / 3.0f) - ba / 3.0f
+            val root2 = t1 * cos((phi + 2.0f * PI) / 3.0f) - ba / 3.0f
             if (abs(root2 - center) < threshold) {
                 return rangeF(root2, 0.0f, 1.0f)
             }
 
-            val root3 = t1 * cosF((phi + 4.0f * PI) / 3.0f) - ba / 3.0f
+            val root3 = t1 * cos((phi + 4.0f * PI) / 3.0f) - ba / 3.0f
             return rangeF(root3, 0.0f, 1.0f)
         }
 
@@ -260,31 +163,10 @@ object CubismMath {
             return rangeF(root2, 0.0f, 1.0f)
         }
 
-        val sd = sqrtF(discriminant)
+        val sd = sqrt(discriminant)
         val u1 = cbrt((sd - q2).toDouble()).toFloat()
         val v1 = cbrt((sd + q2).toDouble()).toFloat()
         val root1 = u1 - v1 - ba / 3.0f
         return rangeF(root1, 0.0f, 1.0f)
-    }
-
-    /**
-     * 浮動小数点の余りを求める。
-     *
-     * @param dividend 被除数（割られる値）
-     * @param divisor  除数（割る値）
-     * @return 余り
-     */
-    fun modF(dividend: Float, divisor: Float): Float {
-        if (dividend.isInfinite()
-            || divisor.compareTo(0.0f) == 0 || dividend.isNaN()
-            || divisor.isNaN()
-        ) {
-            Live2DLogger.warning(
-                "dividend: $dividend, divisor: $divisor ModF() returns 'NaN'."
-            )
-            return Float.Companion.NaN
-        }
-
-        return dividend % divisor
     }
 }

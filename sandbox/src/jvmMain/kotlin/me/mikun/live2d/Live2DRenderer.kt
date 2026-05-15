@@ -2,7 +2,6 @@ package me.mikun.live2d
 
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import me.mikun.live2d.ex.model.ALive2DUserModel
-import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import me.mikun.live2d.ex.rendering.Live2DDrawableContext
 import org.lwjgl.opengl.GL11.GL_NEAREST
@@ -63,7 +62,7 @@ class Live2DRenderer(
     pushViewportFun = Live2DRenderState::pushViewPort,
     pushFrameBufferFun = Live2DRenderState::pushFrameBuffer,
 ) {
-    var mvp: CubismMatrix44 = CubismMatrix44.create()
+    var mvp: CubismMatrix44 = CubismMatrix44()
 
     override val offscreenSurfaces: Array<Live2DOffscreenSurface> = Array(offScreenBufferCount) {
         Live2DOffscreenSurface().apply {
@@ -235,7 +234,7 @@ class Live2DRenderer(
 
 
     fun frame(mvp: CubismMatrix44) {
-        this.mvp.setMatrix(mvp)
+        this.mvp.set(mvp)
         doFrame()
     }
 

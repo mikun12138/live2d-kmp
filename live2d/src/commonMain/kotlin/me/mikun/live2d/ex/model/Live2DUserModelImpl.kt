@@ -143,7 +143,6 @@ open class Live2DUserModelImpl : ALive2DUserModel() {
         // TODO:: layout
 //        modelJson.layout
 
-        model.saveParameters()
     }
 
     override fun doUpdate(deltaSeconds: Float) {
@@ -153,7 +152,6 @@ open class Live2DUserModelImpl : ALive2DUserModel() {
 
         // モーションによるパラメーター更新の有無
         var isMotionUpdated = false
-        model.loadParameters()
         run {
             if (motionManager.isFinished) {
                 startRandomMotion(
@@ -164,13 +162,13 @@ open class Live2DUserModelImpl : ALive2DUserModel() {
                 isMotionUpdated = motionManager.update(model, deltaSeconds)
             }
         }
-        model.saveParameters()
 
         // expression
         expressionManager.update(model, deltaSeconds)
 
         // physics
-        physics?.update(model, deltaSeconds)
+        // TODO:: fix
+//        physics?.update(model, deltaSeconds)
 
         // userData
         // TODO::

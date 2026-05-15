@@ -17,74 +17,12 @@ abstract class ALive2DUserModel protected constructor() {
     var totalSeconds = 0.0f
     var lastTotalSeconds = 0.0f
 
-    /**
-     * Get the collision detection.
-     *
-     *
-     * Get whether the Drawable has been hit at the specified position.
-     *
-     * @param drawableId Drawable ID which will be verified.
-     * @param pointX X-position
-     * @param pointY Y-position
-     * @return true      If it is hit, return true.
-     */
-    /*
-        fun isHit(drawableId: CubismId, pointX: Float, pointY: Float): Boolean {
-            val drawIndex = model.getDrawableIndex(drawableId)
-
-            // If there are no hit Drawable, return false
-            if (drawIndex < 0) {
-                return false
-            }
-
-            val count = model.getDrawableVertexCount(drawIndex)
-            val vertices = model.getDrawableVertices(drawIndex)
-
-            var left = vertices!![0]
-            var right = vertices[0]
-            var top = vertices[1]
-            var bottom = vertices[1]
-
-
-            for (i in 1..<count) {
-                val x = vertices[VERTEX_OFFSET + i * VERTEX_STEP]
-                val y = vertices[VERTEX_OFFSET + i * VERTEX_STEP + 1]
-
-                if (x < left) {
-                    // Min x
-                    left = x
-                }
-
-                if (x > right) {
-                    // Max x
-                    right = x
-                }
-
-                if (y < top) {
-                    // Min y
-                    top = y
-                }
-
-                if (y > bottom) {
-                    // Max y
-                    bottom = y
-                }
-            }
-
-            val tx: Float = modelMatrix.invertTransformX(pointX)
-            val ty: Float = modelMatrix.invertTransformY(pointY)
-
-            return (left <= tx) && (tx <= right) && (top <= ty) && (ty <= bottom)
-        }
-        */
-
     protected fun loadModel(buffer: ByteArray, shouldCheckMocConsistency: Boolean = false) {
         val moc = Live2DMoc(buffer, shouldCheckMocConsistency)
 
         this.model = moc.instantiateModel()
 
-        this.model.saveParameters()
-        modelMatrix = CubismModelMatrix.Companion.create(this.model.canvasWidth, this.model.canvasHeight)
+        modelMatrix = CubismModelMatrix(this.model.canvasWidth, this.model.canvasHeight)
     }
 
     protected fun loadPose(buffer: ByteArray) {

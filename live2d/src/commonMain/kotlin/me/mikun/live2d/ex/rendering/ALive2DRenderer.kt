@@ -2,7 +2,6 @@ package me.mikun.live2d.ex.rendering
 
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import me.mikun.live2d.ex.model.ALive2DUserModel
-import me.mikun.live2d.ex.model.Live2DUserModelImpl
 import me.mikun.live2d.ex.rendering.ALive2DRenderer.PreClip.ClipContext.Companion.CHANNEL_FLAGS
 import me.mikun.live2d.framework.Live2DFramework.VERTEX_OFFSET
 import me.mikun.live2d.framework.Live2DFramework.VERTEX_STEP
@@ -254,7 +253,7 @@ abstract class ALive2DRenderer {
         fun ClipContext.createMatrixForMask(
             allClippedDrawRect: csmRectF,
         ) {
-            CubismMatrix44.create().apply {
+            CubismMatrix44().apply {
                 loadIdentity()
                 // Layout0..1を、-1..1に変換
                 translateRelative(-1.0f, -1.0f)
@@ -274,14 +273,14 @@ abstract class ALive2DRenderer {
                     -allClippedDrawRect.y
                 )
             }.also {
-                matrixForMask.setMatrix(it)
+                matrixForMask.set(it)
             }
         }
 
         fun ClipContext.createMatrixForDraw(
             allClippedDrawRect: csmRectF,
         ) {
-            CubismMatrix44.create().apply {
+            CubismMatrix44().apply {
                 loadIdentity()
 
                 translateRelative(
@@ -297,7 +296,7 @@ abstract class ALive2DRenderer {
                     -allClippedDrawRect.y
                 )
             }.also {
-                matrixForDraw.setMatrix(it)
+                matrixForDraw.set(it)
             }
         }
 
@@ -363,9 +362,9 @@ abstract class ALive2DRenderer {
             lateinit var layoutBounds: csmRectF
             lateinit var colorChannel: Live2DColor
 
-            val matrixForMask: CubismMatrix44 = CubismMatrix44.Companion.create()
+            val matrixForMask: CubismMatrix44 = CubismMatrix44()
 
-            val matrixForDraw: CubismMatrix44 = CubismMatrix44.Companion.create()
+            val matrixForDraw: CubismMatrix44 = CubismMatrix44()
 
             companion object {
                 val CHANNEL_FLAGS = arrayOf(

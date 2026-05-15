@@ -18,7 +18,7 @@ class Live2DPose {
 
         fun init(model: Live2DModel) {
             parameterIndex = model.getParameterIndexOrCreate(partId)
-            partIndex = model.getPartIndex(partId)
+            partIndex = model.getPartIndexOrCreate(partId)
 
             linkedParameter.forEach {
                 it.init(model)

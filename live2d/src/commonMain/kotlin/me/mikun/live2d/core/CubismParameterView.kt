@@ -24,7 +24,7 @@ class CubismParameterView internal constructor(
     var value: Float
         get() = this.parameters.values[this.index]
         set(value) {
-            this.parameters.values[this.index] = value
+            this.parameters.values[this.index] = value.coerceIn(minimumValue, maximumValue)
         }
 
     val keyCount: Int

@@ -6,133 +6,68 @@
  */
 package com.live2d.sdk.cubism.framework.math
 
-/**
- * 4x4 matrix class for setting model coordinates.
- */
 class CubismModelMatrix : CubismMatrix44 {
-    /**
-     * Set the width.
-     *
-     * @param w width
-     */
+
+    private val width: Float
+
+    private val height: Float
+
+    constructor(w: Float, h: Float) : super() {
+        width = w
+        height = h
+
+        setHeight(2.0f)
+    }
     fun setWidth(w: Float) {
         val scaleX = w / width
         scale(scaleX, scaleX)
     }
 
-    /**
-     * Set the height.
-     *
-     * @param h height
-     */
     fun setHeight(h: Float) {
         val scaleX = h / height
         scale(scaleX, scaleX)
     }
 
-    /**
-     * Set the position.
-     *
-     * @param x X-axis position
-     * @param y Y-axis position
-     */
     fun setPosition(x: Float, y: Float) {
         translate(x, y)
     }
 
-    /**
-     * Set the center position.
-     * Be sure to set the width or height before using this method.
-     *
-     * @param x center position of X-axis
-     * @param y center position of Y-axis
-     */
     fun setCenterPosition(x: Float, y: Float) {
         centerX(x)
         centerY(y)
     }
 
-    /**
-     * Set the position of the upper edge.
-     *
-     * @param y the position of the upper edge
-     */
     fun top(y: Float) {
         setY(y)
     }
 
-    /**
-     * Set the position of the bottom edge.
-     *
-     * @param y the position of the bottom edge
-     */
     fun bottom(y: Float) {
-        val h: Float = height * scaleY
-        translateY(y - h)
+        translateY = y - height * scaleY
     }
 
-    /**
-     * Set the position of the left edge.
-     *
-     * @param x the position of the left edge
-     */
     fun left(x: Float) {
         setX(x)
     }
-
-    /**
-     * Set the position of the right edge.
-     *
-     * @param x the position of the right edge
-     */
     fun right(x: Float) {
-        val w: Float = width * scaleX
-        translateX(x - w)
+        translateX = x - width * scaleX
     }
 
-    /**
-     * Set the center position of X-axis.
-     *
-     * @param x center position of X-axis
-     */
     fun centerX(x: Float) {
-        val w: Float = width * scaleX
-        translateX(x - (w / 2.0f))
+        translateX = x - (width * scaleX / 2.0f)
     }
 
-    /**
-     * Set the position of X-axis.
-     *
-     * @param x position of X-axis
-     */
     fun setX(x: Float) {
-        translateX(x)
+        translateX = x
     }
 
-    /**
-     * Set the center position of Y-axis.
-     *
-     * @param y center position of Y-axis
-     */
     fun centerY(y: Float) {
-        val h: Float = height * scaleY
-        translateY(y - (h / 2.0f))
+        translateY = y - (height * scaleY / 2.0f)
     }
 
-    /**
-     * Set the position of Y-axis.
-     *
-     * @param y position of Y-axis
-     */
     fun setY(y: Float) {
-        translateY(y)
+        translateY = y
     }
 
-    /**
-     * Set position from layout information.
-     *
-     * @param layout layout information
-     */
     fun setupFromLayout(layout: MutableMap<String?, Float?>) {
         val keyWidth = "width"
         val keyHeight = "height"
@@ -178,62 +113,4 @@ class CubismModelMatrix : CubismMatrix44 {
         }
     }
 
-    /**
-     * Constructor
-     */
-    private constructor(w: Float, h: Float) : super() {
-        width = w
-        height = h
-
-        setHeight(2.0f)
-    }
-
-    /**
-     * Copy constructor
-     *
-     * @param modelMatrix model matrix to be copied
-     */
-    private constructor(modelMatrix: CubismModelMatrix) : super() {
-        System.arraycopy(modelMatrix.tr, 0, this.tr, 0, 16)
-        width = modelMatrix.width
-        height = modelMatrix.height
-    }
-
-    /**
-     * width
-     */
-    private val width: Float
-
-    /**
-     * height
-     */
-    private val height: Float
-
-    companion object {
-        /**
-         * Create the new CubismModelMatrix instance with the width and height passed as arguments.
-         *
-         * @param w width
-         * @param h height
-         * @return CubismModelMatrix instance with the width and height
-         *
-         * @throws IllegalArgumentException if arguments equals 0 or are less than 0
-         */
-        fun create(w: Float, h: Float): CubismModelMatrix {
-            require(!(w <= 0 || h <= 0)) { "width or height equals 0 or is less than 0." }
-            return CubismModelMatrix(w, h)
-        }
-
-
-        /**
-         * Create the new CubismModelMatrix instance from the CubismModelMatrix instance.
-         * It works the same way as a copy constructor.
-         *
-         * @param modelMatrix CubismModelMatrix instance to be copied
-         * @return Copied CubismModelMatrix instance
-         */
-        fun create(modelMatrix: CubismModelMatrix): CubismModelMatrix {
-            return CubismModelMatrix(modelMatrix)
-        }
-    }
 }

@@ -13,7 +13,10 @@ import me.mikun.live2d.framework.data.PhysicsJson
 import me.mikun.live2d.framework.id.Live2DId
 import me.mikun.live2d.framework.id.Live2DIdManager
 import me.mikun.live2d.framework.model.Live2DModel
+import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.pow
+import kotlin.math.sin
 
 /**
  * Physics operation class.
@@ -190,7 +193,8 @@ class Live2DPhysics {
 
                 val previousPosition =
                     CubismVector2(physicsRig.particles.get(i - 1).initialPosition)
-                currentParticle.initialPosition = previousPosition.add(radius)
+                previousPosition += radius
+                currentParticle.initialPosition = previousPosition
 
                 currentParticle.position = CubismVector2(currentParticle.initialPosition)
                 currentParticle.lastPosition = CubismVector2(currentParticle.initialPosition)
@@ -294,11 +298,11 @@ class Live2DPhysics {
             radAngle = CubismMath.degreesToRadian(-totalAngle[0])
 
             totalTranslation.x =
-                (totalTranslation.x * CubismMath.cosF(radAngle) - totalTranslation.y * CubismMath.sinF(
+                (totalTranslation.x * cos(radAngle) - totalTranslation.y * sin(
                     radAngle
                 ))
             totalTranslation.y =
-                (totalTranslation.x * CubismMath.sinF(radAngle) + totalTranslation.y * CubismMath.cosF(
+                (totalTranslation.x * sin(radAngle) + totalTranslation.y * cos(
                     radAngle
                 ))
 
@@ -327,10 +331,10 @@ class Live2DPhysics {
                 }
 
                 val translation = CubismVector2()
-                CubismVector2.subtract(
-                    physicsRig.particles.get(baseParticleIndex + particleIndex).position,
-                    physicsRig.particles.get(baseParticleIndex + particleIndex - 1).position,
-                    translation
+                translation.set(
+                    physicsRig.particles.get(baseParticleIndex + particleIndex).position minus physicsRig.particles.get(
+                        baseParticleIndex + particleIndex - 1
+                    ).position
                 )
 
                 outputValue = currentOutput.getValue.getValue(
@@ -509,11 +513,11 @@ class Live2DPhysics {
                 val radAngle = CubismMath.degreesToRadian(-totalAngle[0])
 
                 totalTranslation.x =
-                    totalTranslation.x * CubismMath.cosF(radAngle) - totalTranslation.y * CubismMath.sinF(
+                    totalTranslation.x * cos(radAngle) - totalTranslation.y * sin(
                         radAngle
                     )
                 totalTranslation.y =
-                    totalTranslation.x * CubismMath.sinF(radAngle) + totalTranslation.y * CubismMath.cosF(
+                    totalTranslation.x * sin(radAngle) + totalTranslation.y * cos(
                         radAngle
                     )
 
@@ -546,11 +550,7 @@ class Live2DPhysics {
                     val previousParticle = particles[baseParticleIndex + particleIndex - 1]
 
                     val translation = CubismVector2()
-                    CubismVector2.subtract(
-                        currentParticle.position,
-                        previousParticle.position,
-                        translation
-                    )
+                    translation.set(currentParticle.position minus previousParticle.position)
 
                     val outputValue = currentOutput.getValue.getValue(
                         translation,
@@ -733,40 +733,27 @@ class Live2DPhysics {
                 )
 
                 run {
-                    CubismVector2.multiply(
-                        Companion.currentGravity,
-                        currentParticle.acceleration,
-                        currentParticle.force
-                    ).add(windDirection)
+                    currentParticle.force.set(currentGravity times currentParticle.acceleration) += windDirection
                     delay = currentParticle.delay * deltaTimeSeconds * 30.0f
-                    CubismVector2.subtract(
-                        currentParticle.position,
-                        previousParticle.position,
-                        Companion.direction
-                    )
+                    direction.set(currentParticle.position minus previousParticle.position)
                 }
                 run {
                     radian = CubismMath.directionToRadian(
                         currentParticle.lastGravity,
-                        Companion.currentGravity
+                        currentGravity
                     ) / airResistance
-                    Companion.direction.x =
-                        ((CubismMath.cosF(radian) * Companion.direction.x) - (CubismMath.sinF(radian) * Companion.direction.y))
-                    Companion.direction.y =
-                        ((CubismMath.sinF(radian) * Companion.direction.x) + (Companion.direction.y * CubismMath.cosF(
+                    direction.x =
+                        ((cos(radian) * direction.x) - (sin(radian) * direction.y))
+                    direction.y =
+                        ((sin(radian) * direction.x) + (direction.y * cos(
                             radian
                         )))
                 }
                 run {
-                    CubismVector2.add(
-                        previousParticle.position,
-                        Companion.direction,
-                        currentParticle.position
-                    )
-                    CubismVector2.multiply(currentParticle.velocity, delay, Companion.velocity)
-                    CubismVector2.multiply(currentParticle.force, delay, Companion.force)
-                        .multiply(delay)
-                    currentParticle.position.add(Companion.velocity).add(Companion.force)
+                    currentParticle.position.set(previousParticle.position plus direction)
+                    velocity.set(currentParticle.velocity times delay)
+                    force.set(currentParticle.force times delay) *= delay
+                    currentParticle.position += velocity plus force
                 }
                 run {
                     var newDirectionX: Float =
@@ -785,19 +772,16 @@ class Live2DPhysics {
                         previousParticle.position.y + (newDirectionY * currentParticle.radius)
                 }
 
-                if (CubismMath.absF(currentParticle.position.x) < thresholdValue) {
+                if (abs(currentParticle.position.x) < thresholdValue) {
                     currentParticle.position.x = 0.0f
                 }
 
                 if (delay != 0.0f) {
-                    CubismVector2.subtract(
-                        currentParticle.position,
-                        currentParticle.lastPosition,
-                        currentParticle.velocity
-                    )
+                    currentParticle.velocity =
+                        currentParticle.position minus currentParticle.lastPosition
 
-                    currentParticle.velocity.divide(delay)
-                    currentParticle.velocity.multiply(currentParticle.mobility)
+                    currentParticle.velocity /= delay
+                    currentParticle.velocity *= currentParticle.mobility
                 }
                 currentParticle.force.setZero()
                 currentParticle.lastGravity.set(currentGravity.x, currentGravity.y)
@@ -830,11 +814,7 @@ class Live2DPhysics {
             while (i < strandCount) {
                 val particle: CubismPhysicsParticle =
                     strand.get(baseParticleIndex + i)
-                CubismVector2.multiply(
-                    currentGravityForStablization,
-                    particle.acceleration,
-                    particle.force
-                ).add(windDirection)
+                particle.force.set(currentGravityForStablization times particle.acceleration) += windDirection
 
                 particle.lastPosition.set(particle.position.x, particle.position.y)
                 particle.velocity.setZero()
@@ -842,14 +822,10 @@ class Live2DPhysics {
                 forceForStabilization.set(particle.force.x, particle.force.y)
                 forceForStabilization.normalize()
 
-                forceForStabilization.multiply(particle.radius)
-                CubismVector2.add(
-                    strand.get(baseParticleIndex + i - 1).position,
-                    forceForStabilization,
-                    particle.position
-                )
+                forceForStabilization *= particle.radius
+                particle.position.set(strand.get(baseParticleIndex + i - 1).position plus forceForStabilization)
 
-                if (CubismMath.absF(particle.position.x) < thresholdValue) {
+                if (abs(particle.position.x) < thresholdValue) {
                     particle.position.x = 0.0f
                 }
 

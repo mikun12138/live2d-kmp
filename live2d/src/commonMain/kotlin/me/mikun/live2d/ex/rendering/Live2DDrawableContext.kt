@@ -1,6 +1,5 @@
 package me.mikun.live2d.ex.rendering
 
-import me.mikun.live2d.ex.annotation.Experimental
 import me.mikun.live2d.framework.model.Live2DModel
 
 class Live2DDrawableContext(
@@ -9,7 +8,6 @@ class Live2DDrawableContext(
 ) {
     val textureIndex = model.getDrawableTextureIndex(index)
 
-    @Experimental("")
     val drawOrder = model.getDrawableDrawOrder(index)
     val renderOrder = model.getDrawableRenderOrder(index)
     var opacity = 1.0f
@@ -26,20 +24,15 @@ class Live2DDrawableContext(
 
     var isVisible = false
 
-    @Experimental("")
     var visibilityDidChange = false
 
-    @Experimental("")
     var opacityDidChange = false
 
-    @Experimental("")
     var drawOrderDidChange = false
 
-    @Experimental("")
     var renderOrderDidChange = false
     var vertexPositionDidChange = false
 
-    @Experimental("")
     var blendColorDidChange = false
 
 

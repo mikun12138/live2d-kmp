@@ -49,8 +49,6 @@ import android.opengl.GLES30.glGenVertexArrays
 import android.opengl.GLSurfaceView
 import android.opengl.GLUtils
 import android.os.Bundle
-import android.view.Surface
-import android.view.SurfaceHolder
 import androidx.activity.ComponentActivity
 import com.live2d.sdk.cubism.framework.math.CubismMatrix44
 import me.mikun.live2d.ex.model.Live2DUserModelImpl
@@ -120,7 +118,7 @@ object GLRenderer : ALive2DRenderer.PreClip(
 
         Timer.update()
         // キャッシュ変数の定義を避けるために、multiplyByMatrix()ではなく、multiply()を使用する。
-        val matrix = CubismMatrix44.create().apply {
+        val matrix = CubismMatrix44().apply {
             loadIdentity()
             scale(
                 1080.0f / 1920.0f,
@@ -135,7 +133,7 @@ object GLRenderer : ALive2DRenderer.PreClip(
 
         userModel.update(Timer.deltaF)
 
-        this.mvp.setMatrix(matrix)
+        this.mvp.set(matrix)
         doFrame()
 
     }
@@ -173,7 +171,7 @@ object GLRenderer : ALive2DRenderer.PreClip(
         )
     }
 
-    var mvp: CubismMatrix44 = CubismMatrix44.create()
+    var mvp: CubismMatrix44 = CubismMatrix44()
 
     override val offscreenSurfaces: Array<Live2DOffscreenSurface> by lazy {
         Array(1) {

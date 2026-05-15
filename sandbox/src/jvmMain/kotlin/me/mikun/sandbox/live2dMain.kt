@@ -77,7 +77,7 @@ fun live2dMain(
 
             Timer.update()
             // キャッシュ変数の定義を避けるために、multiplyByMatrix()ではなく、multiply()を使用する。
-            val matrix = CubismMatrix44.create().apply {
+            val matrix = CubismMatrix44().apply {
                 loadIdentity()
                 scale(
                     1080.0f / 1920.0f,
