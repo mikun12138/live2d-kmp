@@ -1,4 +1,4 @@
-package me.mikun.sandbox
+package me.mikun.live2d.sandbox
 
 val resDir = "/home/mikun/workspace/live2d-kmp/sandbox/build/libs/live2DCore/temp/CubismSdkForNative-5-r.4/Samples/Resources/"
 

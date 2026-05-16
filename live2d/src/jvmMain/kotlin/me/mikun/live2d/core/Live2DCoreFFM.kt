@@ -4,7 +4,6 @@ import java.lang.foreign.Arena
 import java.lang.foreign.FunctionDescriptor
 import java.lang.foreign.MemorySegment
 import java.lang.foreign.ValueLayout
-import kotlin.io.path.Path
 
 /*
     v3
@@ -238,7 +237,7 @@ sealed class Live2DCubismCoreFFM : LibraryFFM {
      *
      * @return  Log handler.
      */
-    // TODO::
+    // TODO:: log function
     object csmGetLogFunction
 
     /**

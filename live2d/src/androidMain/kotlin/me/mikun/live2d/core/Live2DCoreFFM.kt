@@ -237,7 +237,7 @@ sealed class Live2DCubismCoreFFM : LibraryFFM {
      *
      * @return  Log handler.
      */
-    // TODO::
+    // TODO:: log function
     object csmGetLogFunction
 
     /**

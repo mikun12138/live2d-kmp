@@ -1,8 +1,10 @@
-package me.mikun.live2d
+package me.mikun.live2d.render.context
 
 import me.mikun.live2d.ex.model.ALive2DUserModel
 import me.mikun.live2d.ex.rendering.context.ALive2DModelRenderContext
 import me.mikun.live2d.framework.utils.math.CubismMatrix44
+import me.mikun.live2d.render.Texture
+import me.mikun.live2d.render.VertexArray
 import org.lwjgl.opengl.GL11.GL_FLOAT
 import org.lwjgl.opengl.GL15.GL_ARRAY_BUFFER
 import org.lwjgl.opengl.GL15.GL_ELEMENT_ARRAY_BUFFER
@@ -27,7 +29,7 @@ class Live2DModelRenderContext(
 
     val drawableTextureArray: Array<Texture> = Array(userModel.model.drawableCount) {
         val drawableContext = drawableContextArray[it]
-        Texture.create(
+        Texture.Companion.create(
             drawableContext.textureIndex,
             userModel.textures[drawableContext.textureIndex]
         )

@@ -49,7 +49,6 @@ abstract class ALive2DMotionQueueEntry(
 
     var startTimePoint: Float = -1.0f
 
-    // TODO:: 你知道我要todo什么
 //    /**
 //     * Fade-in start time[s] (When in a loop, only the first time.)
 //     */

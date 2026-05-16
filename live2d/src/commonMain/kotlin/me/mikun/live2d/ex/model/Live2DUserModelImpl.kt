@@ -1,28 +1,24 @@
 package me.mikun.live2d.ex.model
 
-import me.mikun.live2d.framework.id.Live2DDefaultParameterId
+import kotlinx.serialization.json.Json
+import me.mikun.live2d.ex.model.Live2DUserModelImpl.MotionGroup.IDLE
+import me.mikun.live2d.ex.model.motion.expression.Live2DMotionManager
+import me.mikun.live2d.ex.model.motion.motion.Live2DExpressionManager
 import me.mikun.live2d.framework.data.ModelJson
+import me.mikun.live2d.framework.id.Live2DDefaultParameterId
+import me.mikun.live2d.framework.id.Live2DIdManager
 import me.mikun.live2d.framework.plugin.effect.Live2DBreath
 import me.mikun.live2d.framework.plugin.effect.Live2DBreath.BreathParameterData
 import me.mikun.live2d.framework.plugin.effect.Live2DEyeBlink
 import me.mikun.live2d.framework.plugin.effect.Live2DLipSync
-import me.mikun.live2d.framework.id.Live2DIdManager
-import me.mikun.live2d.ex.model.Live2DUserModelImpl.MotionGroup.IDLE
 import me.mikun.live2d.framework.plugin.motion.IBeganMotionCallback
 import me.mikun.live2d.framework.plugin.motion.IFinishedMotionCallback
-import me.mikun.live2d.ex.model.motion.motion.Live2DExpressionManager
 import me.mikun.live2d.framework.plugin.motion.motion.Live2DMotion
-import me.mikun.live2d.ex.model.motion.expression.Live2DMotionManager
-import kotlinx.serialization.json.Json
-import kotlin.collections.getOrPut
-import kotlin.collections.iterator
 import kotlin.io.path.Path
 import kotlin.io.path.readBytes
 
 open class Live2DUserModelImpl : ALive2DUserModel() {
 
-    // TODO::
-//    var isUsingHighPrecisionMask: Boolean = false
     protected var motionManager: Live2DMotionManager = Live2DMotionManager()
     protected var expressionManager: Live2DExpressionManager = Live2DExpressionManager()
 
@@ -167,11 +163,11 @@ open class Live2DUserModelImpl : ALive2DUserModel() {
         expressionManager.update(model, deltaSeconds)
 
         // physics
-        // TODO:: fix
+        // TODO:: fix physics
 //        physics?.update(model, deltaSeconds)
 
         // userData
-        // TODO::
+        // TODO:: fix userData
 
         // eye blink
         if (!isMotionUpdated) {
@@ -209,15 +205,12 @@ open class Live2DUserModelImpl : ALive2DUserModel() {
         if (priority == MotionPriority.FORCE) {
             motionManager.reservePriority = priority.value
         } else if (!motionManager.reserveMotion(priority.value)) {
-            // TODO:: log
             return
         }
 
         motion.apply {
             beganMotionCallback = onBeganMotionHandler
             finishedMotionCallback = onFinishedMotionHandler
-
-
             //TODO:: sound
         }
         println("[APP] start motion: ${model}")

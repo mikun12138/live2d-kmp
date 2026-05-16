@@ -1,4 +1,4 @@
-package me.mikun.live2d
+package me.mikun.live2d.render
 
 import org.lwjgl.opengl.GL11
 import org.lwjgl.opengl.GL13

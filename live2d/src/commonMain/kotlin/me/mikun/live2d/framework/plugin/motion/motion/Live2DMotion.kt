@@ -491,7 +491,6 @@ class Live2DMotion : ALive2DMotion {
     /**
      * Enable/Disable loop
      */
-    // TODO::
     var loop: Boolean = false
 
     val eyeBlinkParameterIds: MutableList<Live2DId> = mutableListOf()

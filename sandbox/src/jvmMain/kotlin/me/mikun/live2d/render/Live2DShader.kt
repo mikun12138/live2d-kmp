@@ -1,53 +1,20 @@
-package me.mikun.sandbox
+package me.mikun.live2d.render
 
-import android.opengl.GLES20.GL_ARRAY_BUFFER
-import android.opengl.GLES20.GL_COMPILE_STATUS
-import android.opengl.GLES20.GL_DST_COLOR
-import android.opengl.GLES20.GL_FRAGMENT_SHADER
-import android.opengl.GLES20.GL_LINK_STATUS
-import android.opengl.GLES20.GL_ONE
-import android.opengl.GLES20.GL_ONE_MINUS_SRC_ALPHA
-import android.opengl.GLES20.GL_ONE_MINUS_SRC_COLOR
-import android.opengl.GLES20.GL_TEXTURE0
-import android.opengl.GLES20.GL_TEXTURE1
-import android.opengl.GLES20.GL_TEXTURE_2D
-import android.opengl.GLES20.GL_VERTEX_SHADER
-import android.opengl.GLES20.GL_ZERO
-import android.opengl.GLES20.glActiveTexture
-import android.opengl.GLES20.glAttachShader
-import android.opengl.GLES20.glBindTexture
-import android.opengl.GLES20.glBlendFuncSeparate
-import android.opengl.GLES20.glCompileShader
-import android.opengl.GLES20.glCreateProgram
-import android.opengl.GLES20.glCreateShader
-import android.opengl.GLES20.glDeleteShader
-import android.opengl.GLES20.glDetachShader
-import android.opengl.GLES20.glGetAttribLocation
-import android.opengl.GLES20.glGetProgramInfoLog
-import android.opengl.GLES20.glGetProgramiv
-import android.opengl.GLES20.glGetShaderInfoLog
-import android.opengl.GLES20.glGetShaderiv
-import android.opengl.GLES20.glGetUniformLocation
-import android.opengl.GLES20.glLinkProgram
-import android.opengl.GLES20.glShaderSource
-import android.opengl.GLES20.glUniform1i
-import android.opengl.GLES20.glUniform4f
-import android.opengl.GLES20.glUniformMatrix4fv
-import android.opengl.GLES20.glUseProgram
-import android.opengl.GLES30
-import android.opengl.GLES30.glBindVertexArray
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import me.mikun.live2d.ex.rendering.CubismBlendMode
 import me.mikun.live2d.ex.rendering.context.Live2DDrawableContext
 import me.mikun.live2d.framework.utils.math.bottom
 import me.mikun.live2d.framework.utils.math.right
 import me.mikun.live2d.framework.utils.math.csmRectF
+import me.mikun.live2d.render.context.Live2DModelClipContext
+import me.mikun.live2d.render.context.Live2DModelRenderContext
+import org.lwjgl.opengl.GL46.*
 
 object Live2DShader {
 
     private fun setupVertexArray(
         vertex: Live2DDrawableContext.Vertex,
-        vertexArray: GLRenderer.VertexArray,
+        vertexArray: VertexArray,
     ) {
         with(vertex) {
             glBindVertexArray(
@@ -58,25 +25,12 @@ object Live2DShader {
                     position
                  */
                 run {
-                    GLES30.glBindBuffer(GL_ARRAY_BUFFER, vertexArray.vboPosition)
-                    GLES30.glBufferSubData(
-                        GL_ARRAY_BUFFER,
-                        0,
-                        vertex.positionsArray.size * 4,
-                        vertexArray.positionsBuffer
-                    )
+
                 }
                 /*
                     uv
                  */
                 run {
-                    GLES30.glBindBuffer(GL_ARRAY_BUFFER, vertexArray.vboTexCoord)
-                    GLES30.glBufferSubData(
-                        GL_ARRAY_BUFFER,
-                        0,
-                        vertex.texCoordsArray.size * 4,
-                        vertexArray.texCoordsBuffer
-                    )
                 }
                 /*
                     indices
@@ -89,10 +43,10 @@ object Live2DShader {
     }
 
     fun drawSimple(
-        renderer: GLRenderer,
+        renderContext: Live2DModelRenderContext,
         drawableContext: Live2DDrawableContext,
     ) {
-        val texture = renderer.drawableTextureArray[drawableContext.index]
+        val texture = renderContext.drawableTextureArray[drawableContext.index]
         with(
             when {
                 texture.isPremultipliedAlpha -> CubismShaderSet.MASKED_INVERTED_PREMULTIPLIED_ALPHA
@@ -103,7 +57,7 @@ object Live2DShader {
 
             setupVertexArray(
                 drawableContext.vertex,
-                renderer.drawableVertexArrayArray[drawableContext.vertex.index]
+                renderContext.drawableVertexArrayArray[drawableContext.vertex.index]
             )
 
             /*
@@ -112,10 +66,8 @@ object Live2DShader {
             run {
                 glUniformMatrix4fv(
                     uniform(Uniform.MATRIX),
-                    1,
                     false,
-                    renderer.mvp.tr,
-                    0
+                    renderContext.mvp.tr,
                 )
             }
             /*
@@ -208,10 +160,11 @@ object Live2DShader {
     }
 
     fun drawMasked(
-        renderer: GLRenderer,
+        renderContext: Live2DModelRenderContext,
+        clipContext: Live2DModelClipContext,
         drawableContext: Live2DDrawableContext,
     ) {
-        val texture = renderer.drawableTextureArray[drawableContext.index]
+        val texture = renderContext.drawableTextureArray[drawableContext.index]
         with(
             run {
                 val isInvertedMask = drawableContext.isInvertedMask
@@ -229,18 +182,20 @@ object Live2DShader {
             glUseProgram(shaderProgram.id)
             setupVertexArray(
                 drawableContext.vertex,
-                renderer.drawableVertexArrayArray[drawableContext.vertex.index]
+                renderContext.drawableVertexArrayArray[drawableContext.vertex.index]
             )
 
             run {
-                val clipContext = renderer.drawableClipContextList[drawableContext.index]!!
+
+                val drawableClipContext =
+                    clipContext.drawableClipContextList[drawableContext.index]!!
                 /*
                     texture1
                  */
                 glActiveTexture(GL_TEXTURE1)
                 glBindTexture(
                     GL_TEXTURE_2D,
-                    renderer.offscreenSurfaces[clipContext.bufferIndex].colorBuffer[0]
+                    clipContext.offscreenSurfaces[drawableClipContext.bufferIndex].colorBuffer[0]
                 )
                 glUniform1i(
                     uniform(Uniform.TEXTURE1),
@@ -253,17 +208,15 @@ object Live2DShader {
                 // set up a matrix to convert View-coordinates to ClippingContext coordinates
                 glUniformMatrix4fv(
                     uniform(Uniform.CLIP_MATRIX),
-                    1,
                     false,
-                    clipContext.matrixForDraw.tr,
-                    0
+                    drawableClipContext.matrixForDraw.tr,
                 )
 
                 /*
                     colorChannel
                  */
                 run {
-                    val colorChannel = clipContext.colorChannel
+                    val colorChannel = drawableClipContext.colorChannel
                     glUniform4f(
                         uniform(Uniform.CHANNEL_FLAG),
                         colorChannel.r,
@@ -272,6 +225,7 @@ object Live2DShader {
                         colorChannel.a
                     )
                 }
+
             }
 
             /*
@@ -280,10 +234,8 @@ object Live2DShader {
             run {
                 glUniformMatrix4fv(
                     uniform(Uniform.MATRIX),
-                    1,
                     false,
-                    renderer.mvp.tr,
-                    0
+                    renderContext.mvp.tr,
                 )
             }
             /*
@@ -375,17 +327,17 @@ object Live2DShader {
     }
 
     fun setupMask(
-        renderer: GLRenderer,
+        renderContext: Live2DModelRenderContext,
         drawableContext: Live2DDrawableContext,
         clipContext: ALive2DRenderer.PreClip.ClipContext,
     ) {
-        val texture = renderer.drawableTextureArray[drawableContext.index]
+        val texture = renderContext.drawableTextureArray[drawableContext.index]
 
         with(CubismShaderSet.SETUP_MASK) {
             glUseProgram(shaderProgram.id)
             setupVertexArray(
                 drawableContext.vertex,
-                renderer.drawableVertexArrayArray[drawableContext.vertex.index]
+                renderContext.drawableVertexArrayArray[drawableContext.vertex.index]
             )
             /*
                 clipMatrix
@@ -393,10 +345,8 @@ object Live2DShader {
             run {
                 glUniformMatrix4fv(
                     uniform(Uniform.CLIP_MATRIX),
-                    1,
                     false,
-                    clipContext.matrixForMask.tr,
-                    0
+                    clipContext.matrixForMask.tr
                 )
             }
 
@@ -719,18 +669,15 @@ fun fwCompileShader(
     glCompileShader(shaderId)
 
     if (check) {
-        val status = IntArray(1)
-        glGetShaderiv(
+        glGetShaderi(
             shaderId,
-            GL_COMPILE_STATUS,
-            status,
-            0
-        )
-        if (status[0] == 0) {
+            GL_COMPILE_STATUS
+        ).takeIf { it != 0 } ?: run {
             throw IllegalStateException(
                 "Could not compile shader: ${
                     glGetShaderInfoLog(
                         shaderId,
+                        1024
                     )
                 }"
             )
@@ -745,18 +692,15 @@ fun fwLinkProgram(
     glLinkProgram(programId)
 
     if (check) {
-        val status = IntArray(1)
-        glGetProgramiv(
+        glGetProgrami(
             programId,
-            GL_LINK_STATUS,
-            status,
-            0
-        )
-        if (status[0] == 0) {
+            GL_LINK_STATUS
+        ).takeIf { it != 0 } ?: run {
             throw IllegalStateException(
                 "Could not link program: ${
                     glGetProgramInfoLog(
                         programId,
+                        1024
                     )
                 }"
             )

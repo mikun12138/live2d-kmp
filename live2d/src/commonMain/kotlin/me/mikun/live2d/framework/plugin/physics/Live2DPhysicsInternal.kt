@@ -32,13 +32,11 @@ class CubismPhysicsRig {
 
     /**
      * Gravity
-     * TODO:: ???
      */
     lateinit var gravity: CubismVector2
 
     /**
      * Wind
-     * TODO:: ???
      */
     lateinit var wind: CubismVector2
 

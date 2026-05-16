@@ -1,7 +1,8 @@
-package me.mikun.live2d
+package me.mikun.live2d.render.context
 
 import me.mikun.live2d.ex.rendering.context.ALive2DModelClipContext
 import me.mikun.live2d.ex.rendering.context.ALive2DModelRenderContext
+import me.mikun.live2d.render.Live2DOffscreenSurface
 
 class Live2DModelClipContext(
     offscreenSurfacesCount: Int,

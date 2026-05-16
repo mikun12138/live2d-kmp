@@ -1,29 +1,9 @@
-package me.mikun.sandbox
+package me.mikun.live2d.render
 
-import android.opengl.GLES20.GL_CLAMP_TO_EDGE
-import android.opengl.GLES20.GL_COLOR_ATTACHMENT0
-import android.opengl.GLES20.GL_COLOR_BUFFER_BIT
-import android.opengl.GLES20.GL_FRAMEBUFFER
-import android.opengl.GLES20.GL_LINEAR
-import android.opengl.GLES20.GL_RGBA
-import android.opengl.GLES20.GL_TEXTURE_2D
-import android.opengl.GLES20.GL_TEXTURE_MAG_FILTER
-import android.opengl.GLES20.GL_TEXTURE_MIN_FILTER
-import android.opengl.GLES20.GL_TEXTURE_WRAP_S
-import android.opengl.GLES20.GL_TEXTURE_WRAP_T
-import android.opengl.GLES20.GL_UNSIGNED_BYTE
-import android.opengl.GLES20.glBindFramebuffer
-import android.opengl.GLES20.glBindTexture
-import android.opengl.GLES20.glClear
-import android.opengl.GLES20.glClearColor
-import android.opengl.GLES20.glDeleteFramebuffers
-import android.opengl.GLES20.glFramebufferTexture2D
-import android.opengl.GLES20.glGenFramebuffers
-import android.opengl.GLES20.glGenTextures
-import android.opengl.GLES20.glTexImage2D
-import android.opengl.GLES20.glTexParameteri
 import me.mikun.live2d.ex.rendering.ALive2DOffscreenSurface
+import org.lwjgl.opengl.GL46.*
 import java.nio.ByteBuffer
+
 
 class Live2DOffscreenSurface : ALive2DOffscreenSurface() {
     override fun beginDraw(): Boolean {
@@ -63,8 +43,7 @@ class Live2DOffscreenSurface : ALive2DOffscreenSurface() {
         val ret = IntArray(size = 1)
 
         colorBuffer = IntArray(size = 1)
-
-        glGenTextures(1, colorBuffer, 0)
+        colorBuffer[0] = glGenTextures()
 
         glBindTexture(
             GL_TEXTURE_2D,
@@ -108,13 +87,11 @@ class Live2DOffscreenSurface : ALive2DOffscreenSurface() {
         )
 
         Live2DRenderState.pushFrameBuffer {
-            glGenFramebuffers(1, ret, 0)
-
+            ret[0] = glGenFramebuffers()
             glBindFramebuffer(
                 GL_FRAMEBUFFER,
                 ret[0]
             )
-
             glFramebufferTexture2D(
                 GL_FRAMEBUFFER,
                 GL_COLOR_ATTACHMENT0,
@@ -133,7 +110,7 @@ class Live2DOffscreenSurface : ALive2DOffscreenSurface() {
 
     fun destroyOffscreenSurface() {
         if (renderTexture != null) {
-            glDeleteFramebuffers(1, renderTexture!!, 0)
+            glDeleteFramebuffers(renderTexture!!)
             renderTexture = null
         }
     }

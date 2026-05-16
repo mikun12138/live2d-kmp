@@ -262,38 +262,6 @@ abstract class ALive2DRenderer {
 
     abstract class JustDraw : ALive2DRenderer() {
 
-
-        fun frame(
-            renderContext: ALive2DModelRenderContext,
-        ) {
-            draw(renderContext)
-        }
-
-        protected fun draw(
-            renderContext: ALive2DModelRenderContext,
-        ) {
-            val sortedDrawableContextArray = renderContext.drawableContextArray.sortedWith(
-                compareBy { it.renderOrder }
-            )
-
-
-            sortedDrawableContextArray.forEach { drawableContext ->
-                if (!drawableContext.isVisible) return@forEach
-
-                if (drawableContext.masks.isNotEmpty()) return@forEach
-
-                simpleDraw(
-                    renderContext,
-                    drawableContext
-                )
-            }
-        }
-
-        protected abstract fun maskDraw(
-            renderContext: ALive2DModelRenderContext,
-            drawableContext: Live2DDrawableContext,
-        )
-
         protected abstract fun simpleDraw(
             renderContext: ALive2DModelRenderContext,
             drawableContext: Live2DDrawableContext,

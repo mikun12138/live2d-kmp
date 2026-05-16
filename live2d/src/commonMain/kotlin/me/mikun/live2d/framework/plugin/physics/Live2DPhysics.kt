@@ -348,7 +348,6 @@ class Live2DPhysics {
                 currentRigOutputs[settingIndex].outputs[i] = outputValue
                 previousRigOutputs[settingIndex].outputs[i] = outputValue
 
-                // TODO:: 真的需要在这里set吗
                 model.setParameterValue(
                     model.getParameterIndexOrCreate(currentOutput.destination.id),
                     updateOutputParameterValue(

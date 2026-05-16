@@ -29,8 +29,8 @@ class Live2DDrawableContext(
 ) {
     val textureIndex = model.getDrawableTextureIndex(index)
 
-    val drawOrder = model.getDrawableDrawOrder(index)
-    val renderOrder = model.getDrawableRenderOrder(index)
+    var drawOrder = model.getDrawableDrawOrder(index)
+    var renderOrder = model.getDrawableRenderOrder(index)
     var opacity = model.getDrawableOpacity(index)
     val masks = model.getDrawableMask(index)
 
@@ -55,7 +55,6 @@ class Live2DDrawableContext(
 
 
     fun update() {
-        isVisible = model.getDrawableDynamicFlagIsVisible(index)
         visibilityDidChange = model.getDrawableDynamicFlagVisibilityDidChange(index)
         opacityDidChange = model.getDrawableDynamicFlagOpacityDidChange(index)
         drawOrderDidChange = model.getDrawableDynamicFlagDrawOrderDidChange(index)
@@ -63,7 +62,22 @@ class Live2DDrawableContext(
         vertexPositionDidChange = model.getDrawableDynamicFlagVertexPositionsDidChange(index)
         blendColorDidChange = model.getDrawableDynamicFlagBlendColorDidChange(index)
 
-        vertex.update()
+        if (visibilityDidChange) {
+            isVisible = model.getDrawableDynamicFlagIsVisible(index)
+        }
+        if (opacityDidChange) {
+            opacity = model.getDrawableOpacity(index)
+        }
+        if (drawOrderDidChange) {
+            drawOrder = model.getDrawableDrawOrder(index)
+        }
+        if (renderOrderDidChange) {
+            renderOrder = model.getDrawableRenderOrder(index)
+        }
+        if (vertexPositionDidChange) {
+            vertex.update()
+        }
+
         baseColor = model.getModelColorWithOpacity(opacity)
         multiplyColor = model.getDrawableMultiplyColors(index)!!.let {
             Live2DColor(

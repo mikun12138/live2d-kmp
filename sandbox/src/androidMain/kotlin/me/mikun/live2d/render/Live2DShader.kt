@@ -1,12 +1,49 @@
-package me.mikun.live2d
+package me.mikun.live2d.render
 
+import android.opengl.GLES20.GL_ARRAY_BUFFER
+import android.opengl.GLES20.GL_COMPILE_STATUS
+import android.opengl.GLES20.GL_DST_COLOR
+import android.opengl.GLES20.GL_FRAGMENT_SHADER
+import android.opengl.GLES20.GL_LINK_STATUS
+import android.opengl.GLES20.GL_ONE
+import android.opengl.GLES20.GL_ONE_MINUS_SRC_ALPHA
+import android.opengl.GLES20.GL_ONE_MINUS_SRC_COLOR
+import android.opengl.GLES20.GL_TEXTURE0
+import android.opengl.GLES20.GL_TEXTURE1
+import android.opengl.GLES20.GL_TEXTURE_2D
+import android.opengl.GLES20.GL_VERTEX_SHADER
+import android.opengl.GLES20.GL_ZERO
+import android.opengl.GLES20.glActiveTexture
+import android.opengl.GLES20.glAttachShader
+import android.opengl.GLES20.glBindTexture
+import android.opengl.GLES20.glBlendFuncSeparate
+import android.opengl.GLES20.glCompileShader
+import android.opengl.GLES20.glCreateProgram
+import android.opengl.GLES20.glCreateShader
+import android.opengl.GLES20.glDeleteShader
+import android.opengl.GLES20.glDetachShader
+import android.opengl.GLES20.glGetAttribLocation
+import android.opengl.GLES20.glGetProgramInfoLog
+import android.opengl.GLES20.glGetProgramiv
+import android.opengl.GLES20.glGetShaderInfoLog
+import android.opengl.GLES20.glGetShaderiv
+import android.opengl.GLES20.glGetUniformLocation
+import android.opengl.GLES20.glLinkProgram
+import android.opengl.GLES20.glShaderSource
+import android.opengl.GLES20.glUniform1i
+import android.opengl.GLES20.glUniform4f
+import android.opengl.GLES20.glUniformMatrix4fv
+import android.opengl.GLES20.glUseProgram
+import android.opengl.GLES30
+import android.opengl.GLES30.glBindVertexArray
 import me.mikun.live2d.ex.rendering.ALive2DRenderer
 import me.mikun.live2d.ex.rendering.CubismBlendMode
 import me.mikun.live2d.ex.rendering.context.Live2DDrawableContext
 import me.mikun.live2d.framework.utils.math.bottom
 import me.mikun.live2d.framework.utils.math.right
 import me.mikun.live2d.framework.utils.math.csmRectF
-import org.lwjgl.opengl.GL46.*
+import me.mikun.live2d.render.context.Live2DModelClipContext
+import me.mikun.live2d.render.context.Live2DModelRenderContext
 
 object Live2DShader {
 
@@ -23,12 +60,25 @@ object Live2DShader {
                     position
                  */
                 run {
-
+                    GLES30.glBindBuffer(GL_ARRAY_BUFFER, vertexArray.vboPosition)
+                    GLES30.glBufferSubData(
+                        GL_ARRAY_BUFFER,
+                        0,
+                        vertex.positionsArray.size * 4,
+                        vertexArray.positionsBuffer
+                    )
                 }
                 /*
                     uv
                  */
                 run {
+                    GLES30.glBindBuffer(GL_ARRAY_BUFFER, vertexArray.vboTexCoord)
+                    GLES30.glBufferSubData(
+                        GL_ARRAY_BUFFER,
+                        0,
+                        vertex.texCoordsArray.size * 4,
+                        vertexArray.texCoordsBuffer
+                    )
                 }
                 /*
                     indices
@@ -64,8 +114,10 @@ object Live2DShader {
             run {
                 glUniformMatrix4fv(
                     uniform(Uniform.MATRIX),
+                    1,
                     false,
                     renderContext.mvp.tr,
+                    0
                 )
             }
             /*
@@ -204,8 +256,10 @@ object Live2DShader {
                 // set up a matrix to convert View-coordinates to ClippingContext coordinates
                 glUniformMatrix4fv(
                     uniform(Uniform.CLIP_MATRIX),
+                    1,
                     false,
                     drawableClipContext.matrixForDraw.tr,
+                    0
                 )
 
                 /*
@@ -229,8 +283,10 @@ object Live2DShader {
             run {
                 glUniformMatrix4fv(
                     uniform(Uniform.MATRIX),
+                    1,
                     false,
                     renderContext.mvp.tr,
+                    0
                 )
             }
             /*
@@ -340,8 +396,10 @@ object Live2DShader {
             run {
                 glUniformMatrix4fv(
                     uniform(Uniform.CLIP_MATRIX),
+                    1,
                     false,
-                    clipContext.matrixForMask.tr
+                    clipContext.matrixForMask.tr,
+                    0
                 )
             }
 
@@ -664,15 +722,18 @@ fun fwCompileShader(
     glCompileShader(shaderId)
 
     if (check) {
-        glGetShaderi(
+        val status = IntArray(1)
+        glGetShaderiv(
             shaderId,
-            GL_COMPILE_STATUS
-        ).takeIf { it != 0 } ?: run {
+            GL_COMPILE_STATUS,
+            status,
+            0
+        )
+        if (status[0] == 0) {
             throw IllegalStateException(
                 "Could not compile shader: ${
                     glGetShaderInfoLog(
                         shaderId,
-                        1024
                     )
                 }"
             )
@@ -687,15 +748,18 @@ fun fwLinkProgram(
     glLinkProgram(programId)
 
     if (check) {
-        glGetProgrami(
+        val status = IntArray(1)
+        glGetProgramiv(
             programId,
-            GL_LINK_STATUS
-        ).takeIf { it != 0 } ?: run {
+            GL_LINK_STATUS,
+            status,
+            0
+        )
+        if (status[0] == 0) {
             throw IllegalStateException(
                 "Could not link program: ${
                     glGetProgramInfoLog(
                         programId,
-                        1024
                     )
                 }"
             )
